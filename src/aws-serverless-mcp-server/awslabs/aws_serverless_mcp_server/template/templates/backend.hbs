@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: {{description}}
+
+Resources:
+  # API Gateway
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: {{backend_configuration.stage}}
+      {{#ifEquals backend_configuration.cors true}}
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      {{/ifEquals}}
+
+  # Lambda Function with Web Adapter
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: {{backend_configuration.built_artifacts_path}}
+      Handler: {{backend_configuration.startup_script}}
+      Runtime: {{backend_configuration.runtime}}
+      MemorySize: {{backend_configuration.memory_size}}
+      Timeout: {{backend_configuration.timeout}}
+      Architectures:
+        - {{backend_configuration.architecture}}
+      Environment:
+        Variables:
+          PORT: {{backend_configuration.port}}
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          {{#eachInObject backend_configuration.environment}}
+          {{key}}: {{value}}
+          {{/eachInObject}}
+          {{#ifExists backend_configuration.database_configuration}}
+          TABLE_NAME: {{backend_configuration.database_configuration.table_name}}
+          {{/ifExists}}
+      {{#ifExists backend_configuration.database_configuration}}
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ApiDatabaseTable
+      {{/ifExists}}
+      Layers:
+        {{#ifEquals backend_configuration.architecture "arm64"}}
+        - !Sub "arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerArm64:25"
+        {{else}}
+        - !Sub "arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerX86:25"
+        {{/ifEquals}}
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /{proxy+}
+            Method: ANY
+        RootApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /
+            Method: ANY
+
+  {{#ifExists backend_configuration.database_configuration}}
+  # DynamoDB Table
+  ApiDatabaseTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: {{backend_configuration.database_configuration.table_name}}
+      BillingMode: {{#ifEquals backend_configuration.database_configuration.billing_mode "PROVISIONED"}}PROVISIONED{{else}}PAY_PER_REQUEST{{/ifEquals}}
+      AttributeDefinitions:
+        {{#each backend_configuration.database_configuration.attribute_definitions}}
+        - AttributeName: {{name}}
+          AttributeType: {{type}}
+        {{/each}}
+      KeySchema:
+        {{#each backend_configuration.database_configuration.key_schema}}
+        - AttributeName: {{name}}
+          KeyType: {{type}}
+        {{/each}}
+      {{#ifEquals backend_configuration.database_configuration.billing_mode "PROVISIONED"}}
+      ProvisionedThroughput:
+        ReadCapacityUnits: {{backend_configuration.database_configuration.read_capacity}}
+        WriteCapacityUnits: {{backend_configuration.database_configuration.write_capacity}}
+      {{/ifEquals}}
+  {{/ifExists}}
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/{{backend_configuration.stage}}/"
+  
+  FunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt ApiFunction.Arn
+  
+  FunctionName:
+    Description: Lambda function name
+    Value: !Ref ApiFunction
+  
+  {{#ifExists backend_configuration.database_configuration}}
+  table_name:
+    Description: Name of the DynamoDB table
+    Value: !Ref ApiDatabaseTable
+  {{/ifExists}}
