@@ -19,6 +19,7 @@ import sys
 from mcp.server.fastmcp import Context, FastMCP
 from typing import Dict, Any
 
+from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from awslabs.aws_serverless_mcp_server.resources.template_details import handle_template_details
 from awslabs.aws_serverless_mcp_server.resources.deployment_details import handle_deployment_details
 from awslabs.aws_serverless_mcp_server.resources.deployment_list import handle_deployments_list
@@ -26,14 +27,12 @@ from awslabs.aws_serverless_mcp_server.resources.template_list import handle_tem
 
 # Import all implementation modules
 from awslabs.aws_serverless_mcp_server.tools.sam import (
-    sam_build, sam_init, sam_deploy, sam_local_invoke
+    sam_build, sam_init, sam_deploy, sam_local_invoke, sam_logs, sam_pipeline
 )
 from awslabs.aws_serverless_mcp_server.tools.webapps.deploy_webapp import deploy_webapp
-from awslabs.aws_serverless_mcp_server.tools.webapps.configure_domain import configure_domain
-from awslabs.aws_serverless_mcp_server.tools.webapps.get_logs import get_logs
 from awslabs.aws_serverless_mcp_server.tools.webapps.get_metrics import get_metrics
-from awslabs.aws_serverless_mcp_server.tools.webapps.update_frontend import update_frontend
-from awslabs.aws_serverless_mcp_server.tools.webapps.deployment_help import deployment_help as get_deployment_help
+from awslabs.aws_serverless_mcp_server.tools.webapps.update_webapp_frontend import update_webapp_frontend
+from awslabs.aws_serverless_mcp_server.tools.webapps.webapp_deployment_help import webapp_deployment_help
 from awslabs.aws_serverless_mcp_server.tools.guidance.get_iac_guidance import get_iac_guidance
 from awslabs.aws_serverless_mcp_server.tools.guidance.get_lambda_event_schemas import get_lambda_event_schemas
 from awslabs.aws_serverless_mcp_server.tools.guidance.get_lambda_guidance import get_lambda_guidance
@@ -42,40 +41,66 @@ from awslabs.aws_serverless_mcp_server.tools.guidance.deploy_serverless_app_help
 
 # Import all model classes
 from awslabs.aws_serverless_mcp_server.models import (
-    DeployServerlessAppHelpRequest, SamBuildRequest, SamInitRequest, SamDeployRequest,
+    DeployServerlessAppHelpRequest, SamBuildRequest, SamInitRequest, SamDeployRequest, SamLogsRequest, SamPipelineRequest,
     GetIaCGuidanceRequest, GetLambdaEventSchemasRequest, GetLambdaGuidanceRequest,
-    GetServerlessTemplatesRequest, DeployWebAppRequest, ConfigureDomainRequest, GetLogsRequest, GetMetricsRequest, UpdateFrontendRequest,
-    SamLocalInvokeRequest, DeploymentHelpRequest
+    GetServerlessTemplatesRequest, DeployWebAppRequest, GetMetricsRequest, UpdateFrontendRequest,
+    SamLocalInvokeRequest, WebappDeploymentHelpRequest
 )
 
 mcp = FastMCP(
     'awslabs.aws-serverless-mcp-server',
-    instructions="""Use Serverless MCP server to deploy applications onto AWS Serverless""",
+    instructions="""AWS Serverless MCP
+    
+    Use Serverless MCP server to deploy applications onto AWS Serverless. This server implements
+    a set of tools and resources that can be used to deploy and test serverless applications.
+
+    ## Features
+    - Deploy existing web applications (fullstack, frontend, and backend) onto AWS Serverless.
+    - Intialize, build, and deploy serverless applications with Serverless Application Model (SAM) CLI
+    - View and logs and metrics of serverless resources
+    - Get guidance on AWS Lambda use-cases, selecting an IaC framework, and deploying onto AWS Serverless
+    - Get sample SAM templates of serverless applications from Serverless Land
+    - Get event source schema types for Lambda runtimes
+
+    ## Prerequisites
+    1. Have an AWS account
+    2. Configure AWS CLI with your credentials and profile. Set AWS_PROFILE environment variable if not using default
+    3. Set AWS_REGION environment variable if not using default
+    4. Install AWS CLI and SAM CLI
+    """,
     dependencies=['pydantic', 'boto3'],
 )
 
 # Template resources
-@mcp.resource("template://list")
+@mcp.resource("template://list",
+              description="""List of deployment templates that can be used with the deploy_webapp tool.
+                Includes frontend, backend, and fullstack templates. """)
 def template_list() -> Dict[str, Any]:
     """List of available deployment templates."""
     return handle_template_list()
 
-@mcp.resource("template://{template_name}")
+@mcp.resource("template://{template_name}",
+              description="""Returns details of a deployment template including compatible frameworks,
+                template schema, and example usage of the template""")
 def template_details(template_name: str) -> Dict[str, Any]:
-    """Deatils of a deployment template."""
+    """Details of a deployment template."""
     return handle_template_details(template_name)
 
 # Deployment resources
-@mcp.resource("deployment://list")
+@mcp.resource("deployment://list",
+              description="Lists CloudFormation deployments managed by this MCP server.")
 async def deployment_list() -> Dict[str, Any]:
     """List of all AWS deployments managed by the MCP server."""
     return await handle_deployments_list()
 
-@mcp.resource("deployment://{project_name}")
+@mcp.resource("deployment://{project_name}",
+              description="""Returns details of a CloudFormation deployment managed by this MCP server, including
+                deployment type, status, and stack outputs.""")
 async def deployment_details(project_name: str) -> Dict[str, Any]:
     """Get details about a specific deployment."""
     return await handle_deployment_details(project_name)
 
+# SAM Tools
 @mcp.tool(description="""
     Builds a serverless application using AWS SAM (Serverless Application Model) CLI.
     This command compiles your Lambda functions, creates deployment artifacts, and prepares your application for deployment.
@@ -93,7 +118,10 @@ async def sam_build_tool(
 
 @mcp.tool(description= """
     Initializes a serverless application using AWS SAM (Serverless Application Model) CLI.
-    This command creates a new SAM project with the specified configuration.
+    This tool creates a new SAM project that consists of:
+    - An AWS SAM template to define your infrastructure code
+    - A folder structure that organizes your application
+    - Configuration for your AWS Lambda functions
     You should have AWS SAM CLI installed and configured in your environment.
     """)
 async def sam_init_tool(
@@ -107,7 +135,7 @@ async def sam_init_tool(
 @mcp.tool(description="""
     Deploys a serverless application using AWS SAM (Serverless Application Model) CLI.
     This command deploys your application to AWS CloudFormation.
-    Before running this tool, the application should already be built with 'sam_build' tool.
+    Every time an appplication is deployed, it should be built with 'sam_build' tool before.
     You should have AWS SAM CLI installed and configured in your environment.
     """)
 async def sam_deploy_tool(
@@ -119,6 +147,45 @@ async def sam_deploy_tool(
     await sam_deploy(request)
     return f"SAM deployment completed successfully for application '{request.application_name}'"
 
+@mcp.tool(description="""
+        Fetches CloudWatch logs that are generated by resources in a SAM application. Use this tool
+        to help debug invocation failures and find root causes.""")
+async def sam_logs_tool(
+    ctx: Context,
+    request: SamLogsRequest
+) -> Dict[str, Any]:
+    await ctx.info(f"Fetching logs for Lambda function '{request.function_name}' in {request.project_directory}")
+    response = await sam_logs(request)
+    return response
+
+@mcp.tool(description="""
+    Locally invokes a Lambda function using AWS SAM CLI.
+    This command runs your Lambda function locally in a Docker container that simulates the AWS Lambda environment.
+    You can use this tool to test your Lambda functions before deploying them to AWS.
+    """)
+async def sam_local_invoke_tool(
+    ctx: Context,
+    request: SamLocalInvokeRequest
+) -> Dict[str, Any]:
+    await ctx.info(f"Locally invoking Lambda function '{request.function_name}' in {request.project_directory}")
+    response = await sam_local_invoke(request)
+    return response
+
+@mcp.tool(description="""
+    Sets up CI/CD pipeline configuration for AWS SAM applications.
+    This tool bootstraps the necessary resources for CI/CD pipelines and generates configuration files.
+    It supports multiple CI/CD providers including GitHub Actions, GitLab CI/CD, Bitbucket Pipelines, and Jenkins.
+    Use this tool to automate the deployment of your serverless applications.
+    """)
+async def sam_pipeline_tool(
+    ctx: Context,
+    request: SamPipelineRequest
+) -> Dict[str, Any]:
+    await ctx.info(f"Setting up CI/CD pipeline for SAM project in {request.project_directory} using {request.cicd_provider}")
+    response = await sam_pipeline(request)
+    return response
+
+# Guidance Tools
 @mcp.tool(description="""
     Use this tool to determine if AWS Lambda is suitable platform to deploy an application.
     Returns a comprehensive guide on when to choose AWS Lambda as a deployment platform.
@@ -161,9 +228,9 @@ async def get_lambda_event_schemas_tool(
     return response
 
 @mcp.tool(description="""
-    Deploy web applications to AWS, including database resources like DynamoDB tables. This tool uses the Lambda Web Adapter framework
-    so that applications can be written in a standard web framework like Express or Next.js can be easily deployed to Lambda. You do not need to use
-    setup the code with any other adapter framework when using this tool.
+    Deploy web applications to AWS Serverless, including Lambda as compute, DynamoDB as databases, API GW, ACM Certificates, and Route 53 DNS records.
+    This tool uses the Lambda Web Adapter framework so that applications can be written in a standard web framework like Express or Next.js can be easily
+    deployed to Lambda. You do not need to use integrate the code with any adapter framework when using this tool.
     """)
 async def deploy_webapp_tool(
     ctx: Context,
@@ -174,48 +241,21 @@ async def deploy_webapp_tool(
     return response
 
 @mcp.tool(description="""
-    Configure a custom domain for a deployed web application.
-    This tool updates a CloudFront distribution to use a custom domain and optionally creates a Route 53 record.
-    """)
-async def configure_domain_tool(
-    ctx: Context,
-    request: ConfigureDomainRequest
-) -> Dict[str, Any]:
-    
-    await ctx.info(f"Configuring custom domain {request.domain_name} for project {request.project_name}")
-    response = await configure_domain(request)
-    return response
-
-@mcp.tool(description="""
-    Get help information about web application deployments or deployment status.
-    If project_name is provided, returns the status of the deployment.
+    Get help information about using the deploy_webapp tool to perform web application deployments.
     If deployment_type is provided, returns help information for that deployment type.
-    If neither is provided, returns a list of deployments and general help information.
+    Otherwise, returns a list of deployments and general help information.
     """)
-async def deployment_help_tool(
+async def webapp_deployment_help(
     ctx: Context,
-    request: DeploymentHelpRequest
+    request: WebappDeploymentHelpRequest
 ) -> Dict[str, Any]:
     await ctx.info(f"Getting deployment help for {request.deployment_type}")
-    response = await get_deployment_help(request)
-    return response
-
-@mcp.tool(description="""
-    Get logs from a deployed web application.
-    This tool retrieves CloudWatch logs for a deployed Lambda function.
-    """)
-async def get_logs_tool(
-    ctx: Context,
-    request: GetLogsRequest
-) -> Dict[str, Any]:
-    
-    await ctx.info(f"Getting logs for project {request.project_name}")
-    response = await get_logs(request)
+    response = await webapp_deployment_help(request)
     return response
 
 @mcp.tool(description= """
-    Get metrics from a deployed web application.
-    This tool retrieves CloudWatch metrics for a deployed application.
+    Retrieves CloudWatch metrics from a deployed web application. Use this tool get metrics
+    on error rates, latency, concurrency, etc.
     """)
 async def get_metrics_tool(
     ctx: Context,
@@ -229,12 +269,12 @@ async def get_metrics_tool(
     Update the frontend of a deployed web application.
     This tool uploads new frontend assets to S3 and optionally invalidates the CloudFront cache.
     """)
-async def update_frontend_tool(
+async def update_webapp_frontend(
     ctx: Context,
     request: UpdateFrontendRequest
 ) -> Dict[str, Any]:
     await ctx.info(f"Updating frontend for project {request.project_name}")
-    response = await update_frontend(request)
+    response = await update_webapp_frontend(request)
     return response
 
 @mcp.tool(description= """
@@ -270,18 +310,6 @@ async def get_serverless_templates_tool(
     response = await get_serverless_templates(request)
     return response
 
-@mcp.tool(description="""
-    Locally invokes a Lambda function using AWS SAM CLI.
-    This tool allows you to test your function locally before deploying it to AWS Lambda.
-    """)
-async def sam_local_invoke_tool(
-    ctx: Context,
-    request: SamLocalInvokeRequest
-) -> Dict[str, Any]:
-    await ctx.info(f"Locally invoking Lambda function '{request.function_name}' in {request.project_directory}")
-    response = await sam_local_invoke(request)
-    return response
-
 def main() -> int:
     """Entry point for the AWS Serverless MCP server.
     
@@ -292,18 +320,23 @@ def main() -> int:
         int: Exit code (0 for success, non-zero for failure)
     """
     parser = argparse.ArgumentParser(description="AWS Serverless MCP Server")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument("--log-level",  help="Log level (info, debug, error)")
+    parser.add_argument("--log-output", help="Absolute file path where logs are written")
+    parser.add_argument("--allow-write", help="Enables MCP tools that make write operations")
+    parser.add_argument("--allow-sensitive-data", help="Returns sensitive data from tools (e.g. logs, environment variables)")
     
     args = parser.parse_args()
     
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+    if args.log_level:
+        logger.set_log_level(level=args.log_level)
+    if args.log_output:
+        logger.set_log_directory(directory=args.log_output)
     
     try:
         mcp.run()
         return 0
     except Exception as e:
-        logger.error(f"Error starting MCP server: {e}")
+        logger.error(f"Error starting AWS Serverless MCP server: {e}")
         return 1
 
 

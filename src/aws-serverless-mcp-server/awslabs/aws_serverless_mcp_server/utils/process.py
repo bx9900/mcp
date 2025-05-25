@@ -18,8 +18,7 @@ async def run_command(cmd_list, cwd=None):
     """
     Run a terminal command with arguments asynchronously.
     Args:
-        command (str): The command to run
-        *args: Variable length argument list for command arguments
+        cmd_list (str): The command and arguments to run in a list
         cwd (str, optional): Working directory to run the command in
     Returns:
         tuple: (stdout, stderr)

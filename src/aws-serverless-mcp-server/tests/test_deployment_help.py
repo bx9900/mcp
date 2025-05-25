@@ -12,7 +12,7 @@
 
 import pytest
 from unittest.mock import patch
-from awslabs.aws_serverless_mcp_server.models import DeploymentHelpRequest
+from awslabs.aws_serverless_mcp_server.models import WebappDeploymentHelpRequest
 from awslabs.aws_serverless_mcp_server.tools.webapps.deployment_help import deployment_help
 
 
@@ -23,7 +23,7 @@ class TestDeploymentHelp:
     async def test_deployment_help_general(self):
         """Test getting general deployment help."""
         # Create a mock request with no specific deployment type
-        request = DeploymentHelpRequest(
+        request = WebappDeploymentHelpRequest(
             deployment_type="backend"
         )
 
@@ -54,7 +54,7 @@ class TestDeploymentHelp:
     async def test_deployment_help_backend(self):
         """Test getting backend deployment help."""
         # Create a mock request for backend deployment type
-        request = DeploymentHelpRequest(
+        request = WebappDeploymentHelpRequest(
             deployment_type="backend"
         )
 
@@ -92,7 +92,7 @@ class TestDeploymentHelp:
     async def test_deployment_help_frontend(self):
         """Test getting frontend deployment help."""
         # Create a mock request for frontend deployment type
-        request = DeploymentHelpRequest(
+        request = WebappDeploymentHelpRequest(
             deployment_type="frontend"
         )
 
@@ -129,7 +129,7 @@ class TestDeploymentHelp:
     async def test_deployment_help_fullstack(self):
         """Test getting fullstack deployment help."""
         # Create a mock request for fullstack deployment type
-        request = DeploymentHelpRequest(
+        request = WebappDeploymentHelpRequest(
             deployment_type="fullstack"
         )
 
@@ -164,13 +164,13 @@ class TestDeploymentHelp:
     async def test_deployment_help_error(self):
         """Test deployment help with an error."""
         # Create a mock request
-        request = DeploymentHelpRequest(
+        request = WebappDeploymentHelpRequest(
             deployment_type="backend"
         )
 
         # Mock an exception
         with patch('awslabs.aws_serverless_mcp_server.tools.webapps.deployment_help.logger') as mock_logger:
-            with patch.object(DeploymentHelpRequest, 'deployment_type', side_effect=Exception("Test error")):
+            with patch.object(WebappDeploymentHelpRequest, 'deployment_type', side_effect=Exception("Test error")):
                 # Call the function
                 result = await deployment_help(request)
 

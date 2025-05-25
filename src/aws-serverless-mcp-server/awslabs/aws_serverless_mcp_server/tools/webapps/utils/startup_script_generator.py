@@ -40,7 +40,8 @@ async def generate_startup_script(
     additional_env: Optional[Dict[str, str]] = None
 ) -> str:
     """
-    Generate a startup script based on runtime and entry point.
+    Generate a startup script based on runtime and entry point. This script starts up your web server
+    so that beings listening for requests.
     
     Args:
         runtime: Lambda runtime (e.g., nodejs18.x, python3.9)

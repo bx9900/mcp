@@ -9,13 +9,13 @@ from awslabs.aws_serverless_mcp_server.utils.deployment_manager import get_stack
 
 async def handle_deployment_details(project_name: str) -> Dict[str, Any]:
     """
-    Get the status of a deployment.
+    Get the status of a CloudFormation deployment that is managed by this MCP server.
     
     Args:
         project_name: Name of the project
     
     Returns:
-        Dict: Deployment status with CloudFormation stack details
+        Dict: Deployment status with CloudFormation stack details and stack outputs
     """
     try:
         # Use deployment_metadata.py to get detailed stack information

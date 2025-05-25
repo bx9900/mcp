@@ -13,7 +13,6 @@
 
 """SAM logs tool for AWS Serverless MCP Server."""
 
-import subprocess
 from typing import Dict, Any
 from awslabs.aws_serverless_mcp_server.utils.process import run_command
 from awslabs.aws_serverless_mcp_server.models import SamLogsRequest
@@ -30,73 +29,51 @@ async def sam_logs(request: SamLogsRequest) -> Dict[str, Any]:
         Dict: Log retrieval result
     """
     try:
-        function_name = request.function_name
-        stack_name = request.stack_name
-        tail = request.tail
-        filter_pattern = request.filter
-        start_time = request.start_time
-        end_time = request.end_time
-        output = request.output
-        region = request.region
-        profile = request.profile
-        include_triggered_logs = request.include_triggered_logs
-        cw = request.cw
-        resources_dir = request.resources_dir
-        template_file = request.template_file
-        
         # Build the command arguments
         cmd = ['sam', 'logs']
-        cmd.extend(['--name', function_name])
+        cmd.extend(['--name', request.resource_name])
+
+        if request.config_env:
+            cmd.extend(["--config-env", request.config_env])
+            
+        if request.config_file:
+            cmd.extend(["--config-file", request.config_file])
         
-        if stack_name:
-            cmd.extend(['--stack-name', stack_name])
+        if request.cw_log_group:
+            for group in request.cw_log_group:
+                cmd.extend(['--cw-log-group', group])
+
+        if request.start_time:
+            cmd.extend(['--start-time', request.start_time])
         
-        if tail:
-            cmd.append('--tail')
+        if request.end_time:
+            cmd.extend(['--end-time', request.end_time])
         
-        if filter_pattern:
-            cmd.extend(['--filter', filter_pattern])
+        if request.save_params:
+            cmd.extend(['--save-params'])
+
+        if request.stack_name:
+            cmd.extend(['--stack-name', request.stack_name])
+
+        if request.profile:
+            cmd.extend(['--profile', request.profile])
         
-        if start_time:
-            cmd.extend(['--start-time', start_time])
-        
-        if end_time:
-            cmd.extend(['--end-time', end_time])
-        
-        if output:
-            cmd.extend(['--output', output])
-        
-        if region:
-            cmd.extend(['--region', region])
-        
-        if profile:
-            cmd.extend(['--profile', profile])
-        
-        if include_triggered_logs:
-            cmd.append('--include-triggered-logs')
-        
-        if cw:
-            cmd.append('--cw')
-        
-        if resources_dir:
-            cmd.extend(['--resources-dir', resources_dir])
-        
-        if template_file:
-            cmd.extend(['--template-file', template_file])
-        
+        if request.region:
+            cmd.extend(['--region', request.region])
+ 
         # Execute the command
         logger.info(f"Executing command: {' '.join(cmd)}")
         stdout, stderr = await run_command(cmd, cwd=request.project_directory)
         return {
             "success": True,
-            'message': f"Successfully fetched logs for Lambda function '{function_name}'",
+            'message': f"Successfully fetched logs for resource '{request.resource_name}'",
             "output": stdout.decode()
         } 
     except Exception as e:
         error_message = getattr(e, 'stderr', str(e))
-        logger.error(f"Error fetching logs for Lambda function: {error_message}")
+        logger.error(f"Error fetching logs for resource: {error_message}")
         return {
             'success': False,
-            'message': f"Failed to fetch logs for Lambda function: {error_message}",
+            'message': f"Failed to fetch logs for resource: {error_message}",
             'error': str(e)
         }

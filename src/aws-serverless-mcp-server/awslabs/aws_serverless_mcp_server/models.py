@@ -15,7 +15,6 @@
 
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Literal, Any
-from enum import Enum
 
 # SAM Models
 class SamInitRequest(BaseModel):
@@ -40,7 +39,8 @@ class SamInitRequest(BaseModel):
         ..., description="Dependency manager for the Lambda function"
     )
     application_template: str = Field(
-        "hello-world", description="Template for the SAM application, e.g., hello-world, quick-start, etc."
+        "hello-world", description="""Template for the SAM application, e.g., hello-world, quick-start, etc.
+            This parameter is required if location is not specified."""
     )
     application_insights: Optional[bool] = Field(
         False, description="Activate Amazon CloudWatch Application Insights monitoring"
@@ -55,7 +55,7 @@ class SamInitRequest(BaseModel):
         None, description="Environment name specifying default parameter values in the configuration file"
     )
     config_file: Optional[str] = Field(
-        None, description="Path to configuration file containing default parameter values"
+        None, description="Absolute path to configuration file containing default parameter values"
     )
     debug: Optional[bool] = Field(
         False, description="Turn on debug logging"
@@ -64,7 +64,8 @@ class SamInitRequest(BaseModel):
         None, description="Override custom parameters in the template's cookiecutter.json"
     )
     location: Optional[str] = Field(
-        None, description="Template or application location (Git, HTTP/HTTPS, zip file path)"
+        None, description="""Template or application location (Git, HTTP/HTTPS, zip file path).
+            This parameter is required if app_template is not specified."""
     )
     save_params: Optional[bool] = Field(
         False, description="Save parameters to the SAM configuration file"
@@ -86,7 +87,7 @@ class SamDeployRequest(BaseModel):
         ..., description="Absolute path to directory containing the SAM project (defaults to current directory)"
     )
     template_file: Optional[str] = Field(
-        None, description="Path to the template file (defaults to template.yaml)"
+        None, description="Absolute path to the template file (defaults to template.yaml)"
     )
     s3_bucket: Optional[str] = Field(
         None, description="S3 bucket to deploy artifacts to"
@@ -106,44 +107,20 @@ class SamDeployRequest(BaseModel):
     capabilities: Optional[List[Literal["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM", "CAPABILITY_AUTO_EXPAND"]]] = Field(
         ["CAPABILITY_IAM"], description="IAM capabilities required for the deployment"
     )
-    no_confirm_changeset: bool = Field(
-        True, description="Don't prompt for confirmation before deploying the changeset"
-    )
     config_file: Optional[str] = Field(
-        None, description="Path to the SAM configuration file"
+        None, description="Absolute path to the SAM configuration file"
     )
     config_env: Optional[str] = Field(
         None, description="Environment name specifying default parameter values in the configuration file"
     )
-    guided_deploy: bool = Field(
-        False, description="Whether to use guided deployment"
-    )
-    no_execute_changeset: bool = Field(
-        False, description="Don't execute the changeset (preview only)"
-    )
-    fail_on_empty_changeset: bool = Field(
-        False, description="Fail the deployment if the changeset is empty"
-    )
-    force_upload: bool = Field(
-        False, description="Force upload artifacts even if they exist in the S3 bucket"
-    )
-    use_json: bool = Field(
-        False, description="Use JSON for output"
-    )
     metadata: Optional[Dict[str, str]] = Field(
         None, description="Metadata to include with the stack"
-    )
-    notification_arns: Optional[List[str]] = Field(
-        None, description="SNS topic ARNs to notify about stack events"
     )
     tags: Optional[Dict[str, str]] = Field(
         None, description="Tags to apply to the stack"
     )
     resolve_s3: bool = Field(
         False, description="Automatically create an S3 bucket for deployment artifacts"
-    )
-    disable_rollback: bool = Field(
-        False, description="Disable rollback on deployment failure"
     )
     debug: bool = Field(
         False, description="Turn on debug logging"
@@ -159,10 +136,10 @@ class SamLocalInvokeRequest(BaseModel):
         ..., description="Name of the Lambda function to invoke locally"
     )
     template_file: Optional[str] = Field(
-        None, description="Path to the SAM template file (defaults to template.yaml)"
+        None, description="Absolute path to the SAM template file (defaults to template.yaml)"
     )
     event_file: Optional[str] = Field(
-        None, description="Path to a JSON file containing event data"
+        None, description="Absolute path to a JSON file containing event data"
     )
     event_data: Optional[str] = Field(
         None, description="JSON string containing event data (alternative to event_file)"
@@ -183,7 +160,7 @@ class SamLocalInvokeRequest(BaseModel):
         None, description="Override parameters from the template file"
     )
     log_file: Optional[str] = Field(
-        None, description="Path to a file where the function logs will be written"
+        None, description="Absolute path to a file where the function logs will be written"
     )
     layer_cache_basedir: Optional[str] = Field(
         None, description="Directory where the layers will be cached"
@@ -195,7 +172,7 @@ class SamLocalInvokeRequest(BaseModel):
         None, description="Additional arguments to pass to the debugger"
     )
     debugger_path: Optional[str] = Field(
-        None, description="Path to the debugger to use"
+        None, description="Absolute path to the debugger to use"
     )
     warm_containers: Optional[Literal["EAGER", "LAZY"]] = Field(
         None, description="Warm containers strategy"
@@ -210,23 +187,19 @@ class SamLocalInvokeRequest(BaseModel):
 class SamLogsRequest(BaseModel):
     """Request model for AWS SAM logs command."""
     
-    function_name: str = Field(
-        ..., description="Name of the Lambda function to fetch logs for"
+    resource_name: Optional[str] = Field(None, description="""Name of the resource to fetch logs for.
+            This can be the logical ID of the function resource in the AWS CloudFormation/AWS SAM template.
+            Multiple names can be provided by repeating the parameter again. If you don't specify this option,
+            AWS SAM fetches logs for all resources in the stack that you specify."""
     )
     stack_name: Optional[str] = Field(
         None, description="Name of the CloudFormation stack"
     )
-    tail: bool = Field(
-        False, description="Continuously poll for new logs"
-    )
-    filter: Optional[str] = Field(
-        None, description="Filter logs by pattern"
-    )
     start_time: Optional[str] = Field(
-        None, description="Fetch logs starting from this time (format: YYYY-MM-DD HH:MM:SS)"
+        None, description="Fetch logs starting from this time (format: 5mins ago, tomorrow, or YYYY-MM-DD HH:MM:SS)"
     )
     end_time: Optional[str] = Field(
-        None, description="Fetch logs up until this time (format: YYYY-MM-DD HH:MM:SS)"
+        None, description="Fetch logs up until this time (format: 5mins ago, tomorrow, or YYYY-MM-DD HH:MM:SS)"
     )
     output: Optional[Literal["text", "json"]] = Field(
         "text", description="Output format"
@@ -237,17 +210,18 @@ class SamLogsRequest(BaseModel):
     profile: Optional[str] = Field(
         None, description="AWS profile to use"
     )
-    include_triggered_logs: bool = Field(
-        False, description="Include logs from explicitly triggered Lambda functions"
+    cw_log_group: Optional[List[str]] = Field(None, description="""Use AWS CloudWatch to fetch logs. Includes logs from the CloudWatch Logs log groups that you specify
+            If you specify this option along with name, AWS SAM includes logs from the specified log groups in addition to logs
+            from the named resources."""
     )
-    cw: bool = Field(
-        False, description="Use AWS CloudWatch to fetch logs"
+    config_env: Optional[str] = Field(
+        None, description="Environment name specifying default parameter values in the configuration file"
     )
-    resources_dir: Optional[str] = Field(
-        None, description="Directory containing resources to fetch logs for"
+    config_file: Optional[str] = Field(
+        None, description="Absolute path to configuration file containing default parameter values"
     )
-    template_file: Optional[str] = Field(
-        None, description="Path to the SAM template file"
+    save_params: bool = Field(
+        False, description="Save parameters to the SAM configuration file"
     )
 
 class SamPipelineRequest(BaseModel):
@@ -278,7 +252,7 @@ class SamPipelineRequest(BaseModel):
         None, description="Environment name specifying default parameter values in the configuration file"
     )
     config_file: Optional[str] = Field(
-        None, description="Path to configuration file containing default parameter values"
+        None, description="Absolute path to configuration file containing default parameter values"
     )
     create_image_repository: Optional[bool] = Field(
         None, description="Specify whether to create an Amazon ECR image repository if none is provided"
@@ -350,77 +324,49 @@ class SamBuildRequest(BaseModel):
     project_directory: str = Field(
         ..., description="Absolute path to directory containing the SAM project (defaults to current directory)"
     )
-    resource_id: Optional[str] = Field(
-        None, description="ID of the resource to build (builds a single resource)"
-    )
     template_file: Optional[str] = Field(
-        None, description="Path to the template file (defaults to template.yaml)"
+        None, description="Absolute path to the template file (defaults to template.yaml)"
     )
     base_dir: Optional[str] = Field(
-        None, description="Resolve relative paths to function's source code with respect to this folder"
+        None, description="""Resolve relative paths to function's source code with respect to this folder.
+            Use this option if you want to change how relative paths to source code folders are resolved.
+            By default, relative paths are resolved with respect to the AWS SAM template's location."""
     )
     build_dir: Optional[str] = Field(
-        None, description="Path to a folder where the built artifacts will be stored"
-    )
-    cache_dir: Optional[str] = Field(
-        None, description="Path to a folder where the built artifacts will be cached"
-    )
-    cached: bool = Field(
-        False, description="Use cached build artifacts if available"
+        None, description="""The absolute path to a directory where the built artifacts are stored.
+            This directory and all of its content are removed with this option."""
     )
     use_container: bool = Field(
-        False, description="Use a container to build the function"
+        False, description="Use a container to build the function. Use this option if your function requires a specific runtime environment"
+        "or dependencies that are not available on the local machine. Docker must be installed."
     )
     no_use_container: bool = Field(
-        False, description="Run build in local machine instead of Docker container"
+        False, description="""Run build in local machine instead of Docker container.
+         You can specify this option multiple times. Each instance of this option takes a key-value pair,
+         where the key is the resource and environment variable, and the value is the environment variable's value.
+         For example: --container-env-var Function1.GITHUB_TOKEN=TOKEN1 --container-env-var Function2.GITHUB_TOKEN=TOKEN2."""
     )
     container_env_vars: Optional[Dict[str, str]] = Field(
-        None, description="Environment variables to pass to the container"
+        None, description="Environment variables to pass to the build container."
     )
     container_env_var_file: Optional[str] = Field(
-        None, description="Path to a JSON file containing container environment variables"
-    )
-    skip_pull_image: bool = Field(
-        False, description="Skip pulling the latest Docker image for the runtime"
-    )
-    build_method: Optional[str] = Field(
-        None, description="Build method to use"
-    )
-    build_in_source: bool = Field(
-        False, description="Build your project directly in the source folder"
-    )
-    no_build_in_source: bool = Field(
-        False, description="Do not build your project directly in the source folder"
-    )
-    beta_features: bool = Field(
-        False, description="Allow beta features"
-    )
-    no_beta_features: bool = Field(
-        False, description="Deny beta features"
+        None, description="""Absolute path to a JSON file containing container environment variables.
+            For more information about container environment variable files, see Container environment variable file."""
     )
     build_image: Optional[str] = Field(
-        None, description="URI of the container image to pull for the build"
+        None, description="""The URI of the container image that you want to pull for the build. By default, AWS SAM pulls the
+            container image from Amazon ECR Public. Use this option to pull the image from another location."""
     )
     debug: bool = Field(
         False, description="Turn on debug logging"
     )
-    docker_network: Optional[str] = Field(
-        None, description="Name or ID of an existing Docker network for Lambda containers"
-    )
-    exclude: Optional[List[str]] = Field(
-        None, description="Resources to exclude from the build"
-    )
     manifest: Optional[str] = Field(
-        None, description="Path to a custom dependency manifest file (e.g., package.json)"
-    )
-    mount_symlinks: bool = Field(
-        False, description="Mount symlinks in the build container"
-    )
-    parallel: bool = Field(
-        False, description="Build functions and layers in parallel"
+        None, description="""Absolute path to a custom dependency manifest file (e.g., package.json) instead of the default.
+         For example: 'ParameterKey=KeyPairName, ParameterValue=MyKey ParameterKey=InstanceType, ParameterValue=t1.micro."""
     )
     parameter_overrides: Optional[str] = Field(
-        None, description="CloudFormation parameter overrides encoded as key-value pairs"
+        None, description="""CloudFormation parameter overrides encoded as key-value pairs.
+        For example: 'ParameterKey=KeyPairName, ParameterValue=MyKey ParameterKey=InstanceType, ParameterValue=t1.micro'."""
     )
     region: Optional[str] = Field(
         None, description="AWS Region to deploy to (e.g., us-east-1)"
@@ -428,11 +374,8 @@ class SamBuildRequest(BaseModel):
     save_params: bool = Field(
         False, description="Save parameters to the SAM configuration file"
     )
-    skip_prepare_infra: bool = Field(
-        False, description="Skip preparation stage if no infrastructure changes"
-    )
-    terraform_project_root_path: Optional[str] = Field(
-        None, description="Path to Terraform configuration files"
+    profile: Optional[str] = Field(
+        None, description="AWS profile to use"
     )
 
 # Guidance and References models
@@ -505,7 +448,7 @@ class BackendConfiguration(BaseModel):
     """Backend configuration for web application deployment."""
     
     built_artifacts_path: str = Field(
-        ..., description="Path to pre-built backend artifacts"
+        ..., description="Absolute path to pre-built backend artifacts"
     )
     framework: Optional[str] = Field(
         None, description="Backend framework"
@@ -551,7 +494,7 @@ class FrontendConfiguration(BaseModel):
     """Frontend configuration for web application deployment."""
     
     built_assets_path: str = Field(
-        ..., description="Path to pre-built frontend assets"
+        ..., description="Absolute path to pre-built frontend assets"
     )
     framework: Optional[str] = Field(
         None, description="Frontend framework"
@@ -567,6 +510,9 @@ class FrontendConfiguration(BaseModel):
     )
     certificate_arn: Optional[str] = Field(
         None, description="ACM certificate ARN"
+    )
+    hosted_zone_id: Optional[str] = Field(
+        None, description="Route 53 hosted zone ID"
     )
 
 class DeployWebAppRequest(BaseModel):
@@ -589,31 +535,6 @@ class DeployWebAppRequest(BaseModel):
     )
     frontend_configuration: Optional[FrontendConfiguration] = Field(
         None, description="Frontend configuration"
-    )
-
-class GetLogsRequest(BaseModel):
-    """Request model for getting logs from a deployed web application."""
-    
-    project_name: str = Field(
-        ..., description="Project name"
-    )
-    start_time: Optional[str] = Field(
-        None, description="Start time for logs (ISO format)"
-    )
-    end_time: Optional[str] = Field(
-        None, description="End time for logs (ISO format)"
-    )
-    limit: Optional[int] = Field(
-        100, description="Maximum number of log events to return"
-    )
-    filter_pattern: Optional[str] = Field(
-        None, description="Filter pattern for logs"
-    )
-    log_group_name: Optional[str] = Field(
-        None, description="CloudWatch log group name (if not provided, will use default based on project name)"
-    )
-    region: Optional[str] = Field(
-        None, description="AWS region to use"
     )
 
 class GetMetricsRequest(BaseModel):
@@ -651,7 +572,7 @@ class UpdateFrontendRequest(BaseModel):
         ..., description="Project root"
     )
     built_assets_path: str = Field(
-        ..., description="Path to pre-built frontend assets"
+        ..., description="Absolute path to pre-built frontend assets"
     )
     invalidate_cache: Optional[bool] = Field(
         True, description="Whether to invalidate the CloudFront cache"
@@ -681,21 +602,6 @@ class ConfigureDomainRequest(BaseModel):
     region: Optional[str] = Field(
         None, description="AWS region to use"
     )
-class Runtime(str, Enum):
-    """Lambda runtime environments."""
-    NODEJS18_X = "nodejs18.x"
-    NODEJS20_X = "nodejs20.x"
-    NODEJS22_X = "nodejs22.x"
-    PYTHON39 = "python3.9"
-    PYTHON310 = "python3.10"
-    PYTHON311 = "python3.11"
-    PYTHON312 = "python3.12"
-    PYTHON313 = "python3.13"
-    JAVA17 = "java17"
-    JAVA21 = "java21"
-    DOTNET8 = "dotnet8"
-    RUBY32 = "ruby3.2"
-    GO1_X = "go1.x"
 
 # Lambda Models
 class InvokeFunctionRequest(BaseModel):
@@ -727,7 +633,7 @@ class ListFunctionsRequest(BaseModel):
         "ALL", description="Function version to list (ALL or $LATEST)"
     )
 
-class DeploymentHelpRequest(BaseModel):
+class WebappDeploymentHelpRequest(BaseModel):
     """Request model for getting deployment help or status."""
     
     deployment_type: Literal["backend", "frontend", "fullstack"] = Field(

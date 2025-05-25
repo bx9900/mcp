@@ -1,24 +1,28 @@
 # AWS Serverless MCP Server
 
-A Model Context Protocol (MCP) server that provides tools and resources for deploying and managing applications on AWS Lambda.
-
 ## Overview
 
-This MCP server enables AI assistants to deploy, update, invoke, and manage AWS Lambda functions and related serverless resources. It provides a set of tools and resources that can be used to interact with AWS Serverless services.
+This MCP server enables AI assistants to build and deploy applications onto AWS Serverless using Serverless Application Model (SAM). It implements a set of tools and resources that can be used to interact with serverless services.
 
-## Version
-
-Current version: 0.1.0
+## Features
+- Deploy existing web applications (fullstack, frontend, and backend) onto AWS Serverless using Lambda Web Adapter.
+- Intialize, build, and deploy Serverless Application Model (SAM) applications with SAM CLI
+- Access and logs and metrics of serverless resources
+- Build CI/CD piplines to automate deployments
+- Get guidance on AWS Lambda use-cases, selecting an IaC framework, and deployment process onto AWS Serverless
+- Get sample SAM templates of serverless applications from Serverless Land
+- Get schema types for different Lambda event sources and runtimes
 
 ## Prerequisites
-- Python 3.10 or higher
-- AWS SAM CLI
-- AWS CLI
-- AWS credentials configured
+- Have an AWS account with [credentials configured](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-files.html)
+- Install uv from [Astral](https://docs.astral.sh/uv/getting-started/installation/) or the [GitHub README](https://github.com/astral-sh/uv#installation)
+- Install Python 3.10 or newer using uv python install 3.10 (or a more recent version)
+- Install [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
+- Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
 ## Installation
 
-To use this MCP server with AI clients, add the following to your MCP configuration:
+To use this MCP server with an AWS CLI profile, add the following to your MCP configuration:
 ```json
 {
   "mcpServers": {
@@ -27,7 +31,34 @@ To use this MCP server with AI clients, add the following to your MCP configurat
       "args": [
         "awslabs.aws_serverless_mcp_server@latest"
       ],
-      "disabled": false
+      "env": {
+          "AWS_PROFILE": "your-aws-profile",
+          "AWS_REGION": "us-east-1",
+          "FASTMCP_LOG_LEVEL": "ERROR"
+        },
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
+```
+
+### Using Temporary Credentials
+```json
+{
+  "mcpServers": {
+    "awslabs.aws-serverless-mcp-server": {
+        "command": "uvx",
+        "args": ["awslabs.aws-serverless-mcp-server@latest"],
+        "env": {
+          "AWS_ACCESS_KEY_ID": "your-temporary-access-key",
+          "AWS_SECRET_ACCESS_KEY": "your-temporary-secret-key",
+          "AWS_SESSION_TOKEN": "your-session-token",
+          "AWS_REGION": "us-east-1",
+          "FASTMCP_LOG_LEVEL": "ERROR"
+        },
+        "disabled": false,
+        "autoApprove": []
     }
   }
 }
@@ -40,7 +71,7 @@ To make changes to this MCP locally and run it:
 1. Clone this repository:
    ```bash
    git clone https://github.com/awslabs/mcp.git
-   cd mcp/src/aws-lambda-mcp-server
+   cd mcp/src/aws-serverless-mcp-server
    ```
 
 2. Install dependencies:
@@ -61,23 +92,29 @@ To make changes to this MCP locally and run it:
 ```json
 {
   "mcpServers": {
-    "awslabs.aws-serverless-mcp": {
-      "command": "python",
-      "args": [
-        "-m", "awslabs.aws_serverless_mcp_server.server"
-      ],
-      "disabled": false
+    "awslabs.aws-serverless-mcp-server": {
+        "command": "mcp/src/aws-serverless-mcp-server/bin/awslabs.aws-serverless-mcp-server/",
+        "env": {
+          "AWS_PROFILE": "your-aws-profile",
+          "AWS_REGION": "us-east-1",
+          "FASTMCP_LOG_LEVEL": "ERROR"
+        },
+        "disabled": false,
+        "autoApprove": []
     }
   }
 }
 ```
 
-## Configuration
+## Environment Variables
 
-The server can be configured through environment variables:
+By default, the default AWS profile is used. However, the server can be configured through environment variables in the MCP configuration:
 
-- `AWS_REGION`: AWS region to use
-- `AWS_PROFILE`: AWS credentials profile to use
+- `AWS_PROFILE`: AWS CLI profile to use for credentials
+- `AWS_REGION`: AWS region to use (default: us-east-1)
+- `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`: Explicit AWS credentials (alternative to AWS_PROFILE)
+- `AWS_SESSION_TOKEN`: Session token for temporary credentials (used with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)
+- `FASTMCP_LOG_LEVEL`: Logging level (ERROR, WARNING, INFO, DEBUG)
 
 ## Available Resources
 
@@ -93,7 +130,31 @@ The server provides the following resources:
 
 ## Available Tools
 
-Exposes deployment capabilities as tools:
+The server exposes deployment capabilities as tools:
+
+### sam_init_tool
+
+Initializes a serverless application using AWS SAM (Serverless Application Model) CLI.
+
+**Parameters:**
+- `project_name` (required): Name of the SAM project to create
+- `runtime` (required): Runtime environment for the Lambda function
+- `project_directory` (required): Absolute path to directory where the SAM application will be initialized
+- `dependency_manager` (required): Dependency manager for the Lambda function
+- `architecture`: Architecture for the Lambda function
+- `package_type`: Package type for the Lambda function
+- `application_template`: Template for the SAM application, e.g., hello-world, quick-start, etc.
+- `application_insights`: Activate Amazon CloudWatch Application Insights monitoring
+- `no_application_insights`: Deactivate Amazon CloudWatch Application Insights monitoring
+- `base_image`: Base image for the application when package type is Image
+- `config_env`: Environment name specifying default parameter values in the configuration file
+- `config_file`: Path to configuration file containing default parameter values
+- `debug`: Turn on debug logging
+- `extra_content`: Override custom parameters in the template's cookiecutter.json
+- `location`: Template or application location (Git, HTTP/HTTPS, zip file path)
+- `save_params`: Save parameters to the SAM configuration file
+- `tracing`: Activate AWS X-Ray tracing for Lambda functions
+- `no_tracing`: Deactivate AWS X-Ray tracing for Lambda functions
 
 ### sam_build_tool
 
@@ -120,33 +181,9 @@ Builds a serverless application using AWS SAM (Serverless Application Model) CLI
 - `build_image`: URI of the container image to pull for the build
 - `debug`: Turn on debug logging
 
-### sam_init_tool
-
-Initializes a serverless application using AWS SAM (Serverless Application Model) CLI.
-
-**Parameters:**
-- `project_name` (required): Name of the SAM project to create
-- `runtime` (required): Runtime environment for the Lambda function
-- `project_directory` (required): Absolute path to directory where the SAM application will be initialized
-- `dependency_manager` (required): Dependency manager for the Lambda function
-- `architecture`: Architecture for the Lambda function
-- `package_type`: Package type for the Lambda function
-- `application_template`: Template for the SAM application, e.g., hello-world, quick-start, etc.
-- `application_insights`: Activate Amazon CloudWatch Application Insights monitoring
-- `no_application_insights`: Deactivate Amazon CloudWatch Application Insights monitoring
-- `base_image`: Base image for the application when package type is Image
-- `config_env`: Environment name specifying default parameter values in the configuration file
-- `config_file`: Path to configuration file containing default parameter values
-- `debug`: Turn on debug logging
-- `extra_content`: Override custom parameters in the template's cookiecutter.json
-- `location`: Template or application location (Git, HTTP/HTTPS, zip file path)
-- `save_params`: Save parameters to the SAM configuration file
-- `tracing`: Activate AWS X-Ray tracing for Lambda functions
-- `no_tracing`: Deactivate AWS X-Ray tracing for Lambda functions
-
 ### sam_deploy_tool
 
-Deploys a serverless application using AWS SAM (Serverless Application Model) CLI.
+Deploys a serverless application using AWS SAM (Serverless Application Model) CLI using CloudFormation.
 
 **Parameters:**
 - `application_name` (required): Name of the application to be deployed
@@ -161,7 +198,6 @@ Deploys a serverless application using AWS SAM (Serverless Application Model) CL
 - `no_confirm_changeset`: Don't prompt for confirmation before deploying the changeset
 - `config_file`: Path to the SAM configuration file
 - `config_env`: Environment name specifying default parameter values in the configuration file
-- `guided_deploy`: Whether to use guided deployment
 - `no_execute_changeset`: Don't execute the changeset (preview only)
 - `fail_on_empty_changeset`: Fail the deployment if the changeset is empty
 - `force_upload`: Force upload artifacts even if they exist in the S3 bucket
@@ -172,6 +208,84 @@ Deploys a serverless application using AWS SAM (Serverless Application Model) CL
 - `resolve_s3`: Automatically create an S3 bucket for deployment artifacts
 - `disable_rollback`: Disable rollback on deployment failure
 - `debug`: Turn on debug logging
+
+### sam_logs_tool
+
+Fetches CloudWatch logs that are generated by resources in a SAM application. Use this tool to help debug invocation failures and find root causes.
+
+**Parameters:**
+- `resource_name`: Name of the resource to fetch logs for (logical ID in CloudFormation/SAM template)
+- `stack_name`: Name of the CloudFormation stack
+- `filter`: Filter logs by pattern
+- `start_time`: Fetch logs starting from this time (format: YYYY-MM-DD HH:MM:SS)
+- `end_time`: Fetch logs up until this time (format: YYYY-MM-DD HH:MM:SS)
+- `output`: Output format (text or json)
+- `region`: AWS region to use
+- `profile`: AWS profile to use
+- `include_triggered_logs`: Include logs from explicitly triggered Lambda functions
+- `cw`: Use AWS CloudWatch to fetch logs
+- `resources_dir`: Directory containing resources to fetch logs for
+- `template_file`: Absolute path to the SAM template file
+
+### sam_pipeline_tool
+
+Sets up CI/CD pipeline configuration for AWS SAM applications.
+
+**Parameters:**
+- `project_directory` (required): Absolute path to directory containing the SAM project
+- `cicd_provider` (required): CI/CD provider to use (e.g., github-actions, gitlab-ci, bitbucket-pipelines, jenkins)
+- `bucket`: S3 bucket to store artifacts
+- `bootstrap_ecr`: Whether to bootstrap ECR repository
+- `bitbucket_repo_uuid`: Bitbucket repository UUID
+- `cloudformation_execution_role`: IAM role for CloudFormation execution
+- `confirm_changes`: Whether to confirm changes before deployment
+- `config_env`: Environment name specifying default parameter values in the configuration file
+- `config_file`: Path to the SAM configuration file
+- `create_image_repository`: Whether to create an ECR repository
+- `debug`: Turn on debug logging
+- `deployment_branch`: Git branch for deployments
+- `github_org`: GitHub organization name
+- `gitlab_group`: GitLab group name
+- `gitlab_project`: GitLab project name
+- `git_provider`: Git provider (e.g., github, gitlab, bitbucket)
+- `image_repository`: ECR repository URI
+- `interactive`: Whether to run in interactive mode
+- `oidc_client_id`: OIDC client ID
+- `oidc_provider`: OIDC provider
+- `oidc_provider_url`: OIDC provider URL
+- `output_dir`: Directory to output generated files
+- `parameter_overrides`: CloudFormation parameter overrides
+- `permissions_provider`: Permissions provider (e.g., iam, oidc)
+- `pipeline_execution_role`: IAM role for pipeline execution
+- `pipeline_user`: IAM user for pipeline execution
+- `profile`: AWS profile to use
+- `region`: AWS region to deploy to
+- `save_params`: Whether to save parameters to the SAM configuration file
+- `stage`: Deployment stage
+
+### sam_local_invoke_tool
+
+Locally invokes a Lambda function using AWS SAM CLI. The Lambda runtime environment is emulated locally in a Docker container.
+
+**Parameters:**
+- `project_directory` (required): Absolute path to directory containing the SAM project
+- `function_name` (required): Name of the Lambda function to invoke locally
+- `template_file`: Path to the SAM template file (defaults to template.yaml)
+- `event_file`: Path to a JSON file containing event data
+- `event_data`: JSON string containing event data (alternative to event_file)
+- `environment_variables`: Environment variables to pass to the function
+- `debug_port`: Port for debugging
+- `docker_network`: Docker network to run the Lambda function in
+- `container_env_vars`: Environment variables to pass to the container
+- `parameter`: Override parameters from the template file
+- `log_file`: Path to a file where the function logs will be written
+- `layer_cache_basedir`: Directory where the layers will be cached
+- `skip_pull_image`: Skip pulling the latest Docker image for the runtime
+- `debug_args`: Additional arguments to pass to the debugger
+- `debugger_path`: Path to the debugger to use
+- `warm_containers`: Warm containers strategy
+- `region`: AWS region to use
+- `profile`: AWS profile to use
 
 ### get_iac_guidance_tool
 
@@ -186,11 +300,11 @@ Returns guidance on selecting an infrastructure as code (IaC) platform to deploy
 
 ### get_lambda_event_schemas_tool
 
-Returns AWS Lambda event schemas for different event sources and programming languages.
+Returns AWS Lambda event schemas for different event sources and runtimes.
 
 **Parameters:**
 - `event_source` (required): Event source (e.g., S3, DynamoDB, API Gateway)
-- `runtime` (required): Programming language for the schema references (e.g., go, nodejs, python, java)
+- `runtime` (required): Runtime for the schema references (e.g., go, nodejs, python, java)
 
 ### get_lambda_guidance_tool
 
@@ -205,7 +319,7 @@ Returns guidance on when to choose AWS Lambda as a deployment platform.
 
 ### deploy_webapp_tool
 
-Deploy web applications to AWS, including database resources like DynamoDB tables. This tool uses the Lambda Web Adapter framework so that applications written in a standard web framework like Express or Next.js can be easily deployed to Lambda. You do not need to use any additional adapter framework when using this tool.
+Deploy web applications to AWS, including Lambda as compute, DynamoDB as database, API GW, ACM certificate, and Route 53 DNS records. This tool uses the Lambda Web Adapter framework so that applications written in a standard web framework like Express or Next.js can be easily deployed to Lambda. You do not need to use any additional adapter framework when using this tool.
 
 **Parameters:**
 - `deployment_type` (required): Type of deployment (backend, frontend, fullstack)
@@ -217,7 +331,7 @@ Deploy web applications to AWS, including database resources like DynamoDB table
 
 ### configure_domain_tool
 
-Configure a custom domain for a deployed web application.
+Configure a custom domain for a deployed web application and associates it with a CloudFront distribution.
 
 **Parameters:**
 - `project_name` (required): Project name
@@ -229,23 +343,10 @@ Configure a custom domain for a deployed web application.
 
 ### deployment_help_tool
 
-Get help information about deployments or deployment status.
+Get help information about deployments that can be done by the deploy_webapp tool.
 
 **Parameters:**
 - `deployment_type` (required): Type of deployment (backend, frontend, fullstack)
-
-### get_logs_tool
-
-Get logs from a deployed web application.
-
-**Parameters:**
-- `project_name` (required): Project name
-- `start_time`: Start time for logs (ISO format)
-- `end_time`: End time for logs (ISO format)
-- `limit`: Maximum number of log events to return
-- `filter_pattern`: Filter pattern for logs
-- `log_group_name`: CloudWatch log group name
-- `region`: AWS region to use
 
 ### get_metrics_tool
 
@@ -286,83 +387,163 @@ Returns example SAM templates from the Serverless Land GitHub repo.
 - `template_type` (required): Template type (e.g., API, ETL, Web)
 - `runtime`: Lambda runtime (e.g., nodejs18.x, python3.9)
 
-### sam_local_invoke_tool
-
-Locally invokes a Lambda function using AWS SAM CLI.
-
-**Parameters:**
-- `project_directory` (required): Absolute path to directory containing the SAM project
-- `function_name` (required): Name of the Lambda function to invoke locally
-- `template_file`: Path to the SAM template file (defaults to template.yaml)
-- `event_file`: Path to a JSON file containing event data
-- `event_data`: JSON string containing event data (alternative to event_file)
-- `environment_variables`: Environment variables to pass to the function
-- `debug_port`: Port for debugging
-- `docker_network`: Docker network to run the Lambda function in
-- `container_env_vars`: Environment variables to pass to the container
-- `parameter`: Override parameters from the template file
-- `log_file`: Path to a file where the function logs will be written
-- `layer_cache_basedir`: Directory where the layers will be cached
-- `skip_pull_image`: Skip pulling the latest Docker image for the runtime
-- `debug_args`: Additional arguments to pass to the debugger
-- `debugger_path`: Path to the debugger to use
-- `warm_containers`: Warm containers strategy
-- `region`: AWS region to use
-- `profile`: AWS profile to use
-
 ## Example Usage
 
 ### Creating a Lambda Function with SAM
 
-```python
-from awslabs.aws_serverless_mcp_server.models import SamInitRequest, SamBuildRequest, SamDeployRequest
+Example user prompt:
 
-# Initialize a new SAM project
-init_request = SamInitRequest(
-    project_name="my-sam-app",
-    runtime="python3.9",
-    project_directory="/path/to/project",
-    dependency_manager="pip",
-    application_template="hello-world"
-)
-await mcp_client.use_tool("awslabs.aws-serverless-mcp", "sam_init_tool", {"request": init_request.dict()})
-
-# Build the SAM project
-build_request = SamBuildRequest(
-    project_directory="/path/to/project"
-)
-await mcp_client.use_tool("awslabs.aws-serverless-mcp", "sam_build_tool", {"request": build_request.dict()})
-
-# Deploy the SAM project
-deploy_request = SamDeployRequest(
-    application_name="my-sam-app",
-    project_directory="/path/to/project",
-    capabilities=["CAPABILITY_IAM"],
-    no_confirm_changeset=True
-)
-await mcp_client.use_tool("awslabs.aws-serverless-mcp", "sam_deploy_tool", {"request": deploy_request.dict()})
 ```
+I want to create a new AWS Lambda function using SAM. Can you help me create a Python hello-world application called "my-sam-app" in the "/path/to/project" directory? After creating it, please build and deploy it with the necessary IAM capabilities. I don't need to review the changeset before deployment.
+```
+
+This prompt would trigger the AI assistant to:
+1. Initialize a new SAM project with the hello-world template
+2. Build the SAM application
+3. Deploy the application with CAPABILITY_IAM permissions
 
 ### Deploying a Web Application
 
-```python
-from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest, BackendConfiguration
+Example user prompt:
 
-request = DeployWebAppRequest(
-    deployment_type="backend",
-    project_name="my-web-app",
-    project_root="/path/to/project",
-    backend_configuration=BackendConfiguration(
-        built_artifacts_path="/path/to/artifacts",
-        runtime="nodejs18.x",
-        port=3000,
-        memory_size=512,
-        timeout=30
-    )
-)
+```
+I need to deploy a Node.js backend web application to AWS Lambda. The project is called "my-web-app" and is located at "/path/to/project". The built artifacts are in "/path/to/artifacts". The app runs on port 3000 and needs 512MB of memory with a 30-second timeout. Can you deploy this for me?
+```
 
-# Using the MCP client
-result = await mcp_client.use_tool("awslabs.aws-serverless-mcp", "deploy_webapp_tool", {"request": request.dict()})
+This prompt would trigger the AI assistant to use the deploy_webapp_tool to deploy the backend application with the specified configuration.
+
+### Individual SAM Tool Examples
+
+#### SAM Initialize
+
+Example user prompt:
+
+```
+Can you initialize a new SAM project for me? I want to create a Python application called "weather-api" using the "hello-world" template. Please set it up in my "/projects/aws-lambda" directory and use pip as the dependency manager.
+```
+
+#### SAM Build
+
+Example user prompt:
+
+```
+I need to build my SAM application located in "/projects/aws-lambda/weather-api". Can you build it for me? I'd like to use a container for the build process and cache the build artifacts for faster builds in the future.
+```
+
+#### SAM Deploy
+
+Example user prompt:
+
+```
+Please deploy my SAM application called "weather-api" from the "/projects/aws-lambda/weather-api" directory. I need to include IAM capabilities and I don't want to be prompted to confirm the changeset. Also, please use the "us-west-2" region for deployment.
+```
+
+#### SAM Local Invoke
+
+Example user prompt:
+
+```
+I want to test my Lambda function locally before deploying it. Can you invoke the "GetWeatherFunction" from my SAM project in "/projects/aws-lambda/weather-api"? Here's the test event data: {"city": "Seattle", "country": "USA"}
+```
+
+#### SAM Pipeline
+
+Example user prompt:
+
+```
+I need to set up a CI/CD pipeline for my SAM application in "/projects/aws-lambda/weather-api". Can you configure a GitHub Actions pipeline for me? I want to deploy from the "main" branch to the "us-west-2" region. Please create the necessary IAM roles and resources for the pipeline.
+```
+
+#### SAM Logs
+
+Example user prompt:
+
+```
+I need to debug an issue with my Lambda function in the "weather-api" stack. Can you fetch the CloudWatch logs for the "GetWeatherFunction" resource? I only want to see error messages from the last hour, and please format the output as JSON.
+```
+
+#### Retrieving Web Application Logs
+
+Example user prompt:
+
+```
+Can you show me the logs for my "weather-api" application that I deployed? I'm particularly interested in logs from the last 30 minutes, and I only need to see errors related to API requests. Please limit the results to 100 log entries.
+```
+
+This prompt would trigger the AI assistant to use the get_logs_tool to retrieve filtered logs from the deployed application.
+
+### Additional Tool Examples
+
+#### Lambda Guidance
+
+Example user prompt:
+
+```
+I'm building a REST API that needs to process requests with low latency. Would AWS Lambda be a good choice for this? I'm planning to use Python 3.9 and would like to understand the pros and cons of using Lambda for this use case.
+```
+
+#### IaC Guidance
+
+Example user prompt:
+
+```
+I need to deploy a serverless application to AWS that includes Lambda functions, API Gateway, and DynamoDB. Which Infrastructure as Code tool would be best for this? I'm familiar with both Python and JavaScript.
+```
+
+#### Lambda Event Schemas
+
+Example user prompt:
+
+```
+I'm writing a Lambda function in Node.js that will be triggered by S3 events. Can you show me what the event object structure looks like so I know how to parse it in my code?
+```
+
+#### Configure Custom Domain
+
+Example user prompt:
+
+```
+I've deployed my web application "my-portfolio" to AWS and now I want to use my custom domain "example.com" for it. I already have an ACM certificate with ARN "arn:aws:acm:us-east-1:123456789012:certificate/abcd1234" and my Route 53 hosted zone ID is "Z1234ABCD5678EF". Can you help me set this up?
+```
+
+#### Deployment Help
+
+Example user prompt:
+
+```
+I'm trying to deploy a fullstack application to AWS but I'm not sure how to structure it. Can you provide guidance on the best practices for deploying fullstack applications with serverless technologies?
+```
+
+#### Application Metrics
+
+Example user prompt:
+
+```
+Can you show me the performance metrics for my "user-auth-service" application? I'd like to see the error rate, latency, and invocation count for the past 24 hours.
+```
+
+#### Update Frontend
+
+Example user prompt:
+
+```
+I've made changes to the frontend of my "customer-portal" application. The updated files are in "/projects/customer-portal/build". Can you update the deployed frontend and invalidate the CloudFront cache so users see the changes immediately?
+```
+
+#### Serverless App Deployment Help
+
+Example user prompt:
+
+```
+I want to create an event-driven application that processes data from an S3 bucket. Can you guide me through the process of deploying this type of serverless application to AWS?
+```
+
+#### Serverless Templates
+
+Example user prompt:
+
+```
+I need examples of well-architected serverless applications. Can you show me some API templates for Python that I can use as a reference for my project?
 ```
 
 ## Links

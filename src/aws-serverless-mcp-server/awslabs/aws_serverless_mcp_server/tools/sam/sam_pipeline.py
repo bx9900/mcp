@@ -13,10 +13,10 @@
 
 """SAM pipeline tool for AWS Serverless MCP Server."""
 
-import subprocess
 from typing import Dict, Any
 from awslabs.aws_serverless_mcp_server.models import SamPipelineRequest
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.process import run_command
 
 async def sam_pipeline(request: SamPipelineRequest) -> Dict[str, Any]:
     """
@@ -156,14 +156,7 @@ async def sam_pipeline(request: SamPipelineRequest) -> Dict[str, Any]:
         
         # Execute the bootstrap command with 'yes' to auto-confirm prompts
         logger.info(f"Executing command: yes | {' '.join(cmd)}")
-        bootstrap_result = subprocess.run(
-            ['yes', '|'] + cmd,
-            cwd=project_directory,
-            capture_output=True,
-            text=True,
-            check=True,
-            shell=True
-        )
+        stdout, stderr = await run_command(['yes', '|'] + cmd, cwd=request.project_directory)
         
         # Generate init command for pipeline init
         init_cmd = ['sam', 'pipeline', 'init']
@@ -185,7 +178,7 @@ async def sam_pipeline(request: SamPipelineRequest) -> Dict[str, Any]:
         return {
             'success': True,
             'message': f"Successfully bootstrapped CI/CD pipeline resources for SAM application.",
-            'bootstrap_output': bootstrap_result.stdout,
+            'bootstrap_output': stdout.decode(),
             'next_steps': [
                 "Review the generated resources in your AWS account",
                 f"Run the following command to initialize the pipeline configuration: {init_command}",

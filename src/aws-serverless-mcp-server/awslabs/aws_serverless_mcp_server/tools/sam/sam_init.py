@@ -11,7 +11,6 @@
 # and limitations under the License.
 #
 
-import subprocess
 from typing import Dict, Any
 from awslabs.aws_serverless_mcp_server.models import SamInitRequest
 from awslabs.aws_serverless_mcp_server.utils.process import run_command
@@ -20,7 +19,11 @@ from awslabs.aws_serverless_mcp_server.utils.logger import logger
 async def sam_init(request: SamInitRequest) -> Dict[str, Any]:
     """
     Initialize a serverless application with an AWS SAM template
-
+    This tool creates a new SAM project that consists of:
+    - An AWS SAM template to define your infrastructure code
+    - A folder structure that organizes your application
+    - Configuration for your AWS Lambda functions
+    
     Parameters
     ----------
     request : SamInitRequest
@@ -45,23 +48,18 @@ async def sam_init(request: SamInitRequest) -> Dict[str, Any]:
         cmd.append("--no-interactive")
 
         # Add optional parameters if provided
-        if request.architecture:
-            cmd.extend(["--architecture", request.architecture])
-            
-        if request.package_type:
-            cmd.extend(["--package-type", request.package_type])
+        if request.application_insights:
+            cmd.append("--application-insights")
+             
+        if request.no_application_insights:
+            cmd.append("--no-application-insights")
             
         if request.application_template:
             cmd.extend(["--app-template", request.application_template])
             
-        if request.application_insights is not None:
-            if request.application_insights:
-                cmd.append("--application-insights")
-                
-        if request.no_application_insights is not None:
-            if request.no_application_insights:
-                cmd.append("--no-application-insights")
-                
+        if request.architecture:
+            cmd.extend(["--architecture", request.architecture])
+            
         if request.base_image:
             cmd.extend(["--base-image", request.base_image])
             
@@ -80,17 +78,20 @@ async def sam_init(request: SamInitRequest) -> Dict[str, Any]:
         if request.location:
             cmd.extend(["--location", request.location])
             
+        if request.no_tracing:
+            cmd.append("--no-tracing")
+            
+        if request.package_type:
+            cmd.extend(["--package-type", request.package_type])
+            
         if request.save_params:
             cmd.append("--save-params")
             
-        if request.tracing is not None:
-            if request.tracing:
-                cmd.append("--tracing")
-                
-        if request.no_tracing is not None:
-            if request.no_tracing:
-                cmd.append("--no-tracing")
-        
+        if request.tracing:
+            cmd.append("--tracing")
+
+        if request.no_tracing:
+            cmd.append("--no-tracing")
 
         stdout, stderr = await run_command(cmd, cwd=request.project_directory)
         return {

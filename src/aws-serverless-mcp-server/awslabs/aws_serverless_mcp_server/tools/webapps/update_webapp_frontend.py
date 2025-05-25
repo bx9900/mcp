@@ -144,7 +144,7 @@ async def sync_directory_to_s3(
     
     logger.info(f"Sync completed: {len(local_files)} files uploaded, {len(s3_objects) - len(local_file_keys)} files deleted")
 
-async def update_frontend(params: UpdateFrontendRequest) -> Dict[str, Any]:
+async def update_webapp_frontend(params: UpdateFrontendRequest) -> Dict[str, Any]:
     """
     Handle update-frontend tool invocation.
     

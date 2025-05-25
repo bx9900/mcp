@@ -14,7 +14,7 @@ import pytest
 from pydantic import ValidationError
 from awslabs.aws_serverless_mcp_server.models import (
     SamBuildRequest, SamInitRequest, SamDeployRequest, 
-    GetIaCGuidanceRequest, GetLambdaEventSchemasRequest, GetLambdaGuidanceRequest, Runtime
+    GetIaCGuidanceRequest, GetLambdaEventSchemasRequest, GetLambdaGuidanceRequest
 )
 
 
@@ -179,7 +179,6 @@ class TestSamDeployRequest:
             no_confirm_changeset=False,
             config_file="samconfig.toml",
             config_env="dev",
-            guided_deploy=True,
             no_execute_changeset=True,
             fail_on_empty_changeset=True,
             force_upload=True,
@@ -203,7 +202,6 @@ class TestSamDeployRequest:
         assert request.no_confirm_changeset is False
         assert request.config_file == "samconfig.toml"
         assert request.config_env == "dev"
-        assert request.guided_deploy is True
         assert request.no_execute_changeset is True
         assert request.fail_on_empty_changeset is True
         assert request.force_upload is True
@@ -304,21 +302,3 @@ class TestGetLambdaGuidanceRequest:
         assert request.include_examples is False
         assert request.advanced_options is True
 
-class TestRuntime:
-    """Tests for the Runtime enum."""
-
-    def test_runtime_values(self):
-        """Test Runtime enum values."""
-        assert Runtime.NODEJS18_X.value == "nodejs18.x"
-        assert Runtime.NODEJS20_X.value == "nodejs20.x"
-        assert Runtime.NODEJS22_X.value == "nodejs22.x"
-        assert Runtime.PYTHON39.value == "python3.9"
-        assert Runtime.PYTHON310.value == "python3.10"
-        assert Runtime.PYTHON311.value == "python3.11"
-        assert Runtime.PYTHON312.value == "python3.12"
-        assert Runtime.PYTHON313.value == "python3.13"
-        assert Runtime.JAVA17.value == "java17"
-        assert Runtime.JAVA21.value == "java21"
-        assert Runtime.DOTNET8.value == "dotnet8"
-        assert Runtime.RUBY32.value == "ruby3.2"
-        assert Runtime.GO1_X.value == "go1.x"

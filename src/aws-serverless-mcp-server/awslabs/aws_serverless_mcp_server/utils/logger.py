@@ -28,6 +28,10 @@ os.makedirs(DEFAULT_LOG_DIR, exist_ok=True)
 # Current log directory (can be overridden)
 LOG_DIR = DEFAULT_LOG_DIR
 
+def set_log_level(level: str):
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level.upper())
+
 def set_log_directory(directory: str) -> str:
     """
     Set a custom log directory.

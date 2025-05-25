@@ -14,7 +14,7 @@
 """Dependency Installer for AWS Serverless MCP Server.
 
 Handles installation of dependencies in the build artifacts directory
-based on the runtime environment.
+based on the runtime environment. Supports nodejs, python, java, dotnet, go, and ruby runtimes.
 """
 
 import os

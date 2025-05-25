@@ -5,7 +5,7 @@ from awslabs.aws_serverless_mcp_server.utils.deployment_manager import list_stac
 
 async def handle_deployments_list() -> Dict[str, Any]:
     """
-    List all deployments with CloudFormation stack details and format for MCP response.
+    List all deployments with CloudFormation stacks managed by this MCP server
     """
     try:
         logger.info('Deployment list resource called')

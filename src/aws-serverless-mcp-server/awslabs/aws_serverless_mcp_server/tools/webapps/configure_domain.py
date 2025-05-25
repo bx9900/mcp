@@ -13,7 +13,6 @@
 
 """Configure domain tool for AWS Serverless MCP Server."""
 
-import os
 import boto3
 from typing import Dict, Any
 from awslabs.aws_serverless_mcp_server.models import ConfigureDomainRequest
@@ -39,7 +38,7 @@ async def configure_domain(request: ConfigureDomainRequest) -> Dict[str, Any]:
         logger.info(f"Configuring custom domain {domain_name} for project {project_name}")
         
         # Initialize AWS clients
-        session = boto3.Session(region_name=region) if region else boto3.Session
+        session = boto3.Session(region_name=request.region) if request.region else boto3.Session
         cloudfront_client = session.client('cloudfront')
         route53_client = session.client('route53')
         

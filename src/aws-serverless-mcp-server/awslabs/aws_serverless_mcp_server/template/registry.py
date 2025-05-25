@@ -8,7 +8,7 @@ import os
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 
 class DeploymentTypes(str, Enum):
     """Deployment types supported by the MCP server"""

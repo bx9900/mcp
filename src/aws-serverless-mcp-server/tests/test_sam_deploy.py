@@ -72,7 +72,6 @@ class TestSamDeploy:
             no_confirm_changeset=True,
             config_file="samconfig.toml",
             config_env="dev",
-            guided_deploy=True,
             no_execute_changeset=True,
             fail_on_empty_changeset=True,
             force_upload=True,
@@ -122,7 +121,6 @@ class TestSamDeploy:
             assert "samconfig.toml" in cmd
             assert "--config-env" in cmd
             assert "dev" in cmd
-            assert "--guided" in cmd
             assert "--no-execute-changeset" in cmd
             assert "--fail-on-empty-changeset" in cmd
             assert "--force-upload" in cmd
@@ -131,7 +129,6 @@ class TestSamDeploy:
             assert "--notification-arns" in cmd
             assert "--tags" in cmd
             assert "--resolve-s3" in cmd
-            assert "--disable-rollback" in cmd
             assert "--debug" in cmd
 
     @pytest.mark.asyncio

@@ -15,9 +15,9 @@
 
 from typing import Dict, Any
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
-from awslabs.aws_serverless_mcp_server.models import DeploymentHelpRequest
+from awslabs.aws_serverless_mcp_server.models import WebappDeploymentHelpRequest
 
-async def deployment_help(request: DeploymentHelpRequest) -> Dict[str, Any]:
+async def webapp_deployment_help(request: WebappDeploymentHelpRequest) -> Dict[str, Any]:
     """
     Get help information about deployments or deployment status.
 
@@ -32,7 +32,7 @@ async def deployment_help(request: DeploymentHelpRequest) -> Dict[str, Any]:
 
         # General deployment help
         general_help = {
-            'description': 'The AWS Serverless MCP Server provides tools for deploying web applications to AWS serverless infrastructure.',
+            'description': 'The deploy_webapp tool can be used to deploy web applications to AWS serverless infrastructure.',
             'deploymentTypes': {
                 'backend': 'Deploy a backend application to AWS Lambda with API Gateway.',
                 'frontend': 'Deploy a frontend application to Amazon S3 and CloudFront.',
@@ -42,7 +42,7 @@ async def deployment_help(request: DeploymentHelpRequest) -> Dict[str, Any]:
                 '1. Initialize your project with the appropriate framework.',
                 '2. Build your application.',
                 '3. Deploy your application using the deploy_web_app_tool.',
-                '4. Check the deployment status using the deployment_help_tool.',
+                '4. Check the deployment status using the deployment://{name} resource .',
                 '5. Configure a custom domain using the configure_domain_tool (optional).',
                 '6. Update your frontend using the update_frontend_tool (optional).',
                 '7. Monitor your application using the get_logs_tool and get_metrics_tool.'
@@ -129,7 +129,7 @@ async def deployment_help(request: DeploymentHelpRequest) -> Dict[str, Any]:
             'content': help_info
         }
     except Exception as e:
-        logger.error(f"Error in deployment_help: {str(e)}")
+        logger.error(f"Error in webapp_deployment_help: {str(e)}")
         return {
             'success': False,
             'message': "Failed to get deployment help or status",
