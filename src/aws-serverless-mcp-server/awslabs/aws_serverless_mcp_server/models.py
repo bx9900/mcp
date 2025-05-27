@@ -382,21 +382,13 @@ class SamBuildRequest(BaseModel):
 class GetIaCGuidanceRequest(BaseModel):
     """Request model for getting Infrastructure as Code guidance."""
     
-    resource_type: str = Field(
-        ..., description="AWS resource type (e.g., Lambda, DynamoDB, S3)"
-    )
-    use_case: str = Field(
-        ..., description="Description of the use case"
-    )
     iac_tool: Optional[Literal["CloudFormation", "SAM", "CDK", "Terraform"]] = Field(
         "CloudFormation", description="IaC tool to use"
     )
     include_examples: Optional[bool] = Field(
         True, description="Whether to include examples"
     )
-    advanced_options: Optional[bool] = Field(
-        False, description="Whether to include advanced options"
-    )
+
 class GetLambdaEventSchemasRequest(BaseModel):
     """Request model for getting Lambda event schemas."""
     
@@ -410,20 +402,11 @@ class GetLambdaEventSchemasRequest(BaseModel):
 class GetLambdaGuidanceRequest(BaseModel):
     """Request model for getting Lambda guidance."""
     
-    runtime: str = Field(
-        ..., description="Lambda runtime (e.g., nodejs18.x, python3.9)"
-    )
     use_case: str = Field(
         ..., description="Description of the use case"
     )
-    event_source: Optional[str] = Field(
-        None, description="Event source (e.g., S3, DynamoDB, API Gateway)"
-    )
     include_examples: Optional[bool] = Field(
         True, description="Whether to include examples"
-    )
-    advanced_options: Optional[bool] = Field(
-        False, description="Whether to include advanced options"
     )
 
 class GetServerlessTemplatesRequest(BaseModel):

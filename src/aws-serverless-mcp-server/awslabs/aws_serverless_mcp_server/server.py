@@ -196,7 +196,7 @@ async def get_lambda_guidance_tool(
     ctx: Context,
     request: GetLambdaGuidanceRequest
 ) -> Dict[str, Any]:
-    await ctx.info(f"Getting Lambda guidance for {request.iac_tool if request.iac_tool else 'all tools'}")
+    await ctx.info(f"Getting Lambda guidance for {request.use_case}")
     response = await get_lambda_guidance(request)
     return response
 

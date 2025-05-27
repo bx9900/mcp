@@ -292,11 +292,8 @@ Locally invokes a Lambda function using AWS SAM CLI. The Lambda runtime environm
 Returns guidance on selecting an infrastructure as code (IaC) platform to deploy Serverless application to AWS.
 
 **Parameters:**
-- `resource_type` (required): AWS resource type (e.g., Lambda, DynamoDB, S3)
-- `use_case` (required): Description of the use case
 - `iac_tool`: IaC tool to use (CloudFormation, SAM, CDK, Terraform)
 - `include_examples`: Whether to include examples
-- `advanced_options`: Whether to include advanced options
 
 ### get_lambda_event_schemas_tool
 
@@ -311,11 +308,8 @@ Returns AWS Lambda event schemas for different event sources and runtimes.
 Returns guidance on when to choose AWS Lambda as a deployment platform.
 
 **Parameters:**
-- `runtime` (required): Lambda runtime (e.g., nodejs18.x, python3.9)
 - `use_case` (required): Description of the use case
-- `event_source`: Event source (e.g., S3, DynamoDB, API Gateway)
 - `include_examples`: Whether to include examples
-- `advanced_options`: Whether to include advanced options
 
 ### deploy_webapp_tool
 
