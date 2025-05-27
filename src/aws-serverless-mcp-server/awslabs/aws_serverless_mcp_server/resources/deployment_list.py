@@ -1,7 +1,7 @@
 import json
 from typing import Dict, Any
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
-from awslabs.aws_serverless_mcp_server.utils.deployment_manager import list_stack_details
+from awslabs.aws_serverless_mcp_server.utils.deployment_manager import list_deployments
 
 async def handle_deployments_list() -> Dict[str, Any]:
     """
@@ -9,7 +9,7 @@ async def handle_deployments_list() -> Dict[str, Any]:
     """
     try:
         logger.info('Deployment list resource called')
-        detailed_deployments = await list_stack_details()
+        detailed_deployments = await list_deployments()
 
         if not detailed_deployments:
             return {

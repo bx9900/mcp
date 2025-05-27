@@ -27,7 +27,7 @@ from awslabs.aws_serverless_mcp_server.utils.cloudformation import get_stack_inf
 import boto3
 
 # Define the directory where deployment metadata files will be stored
-DEPLOYMENT_METADATA_DIR = os.path.join(tempfile.gettempdir(), 'serverless-web-mcp-deployments')
+DEPLOYMENT_METADATA_DIR = os.path.join(tempfile.gettempdir(), 'aws-serverless-web-mcp-server-deployments')
 
 # Ensure the directory exists
 os.makedirs(DEPLOYMENT_METADATA_DIR, exist_ok=True)
@@ -171,7 +171,7 @@ async def get_deployment_status(project_name: str) -> Dict[str, Any]:
             status = map_cloudformation_status(stack_info.get("status"))
             
             # Return combined information
-            return {
+            deployment = {
                 "status": status,
                 "stackStatus": stack_info.get("status"),
                 "stackStatusReason": stack_info.get("statusReason"),
@@ -180,8 +180,19 @@ async def get_deployment_status(project_name: str) -> Dict[str, Any]:
                 "deploymentType": metadata.get("deploymentType"),
                 "framework": metadata.get("framework"),
                 "outputs": stack_info.get("outputs"),
-                "region": region
+                "region": region,
+                "projectName": project_name,
             }
+        
+            if "outputs" in deployment and deployment["outputs"]:
+                formatted_outputs = {}
+                for key, value in deployment["outputs"].items():
+                    formatted_outputs[key] = {
+                        "value": value,
+                        "description": f"Output for {key}"
+                    }
+                deployment["formattedOutputs"] = formatted_outputs
+            return deployment
         except Exception as e:
             # If CloudFormation query fails, return metadata with error
             logger.error(f"Failed to get CloudFormation stack info for {project_name}: {str(e)}")
@@ -268,109 +279,6 @@ async def list_deployments(
     except Exception as e:
         logger.error(f"Failed to list deployments: {str(e)}")
         raise
-
-async def get_stack_details(project_name: str) -> Dict[str, Any]:
-    """
-    Get detailed information about a CloudFormation stack for a specific project.
-    
-    Args:
-        project_name: Name of the project
-    
-    Returns:
-        Dict: Detailed stack information including status, resources, and outputs
-    """
-    try:
-        # Use deployment_metadata to get the basic deployment status
-        deployment_status = await get_deployment_status(project_name)
-        
-        # If the deployment is not found or failed before CloudFormation was involved
-        if deployment_status.get("status") in ["not_found", "failed"] and not deployment_status.get("stackStatus"):
-            return deployment_status
-        
-        # Add additional details to the response
-        result = {
-            **deployment_status,
-            "projectName": project_name,
-            "detailedStatus": {
-                "deploymentStatus": deployment_status.get("status"),
-                "cloudFormationStatus": deployment_status.get("stackStatus"),
-                "statusReason": deployment_status.get("stackStatusReason")
-            }
-        }
-        
-        # Format the outputs for easier consumption
-        if "outputs" in deployment_status and deployment_status["outputs"]:
-            formatted_outputs = {}
-            for key, value in deployment_status["outputs"].items():
-                formatted_outputs[key] = {
-                    "value": value,
-                    "description": f"Output for {key}"
-                }
-            result["formattedOutputs"] = formatted_outputs
-        
-        return result
-    except Exception as e:
-        logger.error(f"Error getting stack details for {project_name}: {str(e)}")
-        return {
-            "status": "error",
-            "message": f"Failed to get stack details: {str(e)}",
-            "projectName": project_name
-        }
-
-async def list_stack_details(
-    limit: Optional[int] = None,
-    sort_by: str = "timestamp",
-    sort_order: str = "desc",
-    filter_status: Optional[str] = None
-) -> List[Dict[str, Any]]:
-    """
-    List detailed information about all CloudFormation stacks.
-    
-    Args:
-        limit: Maximum number of deployments to return
-        sort_by: Field to sort by
-        sort_order: Sort order ('asc' or 'desc')
-        filter_status: Filter by status (e.g., 'DEPLOYED', 'FAILED')
-    
-    Returns:
-        List[Dict]: List of detailed stack information
-    """
-    try:
-        # Use deployment_metadata to get the list of deployments
-        deployments = await list_deployments(limit, sort_by, sort_order, filter_status)
-        
-        # Add additional details to each deployment
-        detailed_deployments = []
-        for deployment in deployments:
-            project_name = deployment.get("projectName")
-            if not project_name:
-                continue
-            
-            detailed_deployment = {
-                **deployment,
-                "detailedStatus": {
-                    "deploymentStatus": deployment.get("status"),
-                    "cloudFormationStatus": deployment.get("stackStatus"),
-                    "statusReason": deployment.get("stackStatusReason")
-                }
-            }
-            
-            # Format the outputs for easier consumption
-            if "outputs" in deployment and deployment["outputs"]:
-                formatted_outputs = {}
-                for key, value in deployment["outputs"].items():
-                    formatted_outputs[key] = {
-                        "value": value,
-                        "description": f"Output for {key}"
-                    }
-                detailed_deployment["formattedOutputs"] = formatted_outputs
-            
-            detailed_deployments.append(detailed_deployment)
-        
-        return detailed_deployments
-    except Exception as e:
-        logger.error(f"Error listing stack details: {str(e)}")
-        return []
 
 async def get_deployment_resources(project_name: str) -> Dict[str, Any]:
     """

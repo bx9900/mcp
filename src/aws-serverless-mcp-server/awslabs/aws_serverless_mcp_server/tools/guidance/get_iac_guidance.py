@@ -100,10 +100,11 @@ async def get_iac_guidance(request: GetIaCGuidanceRequest) -> Dict[str, Any]:
     """
     # Base guidance
     base_guidance = {
-        "title": "Using AWS Infrastructure as Code (IaC) Tools for Lambda Deployments",
-        "overview": """AWS offers several Infrastructure as Code (IaC) tools that can be used to deploy and manage Lambda functions and their associated resources.
-        By default, use SAM and SAM CLI to deploy Lambda functions. SAM is a serverless framework that simplifies the process of defining and deploying serverless applications.
-        If user explicitly requests a different tool, provide guidance on AWS CDK and CloudFormation. These tools allow you to define your infrastructure in code, making it easier to version, replicate, and automate your deployments"""
+        "title": "Using AWS Infrastructure as Code (IaC) Tools for Serverless Deployments",
+        "overview": """AWS offers several Infrastructure as Code (IaC) tools that can be used to deploy and manage serverless resources.
+        By default, use SAM and SAM CLI to deploy Serverless applications. SAM is a serverless framework that simplifies the process of defining and deploying serverless applications.
+        If user explicitly requests a different tool, provide guidance on AWS CDK and CloudFormation. These tools allow you to define your infrastructure in code,
+        making it easier to version, replicate, and automate your deployments"""
     }
     
     # Tools information
@@ -142,7 +143,7 @@ Resources:
     Properties:
       CodeUri: ./src/
       Handler: index.handler
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Events:
         ApiEvent:
           Type: Api
@@ -182,7 +183,7 @@ export class MyLambdaStack extends cdk.Stack {
 
     // Create a Lambda function
     const myFunction = new lambda.Function(this, 'MyFunction', {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda'),
     });
@@ -224,7 +225,7 @@ Resources:
       Code:
         S3Bucket: my-deployment-bucket
         S3Key: function.zip
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Timeout: 30"""
         )
     ]
@@ -260,7 +261,7 @@ Resources:
                 title="AWS CloudFormation Deployment Guide",
                 description="AWS CloudFormation allows you to model and provision AWS resources using JSON/YAML templates.",
                 setup_steps=[
-                    "Install the AWS CLI: 'pip install awscli'",
+                    "Install the AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html",
                     "Configure AWS credentials: 'aws configure'",
                     "Create a CloudFormation template in YAML or JSON"
                 ],
@@ -282,7 +283,7 @@ Resources:
                 title="AWS SAM Deployment Guide",
                 description="AWS Serverless Application Model (SAM) is an open-source framework for building serverless applications.",
                 setup_steps=[
-                    "Install the AWS SAM CLI: 'pip install aws-sam-cli'",
+                    "Install the AWS SAM CLI: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html",
                     "Verify installation: 'sam --version'",
                     "Configure AWS credentials: 'aws configure'",
                     "Create a new project: 'sam init'",
@@ -300,7 +301,7 @@ Resources:
                     {"command": "sam local invoke", "description": "Invoke a function locally", "mcpTool": "sam_local_invoke"},
                     {"command": "sam local start-api", "description": "Start a local API Gateway"},
                     {"command": "sam deploy", "description": "Deploy your application to AWS", "mcpTool": "sam_deploy"},
-                    {"command": "sam logs", "description": "Fetch logs for a function"}
+                    {"command": "sam logs", "description": "Fetch logs for a function", "mcpTool": "sam_logs"}
                 ]
             )
         elif request.iac_tool == "CDK":
@@ -309,7 +310,7 @@ Resources:
                 description="AWS Cloud Development Kit (CDK) allows you to define cloud infrastructure using familiar programming languages.",
                 setup_steps=[
                     "Install Node.js and npm",
-                    "Install the AWS CDK CLI: 'npm install -g aws-cdk'",
+                    "Install the AWS CDK CLI: 'npm install -g aws-cdk'. https://docs.aws.amazon.com/cdk/v2/guide/getting-started.html",
                     "Verify installation: 'cdk --version'",
                     "Configure AWS credentials: 'aws configure'",
                     "Create a new project: 'cdk init app --language typescript'",
@@ -345,7 +346,7 @@ Resources:
                 "pros": tool.pros[:3],
                 "cons": tool.cons[:3],
                 "gettingStarted": tool.getting_started,
-                "exampleCode": ""  # Omit example code for concise format
+                # Omit example code for concise format
             }
             for tool in tools_info
         ]

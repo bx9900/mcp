@@ -28,7 +28,7 @@ async def fetch_github_content(url: str, headers: Optional[Dict[str, str]] = Non
     Returns:
         Dict: GitHub API response
     """
-    default_headers = {"Accept": "application/vnd.github.v3+json"}
+    default_headers = {"Accept": "application/vnd.github+json"}
     if headers:
         default_headers.update(headers)
     

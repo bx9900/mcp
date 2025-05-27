@@ -47,6 +47,9 @@ from awslabs.aws_serverless_mcp_server.models import (
     SamLocalInvokeRequest, WebappDeploymentHelpRequest
 )
 
+allow_sensitive_data = False
+allow_write = False
+
 mcp = FastMCP(
     'awslabs.aws-serverless-mcp-server',
     instructions="""AWS Serverless MCP
@@ -142,7 +145,11 @@ async def sam_deploy_tool(
     ctx: Context,
     request: SamDeployRequest
 ) -> str:
-    
+    if not allow_write:
+        return {
+            "success": False,
+            "error": "Write operations are not allowed. Set --allow-write flag to true to enable write operations."
+        }
     await ctx.info(f"Deploying SAM application '{request.application_name}' from {request.project_directory}")
     await sam_deploy(request)
     return f"SAM deployment completed successfully for application '{request.application_name}'"
@@ -154,6 +161,11 @@ async def sam_logs_tool(
     ctx: Context,
     request: SamLogsRequest
 ) -> Dict[str, Any]:
+    if not allow_sensitive_data:
+        return {
+            "success": False,
+            "error": "Sensitive data access is not allowed. Set --allow-sensitive-data flag to true to access logs."
+        }
     await ctx.info(f"Fetching logs for Lambda function '{request.function_name}' in {request.project_directory}")
     response = await sam_logs(request)
     return response
@@ -161,7 +173,7 @@ async def sam_logs_tool(
 @mcp.tool(description="""
     Locally invokes a Lambda function using AWS SAM CLI.
     This command runs your Lambda function locally in a Docker container that simulates the AWS Lambda environment.
-    You can use this tool to test your Lambda functions before deploying them to AWS.
+    You can use this tool to test your Lambda functions before deploying them to AWS. Docker must be installed and running in your environment.
     """)
 async def sam_local_invoke_tool(
     ctx: Context,
@@ -236,6 +248,11 @@ async def deploy_webapp_tool(
     ctx: Context,
     request: DeployWebAppRequest
 ) -> Dict[str, Any]:
+    if not allow_write:
+        return {
+            "success": False,
+            "error": "Write operations are not allowed. Set --allow-write flag to true to enable write operations."
+        }
     await ctx.info(f"Deploying web application '{request.project_name}' from {request.project_root}")
     response = await deploy_webapp(request)
     return response
@@ -245,7 +262,7 @@ async def deploy_webapp_tool(
     If deployment_type is provided, returns help information for that deployment type.
     Otherwise, returns a list of deployments and general help information.
     """)
-async def webapp_deployment_help(
+async def webapp_deployment_help_tool(
     ctx: Context,
     request: WebappDeploymentHelpRequest
 ) -> Dict[str, Any]:
@@ -269,7 +286,7 @@ async def get_metrics_tool(
     Update the frontend of a deployed web application.
     This tool uploads new frontend assets to S3 and optionally invalidates the CloudFront cache.
     """)
-async def update_webapp_frontend(
+async def update_webapp_frontend_tool(
     ctx: Context,
     request: UpdateFrontendRequest
 ) -> Dict[str, Any]:
@@ -322,11 +339,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="AWS Serverless MCP Server")
     parser.add_argument("--log-level",  help="Log level (info, debug, error)")
     parser.add_argument("--log-output", help="Absolute file path where logs are written")
-    parser.add_argument("--allow-write", help="Enables MCP tools that make write operations")
-    parser.add_argument("--allow-sensitive-data", help="Returns sensitive data from tools (e.g. logs, environment variables)")
+    parser.add_argument("--allow-write", action='store_true', help="Enables MCP tools that make write operations")
+    parser.add_argument("--allow-sensitive-data", action='store_true', help="Returns sensitive data from tools (e.g. logs, environment variables)")
     
     args = parser.parse_args()
     
+    global allow_sensitive_data
+    global allow_write
+    allow_sensitive_data = True if args.allow_sensitive_data else False
+    allow_write = True if args.allow_write else False
+
     if args.log_level:
         logger.set_log_level(level=args.log_level)
     if args.log_output:

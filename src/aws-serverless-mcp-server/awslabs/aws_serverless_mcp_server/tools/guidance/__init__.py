@@ -1,1 +1,1 @@
-"""Prompt tools for AWS Serverless MCP Server."""
+"""Guidance tools for AWS Serverless MCP Server."""

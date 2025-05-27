@@ -47,7 +47,7 @@ def get_templates_path() -> str:
         os.path.join(os.path.dirname(__file__), "templates"),
 
         # 2. When installed as a local dependency (most common for projects)
-        os.path.join(os.getcwd(), "venv", "lib", "python3.9", "site-packages", "aws_lambda_mcp_server", "templates"),
+        os.path.join(os.getcwd(), "venv", "lib", "python3.9", "site-packages", "aws_serverless_mcp_server", "templates"),
 
         # 3. When installed globally
         "/usr/local/lib/python3.9/site-packages/aws_lambda_mcp_server/templates",
@@ -160,7 +160,6 @@ async def discover_templates() -> List[Template]:
         logger.debug(f"Found {len(files)} files in templates directory")
 
         for file in files:
-            ext = file.suffix
             name = file.stem
             parts = name.split("-")
 

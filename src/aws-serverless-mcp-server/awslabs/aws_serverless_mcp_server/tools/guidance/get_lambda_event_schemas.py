@@ -162,7 +162,7 @@ async def get_lambda_event_schemas(request: GetLambdaEventSchemasRequest) -> Dic
         decoded_content = base64.b64decode(schema_content["content"]).decode("utf-8")
         
         # Build response
-        response = {
+        return {
             "eventSource": event_source,
             "runtime": runtime,
             "content": decoded_content,
@@ -171,8 +171,6 @@ async def get_lambda_event_schemas(request: GetLambdaEventSchemasRequest) -> Dic
                 "filePath": f"{schemas_for_runtime['path']}/{schema_file}"
             }
         }
-        
-        return response
     except Exception as e:
         logger.error(f"Error getting serverless templates: {str(e)}")
         return {

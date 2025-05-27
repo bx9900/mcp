@@ -64,6 +64,33 @@ To use this MCP server with an AWS CLI profile, add the following to your MCP co
 }
 ```
 
+### Arguments
+To enable write operations and logs access, you must explicitly arguments in the MCP configuration. By default these operations are disabled.
+--allow-write: Enables write operations (sam_deploy and deploy_webapp tools)
+--allow-sensitive-data: Enables tools that return logs for AWS resources (sam_logs tool)
+
+```json
+{
+  "mcpServers": {
+    "awslabs.aws-serverless-mcp": {
+      "command": "uvx",
+      "args": [
+        "awslabs.aws_serverless_mcp_server@latest"
+        "--allow-write",
+        "allow-sensitive-data"
+      ],
+      "env": {
+          "AWS_PROFILE": "your-aws-profile",
+          "AWS_REGION": "us-east-1",
+          "FASTMCP_LOG_LEVEL": "ERROR"
+        },
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
+```
+
 ## Local Development
 
 To make changes to this MCP locally and run it:

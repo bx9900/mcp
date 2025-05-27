@@ -29,7 +29,7 @@ async def get_serverless_templates(request: GetServerlessTemplatesRequest) -> Di
         request: GetServerlessTemplatesRequest object containing template type and runtime
     
     Returns:
-        Dict: Serverless template information
+        Dict: Serverless template README content and GitHub link
     """
     global repo_tree
     
@@ -46,25 +46,22 @@ async def get_serverless_templates(request: GetServerlessTemplatesRequest) -> Di
         if request.runtime:
             search_terms.append(request.runtime.lower())
         
-        # If no search terms provided, use default search terms
-        if not search_terms:
-            search_terms = ["lambda", "api"]
-        
         # Filter templates based on search terms
-        filtered_templates = [
+        template_names = [
             template for template in repo_tree["tree"]
             if template.get("path") and 
                any(term in template["path"].lower() for term in search_terms) and
-               not template["path"].endswith((".md", ".txt", ".png", ".jpg", ".jpeg", ".gif"))
+               not template["path"].endswith((".md", ".txt")) and
+               not template["path"].startswith((".", "_"))
         ]
         
         # Limit to 5 templates to avoid excessive API calls
-        limit = 5  
-        filtered_templates = filtered_templates[:limit]
+        limit = 5
+        template_names = template_names[:limit]
         
         # Fetch README.md for each template
         templates = []
-        for template in filtered_templates:
+        for template in template_names:
             try:
                 readme_url = f"https://api.github.com/repos/aws-samples/serverless-patterns/contents/{template['path']}/README.md"
                 readme_file = await fetch_github_content(readme_url)
@@ -82,11 +79,16 @@ async def get_serverless_templates(request: GetServerlessTemplatesRequest) -> Di
                 logger.error(f"Error fetching README for {template['path']}: {str(e)}")
         
         # Build response
-        response = {
+        if len(templates) == 0:
+            return {
+                'success': False,
+                'message': "No serverless templates found matching the criteria.",
+                'error': "No templates found"
+            }
+        
+        return {
             "templates": templates
         }
-        
-        return response
     except Exception as e:
         logger.error(f"Error getting serverless templates: {str(e)}")
         return {

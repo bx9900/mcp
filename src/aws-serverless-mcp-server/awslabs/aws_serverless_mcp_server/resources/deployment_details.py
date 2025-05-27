@@ -5,7 +5,7 @@ Provides information about a specific deployment.
 """
 from typing import Dict, Any
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
-from awslabs.aws_serverless_mcp_server.utils.deployment_manager import get_stack_details
+from awslabs.aws_serverless_mcp_server.utils.deployment_manager import get_deployment_status
 
 async def handle_deployment_details(project_name: str) -> Dict[str, Any]:
     """
@@ -19,7 +19,7 @@ async def handle_deployment_details(project_name: str) -> Dict[str, Any]:
     """
     try:
         # Use deployment_metadata.py to get detailed stack information
-        deployment_details = await get_stack_details(project_name)
+        deployment_details = await get_deployment_status(project_name)
         
         if deployment_details.get("status") == "not_found":
             return {
