@@ -2,12 +2,14 @@
 
 ## Overview
 
-This MCP server enables AI assistants to build and deploy applications onto AWS Serverless using Serverless Application Model (SAM). It implements a set of tools and resources that can be used to interact with serverless services.
+This Model Context Protocol (MCP) server enables AI assistants to build and deploy applications onto AWS Serverless using Serverless Application Model (SAM). It implements a set of tools and resources that can be used to interact with serverless services.
 
 ## Features
+This MCP server acts as a bridge between MCP clients and AWS Serverless services, allowing generative AI models to create, configure, and manage Serverless resources.
+
 - Deploy existing web applications (fullstack, frontend, and backend) onto AWS Serverless using Lambda Web Adapter.
 - Intialize, build, and deploy Serverless Application Model (SAM) applications with SAM CLI
-- Access and logs and metrics of serverless resources
+- Retrieve and logs and metrics of serverless resources
 - Build CI/CD piplines to automate deployments
 - Get guidance on AWS Lambda use-cases, selecting an IaC framework, and deployment process onto AWS Serverless
 - Get sample SAM templates of serverless applications from Serverless Land
@@ -22,14 +24,16 @@ This MCP server enables AI assistants to build and deploy applications onto AWS 
 
 ## Installation
 
-To use this MCP server with an AWS CLI profile, add the following to your MCP configuration:
+To use this MCP server with an AWS CLI profile, add the following to your MCP configuration (e.g., for Amazon Q Developer CLI, edit ~/.aws/amazonq/mcp.json):
 ```json
 {
   "mcpServers": {
     "awslabs.aws-serverless-mcp": {
       "command": "uvx",
       "args": [
-        "awslabs.aws_serverless_mcp_server@latest"
+        "awslabs.aws_serverless_mcp_server@latest",
+        "--allow-write", // Enables write operations
+        "--allow-sensitive-data-access" // Enables tools that return logs for AWS resources
       ],
       "env": {
           "AWS_PROFILE": "your-aws-profile",
@@ -64,32 +68,20 @@ To use this MCP server with an AWS CLI profile, add the following to your MCP co
 }
 ```
 
-### Arguments
-To enable write operations and logs access, you must explicitly arguments in the MCP configuration. By default these operations are disabled.
---allow-write: Enables write operations (sam_deploy and deploy_webapp tools)
---allow-sensitive-data: Enables tools that return logs for AWS resources (sam_logs tool)
+## Server Configuration Options
+### `--allow-write`
+Enables write access mode, which allows mutating operations. By default, the server runs in read-only mode, which restricts operations to only perform read actions, preventing any changes to AWS resources.
 
-```json
-{
-  "mcpServers": {
-    "awslabs.aws-serverless-mcp": {
-      "command": "uvx",
-      "args": [
-        "awslabs.aws_serverless_mcp_server@latest"
-        "--allow-write",
-        "allow-sensitive-data"
-      ],
-      "env": {
-          "AWS_PROFILE": "your-aws-profile",
-          "AWS_REGION": "us-east-1",
-          "FASTMCP_LOG_LEVEL": "ERROR"
-        },
-      "disabled": false,
-      "autoApprove": []
-    }
-  }
-}
-```
+Mutating operations:
+* sam_deploy_tool: Deploys a SAM application into AWS Cloud using CloudFormation
+* deploy_webapp: Generates SAM template and deploys a web application into AWS CloudFormation. Creates public resources, including Route 53 DNS records, and CloudFront distributions
+
+
+### `--allow-sensitive-data-access`
+Enables access to sensitive data such as logs and environment variables. By default, the server restricts access to sensitive data.
+
+Operations returning sensitive data:
+* sam_logs_tool: Returns Lambda function logs and API Gateway logs
 
 ## Local Development
 
@@ -566,6 +558,35 @@ Example user prompt:
 ```
 I need examples of well-architected serverless applications. Can you show me some API templates for Python that I can use as a reference for my project?
 ```
+
+## Security Features
+1. **AWS Authentication**: Uses AWS credentials from the environment for secure authentication
+2. **TLS Verification**: Enforces TLS verification for all AWS API calls
+3. **Resource Tagging**: Tags all created resources for traceability
+4. **Least Privilege**: Uses IAM roles with appropriate permissions for CloudFormation templates
+
+## Security Considerations
+
+### Production Use Cases
+The AWS Serverless MCP Server can be used for production environments with proper security controls in place. For production use cases, consider the following:
+
+* **Read-Only Mode by Default**: The server runs in read-only mode by default, which is safer for production environments. Only explicitly enable write access when necessary.
+
+### Role Scoping Recommendations
+To follow security best practices:
+
+1. **Create dedicated IAM roles** to be used by the AWS Serverless MCP Server with the principle of least privilege
+2. **Use separate roles** for read-only and write operations
+3. **Implement resource tagging** to limit actions to resources created by the server
+4. **Enable AWS CloudTrail** to audit all API calls made by the server
+5. **Regularly review** the permissions granted to the server's IAM role
+6. **Use IAM Access Analyzer** to identify unused permissions that can be removed
+
+### Sensitive Information Handling
+**IMPORTANT**: Do not pass secrets or sensitive information via allowed input mechanisms:
+
+- Do not include secrets or credentials in CloudFormation templates
+- Do not pass sensitive information directly in the prompt to the model
 
 ## Links
 

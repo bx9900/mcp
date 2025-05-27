@@ -47,7 +47,7 @@ from awslabs.aws_serverless_mcp_server.models import (
     SamLocalInvokeRequest, WebappDeploymentHelpRequest
 )
 
-allow_sensitive_data = False
+allow_sensitive_data_access = False
 allow_write = False
 
 mcp = FastMCP(
@@ -161,7 +161,7 @@ async def sam_logs_tool(
     ctx: Context,
     request: SamLogsRequest
 ) -> Dict[str, Any]:
-    if not allow_sensitive_data:
+    if not allow_sensitive_data_access:
         return {
             "success": False,
             "error": "Sensitive data access is not allowed. Set --allow-sensitive-data flag to true to access logs."
@@ -340,13 +340,13 @@ def main() -> int:
     parser.add_argument("--log-level",  help="Log level (info, debug, error)")
     parser.add_argument("--log-output", help="Absolute file path where logs are written")
     parser.add_argument("--allow-write", action='store_true', help="Enables MCP tools that make write operations")
-    parser.add_argument("--allow-sensitive-data", action='store_true', help="Returns sensitive data from tools (e.g. logs, environment variables)")
+    parser.add_argument("--allow-sensitive-data-access", action='store_true', help="Returns sensitive data from tools (e.g. logs, environment variables)")
     
     args = parser.parse_args()
     
-    global allow_sensitive_data
+    global allow_sensitive_data_access
     global allow_write
-    allow_sensitive_data = True if args.allow_sensitive_data else False
+    allow_sensitive_data_access = True if args.allow_sensitive_data_access else False
     allow_write = True if args.allow_write else False
 
     if args.log_level:
