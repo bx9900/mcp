@@ -271,15 +271,16 @@ async def build_and_deploy_application(
         # Create samconfig.toml file
         sam_config_path = os.path.join(project_root, 'samconfig.toml')
         sam_config_content = f"""version = 0.1
-[default]
-[default.deploy]
-[default.deploy.parameters]
-stack_name = "{stack_name}"
-resolve_s3 = true
-region = "{configuration.region}"
-confirm_changeset = false
-capabilities = "CAPABILITY_IAM"
-"""
+    [default]
+    [default.deploy]
+    [default.deploy.parameters]
+    stack_name = "{stack_name}"
+    resolve_s3 = true
+    confirm_changeset = false
+    capabilities = "CAPABILITY_IAM"
+    """
+        if configuration.region:
+            sam_config_content += f'region = "{configuration.region}"\n'
         with open(sam_config_path, 'w', encoding='utf-8') as f:
             f.write(sam_config_content)
         logger.debug(f"Created samconfig.toml at {sam_config_path}")
@@ -287,13 +288,17 @@ capabilities = "CAPABILITY_IAM"
         # Actually deploy the SAM application using run_command
         logger.info(f"Deploying SAM application with stack name: {stack_name}...")
 
-        stdout, stderr = await run_command(
-            ["sam", "deploy",
+        sam_deploy_cmd = [
+            "sam", "deploy",
             "--stack-name", stack_name,
-            "--region", configuration.region,
             "--capabilities", "CAPABILITY_IAM",
             "--no-confirm-changeset",
-            "--no-fail-on-empty-changeset"],
+            "--no-fail-on-empty-changeset"
+        ]
+        if configuration.region:
+            sam_deploy_cmd.extend(["--region", configuration.region])
+        stdout, stderr = await run_command(
+            sam_deploy_cmd,
             cwd=project_root
         )
 
@@ -323,7 +328,8 @@ async def get_stack_outputs(stack_name: str, region: str) -> Dict[str, str]:
     """
     try:
         def fetch_outputs():
-            cfn = boto3.client('cloudformation', region_name=region)
+            session = boto3.Session(region_name=region) if region else boto3.Session()
+            cfn = session.client('cloudformation')
             try:
                 response = cfn.describe_stacks(StackName=stack_name)
                 stacks = response.get('Stacks', [])

@@ -511,7 +511,7 @@ class DeployWebAppRequest(BaseModel):
         ..., description="Absolute path to the project root directory"
     )
     region: Optional[str] = Field(
-        "us-east-1", description="AWS region"
+        None, description="AWS Region to deploy to (e.g., us-east-1)"
     )
     backend_configuration: Optional[BackendConfiguration] = Field(
         None, description="Backend configuration"
@@ -542,7 +542,7 @@ class GetMetricsRequest(BaseModel):
         ["Average"], description="Statistics to retrieve"
     )
     region: Optional[str] = Field(
-        None, description="AWS region to use"
+        None, description="AWS Region to use (e.g., us-east-1)"
     )
 
 class UpdateFrontendRequest(BaseModel):
@@ -573,8 +573,8 @@ class ConfigureDomainRequest(BaseModel):
     domain_name: str = Field(
         ..., description="Custom domain name"
     )
-    create_certificate: str = Field(
-        ..., description="ACM certificate ARN"
+    create_certificate: Optional[bool] = Field(
+        True, description="Whether to create a ACM certificate"
     )
     create_route53_record: Optional[bool] = Field(
         True, description="Whether to create a Route 53 record"

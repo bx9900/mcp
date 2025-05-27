@@ -175,7 +175,7 @@ async def update_webapp_frontend(params: UpdateFrontendRequest) -> Dict[str, Any
             }
         
         # Initialize AWS clients
-        session = boto3.Session(region_name=region) if region else boto3.Session
+        session = boto3.Session(region_name=region) if region else boto3.Session()
         cfn_client = session.client('cloudformation')
         s3_client = session.client('s3')
         cloudfront_client = session.client('cloudfront')

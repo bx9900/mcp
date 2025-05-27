@@ -28,7 +28,7 @@ async def get_stack_info(stack_name: str, region: Optional[str] = None) -> Dict[
     """
     try:
         # Initialize CloudFormation client
-        session = boto3.Session(region_name=region) if region else boto3.Session
+        session = boto3.Session(region_name=region) if region else boto3.Session()
         cf_client = session.client('cloudformation')
         
         # Get stack information
@@ -52,8 +52,8 @@ async def get_stack_info(stack_name: str, region: Optional[str] = None) -> Dict[
         return {
             'status': stack['StackStatus'],
             'statusReason': stack.get('StackStatusReason'),
-            'lastUpdatedTime': stack.get('LastUpdatedTime'),
-            'creationTime': stack.get('CreationTime'),
+            'lastUpdatedTime': stack.get('LastUpdatedTime').isoformat(),
+            'creationTime': stack.get('CreationTime').isoformat(),
             'outputs': outputs
         }
     except cf_client.exceptions.ClientError as e:

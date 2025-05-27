@@ -29,6 +29,8 @@ from awslabs.aws_serverless_mcp_server.resources.template_list import handle_tem
 from awslabs.aws_serverless_mcp_server.tools.sam import (
     sam_build, sam_init, sam_deploy, sam_local_invoke, sam_logs, sam_pipeline
 )
+
+from awslabs.aws_serverless_mcp_server.tools.webapps.configure_domain import configure_domain
 from awslabs.aws_serverless_mcp_server.tools.webapps.deploy_webapp import deploy_webapp
 from awslabs.aws_serverless_mcp_server.tools.webapps.get_metrics import get_metrics
 from awslabs.aws_serverless_mcp_server.tools.webapps.update_webapp_frontend import update_webapp_frontend
@@ -44,7 +46,7 @@ from awslabs.aws_serverless_mcp_server.models import (
     DeployServerlessAppHelpRequest, SamBuildRequest, SamInitRequest, SamDeployRequest, SamLogsRequest, SamPipelineRequest,
     GetIaCGuidanceRequest, GetLambdaEventSchemasRequest, GetLambdaGuidanceRequest,
     GetServerlessTemplatesRequest, DeployWebAppRequest, GetMetricsRequest, UpdateFrontendRequest,
-    SamLocalInvokeRequest, WebappDeploymentHelpRequest
+    SamLocalInvokeRequest, WebappDeploymentHelpRequest, ConfigureDomainRequest
 )
 
 allow_sensitive_data_access = False
@@ -293,6 +295,17 @@ async def update_webapp_frontend_tool(
     await ctx.info(f"Updating frontend for project {request.project_name}")
     response = await update_webapp_frontend(request)
     return response
+
+@mcp.tool(description="""
+    Configures a custom domain for a deployed web application on AWS Serverless.
+    This tool sets up Route 53 DNS records, ACM certificates, and API Gateway custom domain mappings as needed.
+    Use this tool after deploying your web application to associate it with your own domain name.
+    """)
+async def configure_domain_tool(
+    ctx: Context,
+    request: ConfigureDomainRequest
+) -> Dict[str, Any]:
+        return await configure_domain(request)
 
 @mcp.tool(description= """
     Provides instructions on how to deploy a serverless application to AWS Lambda.

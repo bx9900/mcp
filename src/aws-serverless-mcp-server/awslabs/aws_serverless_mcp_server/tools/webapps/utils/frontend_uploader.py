@@ -76,7 +76,8 @@ async def upload_to_s3(source_path: str, bucket_name: str, region: str) -> None:
         Exception: If upload fails
     """
     logger.info(f"Starting S3 upload from {source_path} to bucket {bucket_name} using boto3")
-    s3_client = boto3.client('s3', region_name=region or 'us-east-1')
+    session = boto3.Session(region_name=region) if region else boto3.Session()
+    s3_client = session.client('s3')
 
     def upload_file(file_path, s3_key):
         try:
