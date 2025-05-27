@@ -12,7 +12,7 @@ This MCP server acts as a bridge between MCP clients and AWS Serverless services
 - Retrieve and logs and metrics of serverless resources
 - Build CI/CD piplines to automate deployments
 - Get guidance on AWS Lambda use-cases, selecting an IaC framework, and deployment process onto AWS Serverless
-- Get sample SAM templates of serverless applications from Serverless Land
+- Get sample SAM templates of serverless applications from [Serverless Land](https://serverlessland.com/)
 - Get schema types for different Lambda event sources and runtimes
 
 ## Prerequisites

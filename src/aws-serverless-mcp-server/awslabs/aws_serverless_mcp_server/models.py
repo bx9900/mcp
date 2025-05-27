@@ -573,11 +573,8 @@ class ConfigureDomainRequest(BaseModel):
     domain_name: str = Field(
         ..., description="Custom domain name"
     )
-    certificate_arn: str = Field(
+    create_certificate: str = Field(
         ..., description="ACM certificate ARN"
-    )
-    hosted_zone_id: Optional[str] = Field(
-        None, description="Route 53 hosted zone ID"
     )
     create_route53_record: Optional[bool] = Field(
         True, description="Whether to create a Route 53 record"
@@ -585,37 +582,6 @@ class ConfigureDomainRequest(BaseModel):
     region: Optional[str] = Field(
         None, description="AWS region to use"
     )
-
-# Lambda Models
-class InvokeFunctionRequest(BaseModel):
-    """Request model for invoking an AWS Lambda function."""
-    
-    function_name: str = Field(
-        ..., description="Name of the Lambda function to invoke"
-    )
-    payload: Optional[Dict[str, Any]] = Field(
-        None, description="JSON payload to pass to the function"
-    )
-    invocation_type: Optional[str] = Field(
-        "RequestResponse", description="Invocation type (RequestResponse, Event, or DryRun)"
-    )
-    log_type: Optional[str] = Field(
-        "None", description="Log type (None or Tail)"
-    )
-
-class ListFunctionsRequest(BaseModel):
-    """Request model for listing AWS Lambda functions."""
-    
-    max_items: Optional[int] = Field(
-        50, description="Maximum number of functions to return"
-    )
-    marker: Optional[str] = Field(
-        None, description="Pagination token from a previous request"
-    )
-    function_version: Optional[str] = Field(
-        "ALL", description="Function version to list (ALL or $LATEST)"
-    )
-
 class WebappDeploymentHelpRequest(BaseModel):
     """Request model for getting deployment help or status."""
     
