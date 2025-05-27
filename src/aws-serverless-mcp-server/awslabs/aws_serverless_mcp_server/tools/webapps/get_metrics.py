@@ -59,7 +59,6 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
         start_time = request.start_time
         end_time = request.end_time
         period = request.period or 300
-        statistics = request.statistics or ['Average', 'p90', 'p99']
         region = request.region
         stage = getattr(request, 'stage', 'prod')
         

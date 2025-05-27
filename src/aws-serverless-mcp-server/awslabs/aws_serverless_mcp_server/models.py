@@ -440,7 +440,7 @@ class BackendConfiguration(BaseModel):
         ..., description="Lambda runtime (e.g. nodejs22.x, python3.13)"
     )
     startup_script: Optional[str] = Field(
-        None, description="Startup script that must be executable in Linux environment"
+        None, description="Startup script that must be executable in Linux environment. Relative to the built_artifacts_path directory."
     )
     entry_point: Optional[str] = Field(
         None, description="Application entry point file (e.g., app.js, app.py)"
@@ -493,9 +493,6 @@ class FrontendConfiguration(BaseModel):
     )
     certificate_arn: Optional[str] = Field(
         None, description="ACM certificate ARN"
-    )
-    hosted_zone_id: Optional[str] = Field(
-        None, description="Route 53 hosted zone ID"
     )
 
 class DeployWebAppRequest(BaseModel):

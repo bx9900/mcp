@@ -44,7 +44,7 @@ async def generate_startup_script(
     so that beings listening for requests.
     
     Args:
-        runtime: Lambda runtime (e.g., nodejs18.x, python3.9)
+        runtime: Lambda runtime (e.g., nodejs22.x, python3.11)
         entry_point: Application entry point
         built_artifacts_path: Path to the built artifacts
         startup_script_name: Name of the startup script (default: 'bootstrap')
