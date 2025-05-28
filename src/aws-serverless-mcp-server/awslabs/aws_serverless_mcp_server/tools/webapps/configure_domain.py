@@ -33,7 +33,7 @@ async def configure_domain(request: ConfigureDomainRequest) -> Dict[str, Any]:
         project_name = request.project_name
         domain_name = request.domain_name
         create_certificate = getattr(request, 'create_certificate', False)
-        create_route53_records = getattr(request, 'create_route53_records', False)
+        should_create_route53_records = getattr(request, 'create_route53_record', False)
         
         # Log status update
         logger.info(f"Starting domain configuration for {project_name}...")
@@ -71,7 +71,7 @@ async def configure_domain(request: ConfigureDomainRequest) -> Dict[str, Any]:
         
         # Step 3: Create Route53 records if requested
         route53_records = None
-        if create_route53_records:
+        if should_create_route53_records:
             logger.info(f"Creating Route 53 records for {domain_name}...")
             route53_records = await create_route53_records(
                 route53_client, domain_name, distribution_id

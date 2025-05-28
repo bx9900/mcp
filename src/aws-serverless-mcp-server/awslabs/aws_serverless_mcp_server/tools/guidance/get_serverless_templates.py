@@ -37,7 +37,7 @@ async def get_serverless_templates(request: GetServerlessTemplatesRequest) -> Di
         # Get file hierarchy of the repo if not already cached
         if not repo_tree:
             serverless_land_repo = 'https://api.github.com/repos/aws-samples/serverless-patterns/git/trees/main'
-            repo_tree = await fetch_github_content(serverless_land_repo)
+            repo_tree = fetch_github_content(serverless_land_repo)
         
         # Filter templates based on search terms
         search_terms = []
@@ -64,7 +64,7 @@ async def get_serverless_templates(request: GetServerlessTemplatesRequest) -> Di
         for template in template_names:
             try:
                 readme_url = f"https://api.github.com/repos/aws-samples/serverless-patterns/contents/{template['path']}/README.md"
-                readme_file = await fetch_github_content(readme_url)
+                readme_file = fetch_github_content(readme_url)
                 
                 if readme_file and readme_file.get("content"):
                     decoded_content = base64.b64decode(readme_file["content"]).decode("utf-8")

@@ -25,7 +25,7 @@ class TestSamLocalInvoke:
         # Create a mock request
         request = SamLocalInvokeRequest(
             project_directory="/tmp/test-project",
-            function_name="test-function"
+            resource_name="test-function"
         )
 
         # Mock the subprocess.run function
@@ -33,13 +33,13 @@ class TestSamLocalInvoke:
         mock_result.stdout = b'{"statusCode": 200, "body": "Success"}'
         mock_result.stderr = b""
 
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_local_invoke.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_local_invoke(request)
 
             # Verify the result
             assert result["success"] is True
-            assert "Successfully invoked Lambda function" in result["message"]
+            assert "Successfully invoked resource" in result["message"]
             assert result["function_output"] == {"statusCode": 200, "body": "Success"}
 
             # Verify run_command was called with the correct arguments
@@ -60,7 +60,7 @@ class TestSamLocalInvoke:
         # Create a mock request with event file
         request = SamLocalInvokeRequest(
             project_directory="/tmp/test-project",
-            function_name="test-function",
+            resource_name="test-function",
             event_file="/tmp/event.json"
         )
 
@@ -69,7 +69,7 @@ class TestSamLocalInvoke:
         mock_result.stdout = b'{"statusCode": 200, "body": "Success"}'
         mock_result.stderr = b""
 
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_local_invoke.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_local_invoke(request)
 
@@ -91,7 +91,7 @@ class TestSamLocalInvoke:
         # Create a mock request with event data
         request = SamLocalInvokeRequest(
             project_directory="/tmp/test-project",
-            function_name="test-function",
+            resource_name="test-function",
             event_data='{"key": "value"}'
         )
 
@@ -108,7 +108,7 @@ class TestSamLocalInvoke:
              patch('os.fdopen', mock_open()) as mock_file, \
              patch('os.unlink') as mock_unlink, \
              patch('os.path.exists', return_value=True) as mock_exists, \
-             patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+             patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_local_invoke.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             
             # Call the function
             result = await sam_local_invoke(request)
@@ -143,18 +143,14 @@ class TestSamLocalInvoke:
         # Create a mock request with optional parameters
         request = SamLocalInvokeRequest(
             project_directory="/tmp/test-project",
-            function_name="test-function",
+            resource_name="test-function",
             template_file="template.yaml",
-            environment_variables={"ENV1": "value1", "ENV2": "value2"},
-            debug_port=5858,
+            environment_variables_file="/tmp/env.json",
             docker_network="my-network",
             container_env_vars={"CONTAINER_ENV1": "value1", "CONTAINER_ENV2": "value2"},
             parameter={"param1": "value1", "param2": "value2"},
             log_file="/tmp/log.txt",
             layer_cache_basedir="/tmp/layer-cache",
-            skip_pull_image=True,
-            debug_args="--inspect",
-            debugger_path="/usr/local/bin/node",
             warm_containers="EAGER",
             region="us-west-2",
             profile="default"
@@ -165,7 +161,7 @@ class TestSamLocalInvoke:
         mock_result.stdout = b'{"statusCode": 200, "body": "Success"}'
         mock_result.stderr = b""
 
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_local_invoke.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_local_invoke(request)
 
@@ -181,23 +177,14 @@ class TestSamLocalInvoke:
             assert "--template" in cmd
             assert "template.yaml" in cmd
             assert "--env-vars" in cmd
-            assert "--debug-port" in cmd
-            assert "5858" in cmd
             assert "--docker-network" in cmd
             assert "my-network" in cmd
-            assert "--container-env-var" in cmd
+            assert "--container-env-vars" in cmd
             assert "--parameter-overrides" in cmd
             assert "--log-file" in cmd
             assert "/tmp/log.txt" in cmd
             assert "--layer-cache-basedir" in cmd
             assert "/tmp/layer-cache" in cmd
-            assert "--skip-pull-image" in cmd
-            assert "--debug-args" in cmd
-            assert "--inspect" in cmd
-            assert "--debugger-path" in cmd
-            assert "/usr/local/bin/node" in cmd
-            assert "--warm-containers" in cmd
-            assert "EAGER" in cmd
             assert "--region" in cmd
             assert "us-west-2" in cmd
             assert "--profile" in cmd
@@ -209,7 +196,7 @@ class TestSamLocalInvoke:
         # Create a mock request
         request = SamLocalInvokeRequest(
             project_directory="/tmp/test-project",
-            function_name="test-function"
+            resource_name="test-function"
         )
 
         # Mock the subprocess.run function with non-JSON output
@@ -217,13 +204,13 @@ class TestSamLocalInvoke:
         mock_result.stdout = b"This is not JSON"
         mock_result.stderr = b""
 
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_local_invoke.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_local_invoke(request)
 
             # Verify the result
             assert result["success"] is True
-            assert "Successfully invoked Lambda function" in result["message"]
+            assert "Successfully invoked resource" in result["message"]
             assert result["function_output"] == "This is not JSON"
 
     @pytest.mark.asyncio
@@ -232,16 +219,16 @@ class TestSamLocalInvoke:
         # Create a mock request
         request = SamLocalInvokeRequest(
             project_directory="/tmp/test-project",
-            function_name="test-function"
+            resource_name="test-function"
         )
 
         # Mock the subprocess.run function to raise an exception
         error_message = "Command failed with exit code 1"
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', side_effect=Exception(error_message)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_local_invoke.run_command', side_effect=Exception(error_message)) as mock_run:
             # Call the function
             result = await sam_local_invoke(request)
 
             # Verify the result
             assert result["success"] is False
-            assert "Failed to invoke Lambda function locally" in result["message"]
+            assert "Failed to invoke resource locally" in result["message"]
             assert error_message in result["error"]

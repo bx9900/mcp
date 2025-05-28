@@ -11,7 +11,6 @@ from typing import Dict, Any
 def handle_template_details(template_name: str) -> Dict[str, Any]:
     template_details = None
 
-    # Implement template-specific logic here
     if template_name == "backend":
         template_details = {
             "name": "backend",

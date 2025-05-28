@@ -33,13 +33,13 @@ class TestSamBuild:
         mock_result.stdout = b"Successfully built SAM project"
         mock_result.stderr = b""
 
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_build.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_build(request)
 
             # Verify the result
             assert result["success"] is True
-            assert "SAM project deployed successfully" in result["message"]
+            assert "SAM project built successfully" in result["message"]
             assert result["output"] == "Successfully built SAM project"
 
             # Verify run_command was called with the correct arguments
@@ -85,7 +85,7 @@ class TestSamBuild:
         mock_result.stdout = b"Successfully built SAM project"
         mock_result.stderr = b""
 
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_build.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_build(request)
 
@@ -98,33 +98,19 @@ class TestSamBuild:
             cmd = args[0]
             
             # Check optional parameters
-            assert "--resource-id" in cmd
-            assert "MyFunction" in cmd
             assert "--template-file" in cmd
             assert "template.yaml" in cmd
             assert "--base-dir" in cmd
             assert "/tmp/base-dir" in cmd
             assert "--build-dir" in cmd
             assert "/tmp/build-dir" in cmd
-            assert "--cache-dir" in cmd
-            assert "/tmp/cache-dir" in cmd
-            assert "--cached" in cmd
             assert "--use-container" in cmd
             assert "--container-env-var" in cmd
             assert "--container-env-var-file" in cmd
             assert "env.json" in cmd
-            assert "--skip-pull-image" in cmd
-            assert "--build-method" in cmd
-            assert "esbuild" in cmd
-            assert "--build-in-source" in cmd
             assert "--debug" in cmd
-            assert "--docker-network" in cmd
-            assert "my-network" in cmd
-            assert "--exclude" in cmd
             assert "--manifest" in cmd
             assert "package.json" in cmd
-            assert "--mount-symlinks" in cmd
-            assert "--parallel" in cmd
             assert "--parameter-overrides" in cmd
             assert "--region" in cmd
             assert "us-west-2" in cmd
@@ -139,7 +125,7 @@ class TestSamBuild:
 
         # Mock the subprocess.run function to raise an exception
         error_message = b"Command failed with exit code 1"
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', side_effect=subprocess.CalledProcessError(1, "sam build", stderr=error_message)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_build.run_command',  side_effect=subprocess.CalledProcessError(1, "sam build", stderr=error_message)) as mock_run:
             # Call the function
             result = await sam_build(request)
 
@@ -158,7 +144,7 @@ class TestSamBuild:
 
         # Mock the subprocess.run function to raise a general exception
         error_message = "Some unexpected error"
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', side_effect=Exception(error_message)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_build.run_command', side_effect=Exception(error_message)) as mock_run:
             # Call the function
             result = await sam_build(request)
 

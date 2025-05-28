@@ -17,7 +17,7 @@ from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from typing import Dict, Any, Optional
 
 
-async def fetch_github_content(url: str, headers: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+def fetch_github_content(url: str, headers: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
     """
     Fetch content from GitHub API.
     

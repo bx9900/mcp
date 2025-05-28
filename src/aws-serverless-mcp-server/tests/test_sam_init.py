@@ -33,13 +33,13 @@ class TestSamInit:
 
         # Mock the subprocess.run function
         mock_result = MagicMock()
-        mock_result.stdout = "Successfully initialized SAM project"
-        mock_result.stderr = ""
+        mock_result.stdout = b"Successfully initialized SAM project"
+        mock_result.stderr = b""
 
-        with patch('subprocess.run', return_value=mock_result) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_init(request)
-
+            print(result)
             # Verify the result
             assert result["success"] is True
             assert "Successfully initialized SAM project" in result["message"]
@@ -82,10 +82,10 @@ class TestSamInit:
 
         # Mock the subprocess.run function
         mock_result = MagicMock()
-        mock_result.stdout = "Successfully initialized SAM project"
-        mock_result.stderr = ""
+        mock_result.stdout = b"Successfully initialized SAM project"
+        mock_result.stderr = b""
 
-        with patch('subprocess.run', return_value=mock_result) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_init(request)
 
@@ -120,7 +120,7 @@ class TestSamInit:
 
         # Mock the subprocess.run function to raise an exception
         error_message = "Command failed with exit code 1"
-        with patch('subprocess.run', side_effect=subprocess.CalledProcessError(1, "sam init", stderr=error_message)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command', side_effect=subprocess.CalledProcessError(1, "sam init", stderr=error_message)) as mock_run:
             # Call the function
             result = await sam_init(request)
 
@@ -142,7 +142,7 @@ class TestSamInit:
 
         # Mock the subprocess.run function to raise a general exception
         error_message = "Some unexpected error"
-        with patch('subprocess.run', side_effect=Exception(error_message)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command', side_effect=Exception(error_message)) as mock_run:
             # Call the function
             result = await sam_init(request)
 

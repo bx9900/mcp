@@ -58,7 +58,7 @@ async def sam_build(request: SamBuildRequest):
         stdout, stderr = await run_command(cmd, cwd=request.project_directory)
         return {
             "success": True,
-            "message": "SAM project deployed successfully",
+            "message": "SAM project built successfully",
             "output": stdout.decode()
         } 
     except Exception as e:

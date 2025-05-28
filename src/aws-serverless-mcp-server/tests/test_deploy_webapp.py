@@ -242,7 +242,7 @@ class TestDeployWebapp:
             response_json = json.loads(result["content"][0]["text"])
             assert response_json["success"] is True
             assert "Deployment of test-project initiated successfully" in response_json["message"]
-            assert response_json["status"] == "INITIATED"
+            assert response_json["status"] == "IN_PROGRESS"
             
             # Verify that a background thread was started
             mock_thread.assert_called_once()

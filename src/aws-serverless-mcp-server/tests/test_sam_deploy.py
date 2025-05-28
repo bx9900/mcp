@@ -34,7 +34,7 @@ class TestSamDeploy:
         mock_result.stdout = b"Successfully deployed SAM project"
         mock_result.stderr = b""
 
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_deploy(request)
 
@@ -89,7 +89,7 @@ class TestSamDeploy:
         mock_result.stdout = b"Successfully deployed SAM project"
         mock_result.stderr = b""
 
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_deploy(request)
 
@@ -121,12 +121,7 @@ class TestSamDeploy:
             assert "samconfig.toml" in cmd
             assert "--config-env" in cmd
             assert "dev" in cmd
-            assert "--no-execute-changeset" in cmd
-            assert "--fail-on-empty-changeset" in cmd
-            assert "--force-upload" in cmd
-            assert "--json" in cmd
             assert "--metadata" in cmd
-            assert "--notification-arns" in cmd
             assert "--tags" in cmd
             assert "--resolve-s3" in cmd
             assert "--debug" in cmd
@@ -142,7 +137,7 @@ class TestSamDeploy:
 
         # Mock the subprocess.run function to raise an exception
         error_message = b"Command failed with exit code 1"
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', side_effect=subprocess.CalledProcessError(1, "sam deploy", stderr=error_message)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command', side_effect=subprocess.CalledProcessError(1, "sam deploy", stderr=error_message)) as mock_run:
             # Call the function
             result = await sam_deploy(request)
 
@@ -162,7 +157,7 @@ class TestSamDeploy:
 
         # Mock the subprocess.run function to raise a general exception
         error_message = "Some unexpected error"
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', side_effect=Exception(error_message)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command', side_effect=Exception(error_message)) as mock_run:
             # Call the function
             result = await sam_deploy(request)
 

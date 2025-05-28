@@ -44,7 +44,7 @@ async def sam_logs(request: SamLogsRequest) -> Dict[str, Any]:
         if request.cw_log_group:
             cmd.extend(['--cw-log-group'])
             for group in request.cw_log_group:
-                cmd.extend([group])
+                cmd.append(group)
 
         if request.start_time:
             cmd.extend(['--start-time', request.start_time])

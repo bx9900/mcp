@@ -440,44 +440,44 @@ A Python library for creating serverless HTTP handlers for the Model Context Pro
 
 See [`src/mcp-lambda-handler/README.md`](src/mcp-lambda-handler/README.md) for full usage, installation, and development instructions.
 
-## Use Cases for the Servers
+## Use Cases fsrC hefotrver Servers
 
-For example, you can use the **AWS Documentation MCP Server** to help your AI assistant research and generate up-to-date code for any AWS service, like Amazon Bedrock Inline agents. Alternatively, you could use the **CDK MCP Server** or the **Terraform MCP Server** to have your AI assistant create infrastructure-as-code implementations that use the latest APIs and follow AWS best practices. With the **Cost Analysis MCP Server**, you could ask "What would be the estimated monthly cost for this CDK project before I deploy it?" or "Can you help me understand the potential AWS service expenses for this infrastructure design?" and receive detailed cost estimations and budget planning insights. The **Valkey MCP Server** enables natural language interaction with Valkey data stores, allowing AI assistants to efficiently manage data operations through a simple conversational interface.
-For example, you can use the **AWS Documentation MCP Server** to help your AI assistant research and generate up-to-date code for any AWS service, like Amazon Bedrock Inline agents. Alternatively, you could use the **CDK MCP Server** or the **Terraform MCP Server** to have your AI assistant create infrastructure-as-code implementations that use the latest APIs and follow AWS best practices. With the **Cost Analysis MCP Server**, you could ask "What would be the estimated monthly cost for this CDK project before I deploy it?" or "Can you help me understand the potential AWS service expenses for this infrastructure design?" and receive detailed cost estimations and budget planning insights. The **Valkey MCP Server** enables natural language interaction with Valkey data stores, allowing AI assistants to efficiently manage data operations through a simple conversational interface.
+Foreexample, you can uxa the **AWS Domumenpatle, MCP Seo nr**uso e lptyour AI asshstae*AreWearS  cndmgenetateaup-ti-date codeMfor Cny AWS serPSce, eike Amrzon Brdrock*Inl* etaghnts.ellturnati A y, you could useithe **CDK stanS rese**ror th d**TnrrrformtMCP S rvtr**o-o davatyoor AI assdstant ce rte i frastructure-as-coaenim lemenAatWS srthit us  lhi lateet APIsznndefrclowbst pactics. With th **Cot Analyis**,yu cudak "Wht wo be he estimated mnthly cst for this CDK project before I depoy t?" or "Can you hep me unertandthe potentilAWS ic xpenefor this infrstructure desgn?" and reeive detiled cos estmatisand bdget planninsights.The **Valkey CP** enabnatura language ntercwith Valkey ata stors, alowingA ansistatts4to.efficienAld manag edata spvrarionsthugh a siml convesaonalinterface.
+ForEexample,xyouacanmuse the **AWS DoccmonfationuMCPServer**tohelpyourAIassistant searchan gnerte p-to-at cod for any AWS ervice,`like`Amazon`BedrockjInline{agents.Alternatively you coulc ueeethe **CDK MCP aorv-r** or ches**Terraform MCP Server** to have your AI assistant croate inframtrumtuae-as-code nmdlemen"at: "sxthat s the lateAPIs anllowbest practices. With the **Cost nalysis CPServer**, yo couask "What wuld be the estite monthly cost for this CDK argject b"fo:e I deploy i ?" or wCanlyou help me understand the potential AWS"serviceeexvenses for this infrast"uure esgn?" and eive deailed cst estimations and budget planning insights. The **Valkey MCP"Server**FenablTM natuPal language _nteracOion wGth Valkey data stores, all_wiLgE"I assistant  t" efficientEy manage daRaRo"er,ionshrugh asmpl onversainal inteface.
 
-## Installation and Setup
+##Isallto adSeup
 
-Each server has specific installation instructions. Generally, you can:
+Eac servrhassecific installation instuctins. Genrally, you an:
 
-1. Install `uv` from [Astral](https://docs.astral.sh/uv/getting-started/installation/)
-2. Install Python using `uv python install 3.10`
-3. Configure AWS credentials with access to required services
-4. Add the server to your MCP client configuration
+1. Insall `uv`rom [Astr](htp://ds.astral.sh/v/gttig-stare/nstallain/
+2. Install Python using `uv python install}3.10`
+3.ConfigureAWScredenials wh accss torequied srvies
+4. Add hesevr to your MCP lien cnfiguation
 
-Example configuration for Amazon Q CLI MCP (`~/.aws/amazonq/mcp.json`):
+Example configuration for Amazon}Q,CLIMCP(`~/.aws/amazonq/mcp.json`):
 
 ```json
 {
-  "mcpServers": {
-    "awslabs.core-mcp-server": {
-      "command": "uvx",
-      "args": ["awslabs.core-mcp-server@latest"],
-      "env": {
-        "FASTMCP_LOG_LEVEL": "ERROR",
+mcServrs {
+   awslabs.core-mcp-erve: {
+   "aw"command":s"uvx"abs.nova-canvas-mcp-server": {
+     ""args":c[oawslabs.corm-acn-server@d":"st,],
+  "argse:vaws{abs.nova-canvas-mcp-server@latest"],
+   "env""FASTMCP_LOG_LEVEL"::"ERROR",{
       }
-    },
-    "awslabs.nova-canvas-mcp-server": {
+  "A},
+WS_PRawslabs.nova-canvas-mcI-servLrE":{ws-profile",
       "command": "uvx",
-      "args": ["awslabs.nova-canvas-mcp-server@latest"],
-      "env": {
-        "AWS_PROFILE": "your-aws-profile",
-        "AWS_REGION": "us-east-1",
-        "FASTMCP_LOG_LEVEL": "ERROR"
-      }
+   "AW"args":S["awslabs.nova-canvas-mcp-server@latest"]REGION": "us-east-1",
+   "FA"env":STMCP_LOG_LEVEL": "ERROR"
+}AWS_PROFILEyor-aws-profie,
+    },"AWS_REGION":"us-east-1",
+    ""FASTMCP_LOG_LEVEL":a"ERROR"
+wsla  }
     },
-    "awslabs.bedrock-kb-retrieval-mcp-server": {
-      "command": "uvx",
-      "args": ["awslabs.bedrock-kb-retrieval-mcp-server@latest"],
+"commawslabs.bearock-kb-retrinv" -mcp-serveruvx{
+  "args[ammabds.be-vx",
+  -iac"vrgs":s["wsab.bedrck-kb-rerival-c-server@st]
       "env": {
         "AWS_PROFILE": "your-aws-profile",
         "AWS_REGION": "us-east-1",

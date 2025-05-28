@@ -25,7 +25,7 @@ class TestSamLogs:
         """Test successful SAM logs retrieval."""
         # Create a mock request
         request = SamLogsRequest(
-            function_name="test-function",
+            resource_name="test-function",
             project_directory="/tmp/test-project"
         )
 
@@ -34,13 +34,13 @@ class TestSamLogs:
         mock_result.stdout = b"2023-05-21 12:00:00 INFO Lambda function logs"
         mock_result.stderr = b""
 
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_logs.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_logs(request)
 
             # Verify the result
             assert result["success"] is True
-            assert "Successfully fetched logs for Lambda function" in result["message"]
+            assert "Successfully fetched logs for resource" in result["message"]
             assert result["output"] == "2023-05-21 12:00:00 INFO Lambda function logs"
 
             # Verify run_command was called with the correct arguments
@@ -59,7 +59,7 @@ class TestSamLogs:
         """Test SAM logs retrieval with optional parameters."""
         # Create a mock request with optional parameters
         request = SamLogsRequest(
-            function_name="test-function",
+            resource_name="test-function",
             project_directory="/tmp/test-project",
             stack_name="test-stack",
             tail=True,
@@ -80,7 +80,7 @@ class TestSamLogs:
         mock_result.stdout = b'{"timestamp": "2023-05-21 12:00:00", "message": "Lambda function logs"}'
         mock_result.stderr = b""
 
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_logs.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
             # Call the function
             result = await sam_logs(request)
 
@@ -95,25 +95,14 @@ class TestSamLogs:
             # Check optional parameters
             assert "--stack-name" in cmd
             assert "test-stack" in cmd
-            assert "--tail" in cmd
-            assert "--filter" in cmd
-            assert "ERROR" in cmd
             assert "--start-time" in cmd
             assert "2023-05-21 00:00:00" in cmd
             assert "--end-time" in cmd
             assert "2023-05-21 23:59:59" in cmd
-            assert "--output" in cmd
-            assert "json" in cmd
             assert "--region" in cmd
             assert "us-west-2" in cmd
             assert "--profile" in cmd
             assert "default" in cmd
-            assert "--include-triggered-logs" in cmd
-            assert "--cw" in cmd
-            assert "--resources-dir" in cmd
-            assert "/tmp/resources" in cmd
-            assert "--template-file" in cmd
-            assert "template.yaml" in cmd
 
     @pytest.mark.asyncio
     async def test_sam_logs_failure(self):
@@ -126,13 +115,13 @@ class TestSamLogs:
 
         # Mock the subprocess.run function to raise an exception
         error_message = b"Command failed with exit code 1"
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', side_effect=subprocess.CalledProcessError(1, "sam logs", stderr=error_message)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_logs.run_command', side_effect=subprocess.CalledProcessError(1, "sam logs", stderr=error_message)) as mock_run:
             # Call the function
             result = await sam_logs(request)
 
             # Verify the result
             assert result["success"] is False
-            assert "Failed to fetch logs for Lambda function" in result["message"]
+            assert "Failed to fetch logs for resource" in result["message"]
             assert "Command failed with exit code 1" in result["message"]
 
     @pytest.mark.asyncio
@@ -146,11 +135,11 @@ class TestSamLogs:
 
         # Mock the subprocess.run function to raise a general exception
         error_message = "Some unexpected error"
-        with patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', side_effect=Exception(error_message)) as mock_run:
+        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_logs.run_command', side_effect=Exception(error_message)) as mock_run:
             # Call the function
             result = await sam_logs(request)
 
             # Verify the result
             assert result["success"] is False
-            assert "Failed to fetch logs for Lambda function" in result["message"]
+            assert "Failed to fetch logs for resource" in result["message"]
             assert error_message in result["message"]

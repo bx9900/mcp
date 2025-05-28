@@ -57,7 +57,7 @@ async def deploy_serverless_app_help(application_type: ApplicationType) -> Dict[
             "step": 1,
             "prompt": (
                 """For new applications, use the sam_init tool to generate the project directory structure that is compatible with AWS SAM CLI.
-                Then generate the Lambda function handler code ensuring that the structure is compatible with AWS Lambda.
+                Then generate Lambda function handler code or update existing code to ensure that the structure is compatible with AWS Lambda.
                 Lambda requires a handler method that is the entry point into the function when it is invoked.
                 The handler method should accept an event object and a context object, and return a response object.
                 For event-driven applications, use the get_lambda_event_schemas tool to get the event specific schema for the event source (e.g. SQS, SNS)

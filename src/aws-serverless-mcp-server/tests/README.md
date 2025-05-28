@@ -36,7 +36,6 @@ The tests are organized by module:
 - `test_server.py`: Tests for the MCP server tools
 - `test_models.py`: Tests for the data models
 - `test_sam_init.py`: Tests for the SAM initialization functionality
-- `test_sam_pipeline.py`: Tests for the SAM pipeline functionality
 - `test_get_iac_guidance.py`: Tests for the IaC guidance functionality
 - `test_get_lambda_event_schemas.py`: Tests for the Lambda event schemas functionality
 - `test_logger.py`: Tests for the logger utility

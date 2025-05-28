@@ -5,7 +5,6 @@ from awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy import sam_deploy
 from awslabs.aws_serverless_mcp_server.tools.sam.sam_init import sam_init
 from awslabs.aws_serverless_mcp_server.tools.sam.sam_local_invoke import sam_local_invoke
 from awslabs.aws_serverless_mcp_server.tools.sam.sam_logs import sam_logs
-from awslabs.aws_serverless_mcp_server.tools.sam.sam_pipeline import sam_pipeline
 
 __all__ = [
     'sam_build',
@@ -13,5 +12,4 @@ __all__ = [
     'sam_init',
     'sam_local_invoke',
     'sam_logs',
-    'sam_pipeline',
 ]

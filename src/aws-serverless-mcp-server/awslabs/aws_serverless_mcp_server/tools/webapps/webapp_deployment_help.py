@@ -32,20 +32,23 @@ async def webapp_deployment_help(request: WebappDeploymentHelpRequest) -> Dict[s
 
         # General deployment help
         general_help = {
-            'description': 'The deploy_webapp tool can be used to deploy web applications to AWS serverless infrastructure.',
+            'description': 'The deploy_webapp tool can be used to deploy web applications to AWS serverless infrastructure. Using Lambda Web Adapter,'
+            '',
             'deploymentTypes': {
                 'backend': 'Deploy a backend application to AWS Lambda with API Gateway.',
                 'frontend': 'Deploy a frontend application to Amazon S3 and CloudFront.',
                 'fullstack': 'Deploy both backend and frontend components.'
             },
             'workflow': [
-                '1. Initialize your project with the appropriate framework.',
-                '2. Build your application.',
+                """1. Initialize your project with the appropriate framework. You can use popular frameworks like Express.js, Flask, React, etc.
+                    without needing to follow AWS Lambda specific conventions. If you're building a fullstack application, ensure backend and frontend
+                    are structured in separate directories.""",
+                '2. Build your application using the build command for your framework (e.g., `npm run build`, `python setup.py build`).',
                 '3. Deploy your application using the deploy_web_app_tool.',
                 '4. Check the deployment status using the deployment://{name} resource .',
                 '5. Configure a custom domain using the configure_domain_tool (optional).',
                 '6. Update your frontend using the update_frontend_tool (optional).',
-                '7. Monitor your application using the get_logs_tool and get_metrics_tool.'
+                '7. Monitor your application using the sam_logs tool and get_metrics_tool.'
             ]
         }
 

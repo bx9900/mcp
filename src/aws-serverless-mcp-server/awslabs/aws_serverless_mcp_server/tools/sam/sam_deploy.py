@@ -42,7 +42,7 @@ async def sam_deploy(request: SamDeployRequest):
     if request.capabilities:
         cmd.extend(["--capabilities"])
         for capability in request.capabilities:
-            cmd.extend([capability])
+            cmd.append(capability)
     if request.config_file:
         cmd.extend(["--config-file", request.config_file])
     if request.config_env:
@@ -50,11 +50,11 @@ async def sam_deploy(request: SamDeployRequest):
     if request.metadata:
         cmd.extend(["--metadata"])
         for key, value in request.metadata.items():
-            cmd.extend(f" {key}={value}")
+            cmd.append(f"{key}={value}")
     if request.tags:
         cmd.extend(["--tags"])
         for key, value in request.tags.items():
-            cmd.extend(f" {key}={value}")
+            cmd.append(f"{key}={value}")
     if request.resolve_s3:
         cmd.append("--resolve-s3")
     if request.debug:

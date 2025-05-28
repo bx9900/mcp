@@ -22,7 +22,7 @@ import tempfile
 import threading
 from typing import Dict, Any
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
-from awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service import deploy_application
+from awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service import deploy_application, DeploymentStatus
 from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
 
 # Define the directory where deployment status files will be stored
@@ -250,7 +250,7 @@ Please install dependencies and try again.
         response_text = json.dumps({
             'success': True,
             'message': f'Deployment of {project_name} initiated successfully.',
-            'status': 'INITIATED',
+            'status': DeploymentStatus.IN_PROGRESS,
             'note': 'The deployment process is running in the background and may take several minutes to complete.',
             'checkStatus': f'To check the status of your deployment, use the resource: deployment://{project_name}'
         }, indent=2)

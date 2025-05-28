@@ -71,14 +71,14 @@ async def sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
                 cmd.extend(['--docker-network', docker_network])
             
             if container_env_vars:
-                cmd.extend(['--container-env'])
+                cmd.extend(['--container-env-vars'])
                 for key, value in container_env_vars.items():
-                    cmd.extend(f" {key}={value}")
+                    cmd.append(f"{key}={value}")
             
             if parameter:
                 cmd.extend(['--parameter-overrides'])
                 for key, value in parameter.items():
-                    cmd.extend(f" ParameterKey={key},ParameterValue={value}")
+                    cmd.append(f"ParameterKey={key},ParameterValue={value}")
             
             if log_file:
                 cmd.extend(['--log-file', log_file])

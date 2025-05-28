@@ -142,21 +142,31 @@ async def get_lambda_event_schemas(request: GetLambdaEventSchemasRequest) -> Dic
     # Check if runtime is supported
     if runtime not in EVENT_SOURCE_SCHEMAS:
         available_runtimes = ", ".join(EVENT_SOURCE_SCHEMAS.keys())
-        raise ValueError(f"Event source schemas for '{runtime}' not found. Available runtimes: {available_runtimes}.")
+        return {
+            'success': False,
+            'message': f"Event source schemas for '{runtime}' not found. Available runtimes: {available_runtimes}.",
+            'error': f"Unsupported runtime: {runtime}"
+        }
     
     schemas_for_runtime = EVENT_SOURCE_SCHEMAS[runtime]
     
     # Check if event source is supported
     if event_source not in schemas_for_runtime["event_sources"]:
-        raise ValueError(f"Event source '{event_source}' not found for runtime '{runtime}'. This tool only indexes a subset of event sources. "
-                         f"Query the schema repository {schemas_for_runtime['event_schema_repo_link']} for complete list of event sources.")
-    
+        return {
+            'success': False,
+            'message': (
+                f"Event source '{event_source}' not found for runtime '{runtime}'. "
+                f"This tool only indexes a subset of event sources. "
+                f"Query the schema repository {schemas_for_runtime['event_schema_repo_link']} for complete list of event sources."
+            ),
+            'error': f"Unsupported event source: {event_source}"
+        }
     schema_file = schemas_for_runtime["event_sources"][event_source]
     
     try:
         # Fetch schema content from GitHub
         github_url = f"https://api.github.com/repos/{schemas_for_runtime['repo_name']}/contents/{schemas_for_runtime['path']}/{schema_file}"
-        schema_content = await fetch_github_content(github_url)
+        schema_content = fetch_github_content(github_url)
         
         # Decode content from base64
         decoded_content = base64.b64decode(schema_content["content"]).decode("utf-8")
@@ -172,7 +182,8 @@ async def get_lambda_event_schemas(request: GetLambdaEventSchemasRequest) -> Dic
             }
         }
     except Exception as e:
-        logger.error(f"Error getting serverless templates: {str(e)}")
+        error_msg = f"Could not fetch schema content from GitHub: {str(e)}"
+        logger.error(error_msg)
         return {
             'success': False,
             'message': f"Failed to fetch serverless templates: {str(e)}",

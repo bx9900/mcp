@@ -346,7 +346,7 @@ Resources:
                 "pros": tool.pros[:3],
                 "cons": tool.cons[:3],
                 "gettingStarted": tool.getting_started,
-                # Omit example code for concise format
+                "exampleCode": ""  # Empty string for concise format
             }
             for tool in tools_info
         ]
