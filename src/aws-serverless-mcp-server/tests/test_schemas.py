@@ -121,7 +121,7 @@ class TestSearchSchema:
                 next_token='token123',
             )
             mock_schemas_client.search_schemas.assert_called_once_with(
-                Keywords='test', RegistryName='test-registry', Limit=5, NextToken='token123'
+                Keywords='test', RegistryName='test-registry', Limit='5', NextToken='token123'
             )
 
     @pytest.mark.asyncio

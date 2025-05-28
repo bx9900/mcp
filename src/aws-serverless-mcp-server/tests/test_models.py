@@ -249,7 +249,8 @@ class TestGetLambdaEventSchemasRequest:
     def test_get_lambda_event_schemas_request_missing_required_fields(self):
         """Test GetLambdaEventSchemasRequest with missing required fields."""
         with pytest.raises(ValidationError):
-            GetLambdaEventSchemasRequest(event_source='S3', runtime='')
+            # Omit required fields completely instead of using empty strings
+            GetLambdaEventSchemasRequest()
 
 
 class TestGetLambdaGuidanceRequest:

@@ -10,6 +10,7 @@
 # and limitations under the License.
 """Tests for the get_iac_guidance module."""
 
+import json
 import pytest
 from awslabs.aws_serverless_mcp_server.models import GetIaCGuidanceRequest
 from awslabs.aws_serverless_mcp_server.tools.guidance.get_iac_guidance import (
@@ -104,9 +105,13 @@ class TestGetIaCGuidance:
         assert 'tools' in result
         assert 'comparisonTable' in result
 
+        # Parse JSON strings
+        tools = json.loads(result['tools'])
+        comparison_table = json.loads(result['comparisonTable'])
+
         # Check tools
-        assert len(result['tools']) > 0
-        for tool in result['tools']:
+        assert len(tools) > 0
+        for tool in tools:
             assert 'name' in tool
             assert 'description' in tool
             assert 'bestFor' in tool
@@ -115,10 +120,10 @@ class TestGetIaCGuidance:
             assert 'gettingStarted' in tool
 
         # Check comparison table
-        assert 'headers' in result['comparisonTable']
-        assert 'rows' in result['comparisonTable']
-        assert len(result['comparisonTable']['headers']) > 0
-        assert len(result['comparisonTable']['rows']) > 0
+        assert 'headers' in comparison_table
+        assert 'rows' in comparison_table
+        assert len(comparison_table['headers']) > 0
+        assert len(comparison_table['rows']) > 0
 
     @pytest.mark.asyncio
     async def test_get_iac_guidance_with_examples(self):
@@ -127,8 +132,11 @@ class TestGetIaCGuidance:
 
         result = await get_iac_guidance(request)
 
+        # Parse JSON string
+        tools = json.loads(result['tools'])
+
         # Check that examples are included
-        for tool in result['tools']:
+        for tool in tools:
             assert 'exampleCode' in tool
             assert tool['exampleCode'] != ''
 
@@ -139,8 +147,11 @@ class TestGetIaCGuidance:
 
         result = await get_iac_guidance(request)
 
+        # Parse JSON string
+        tools = json.loads(result['tools'])
+
         # Check that examples are not included or are empty
-        for tool in result['tools']:
+        for tool in tools:
             assert tool['exampleCode'] == ''
 
     @pytest.mark.asyncio
@@ -152,7 +163,10 @@ class TestGetIaCGuidance:
 
         # Check that tool-specific guidance is included
         assert 'toolSpecificGuidance' in result
-        assert result['toolSpecificGuidance']['title'] == 'AWS SAM Deployment Guide'
+
+        # Parse JSON string
+        tool_specific_guidance = json.loads(result['toolSpecificGuidance'])
+        assert tool_specific_guidance['title'] == 'AWS SAM Deployment Guide'
 
     @pytest.mark.asyncio
     async def test_get_iac_guidance_specific_tool_cdk(self):
@@ -163,7 +177,10 @@ class TestGetIaCGuidance:
 
         # Check that tool-specific guidance is included
         assert 'toolSpecificGuidance' in result
-        assert result['toolSpecificGuidance']['title'] == 'AWS CDK Deployment Guide'
+
+        # Parse JSON string
+        tool_specific_guidance = json.loads(result['toolSpecificGuidance'])
+        assert tool_specific_guidance['title'] == 'AWS CDK Deployment Guide'
 
     @pytest.mark.asyncio
     async def test_get_iac_guidance_specific_tool_cloudformation(self):
@@ -174,4 +191,7 @@ class TestGetIaCGuidance:
 
         # Check that tool-specific guidance is included
         assert 'toolSpecificGuidance' in result
-        assert result['toolSpecificGuidance']['title'] == 'AWS CloudFormation Deployment Guide'
+
+        # Parse JSON string
+        tool_specific_guidance = json.loads(result['toolSpecificGuidance'])
+        assert tool_specific_guidance['title'] == 'AWS CloudFormation Deployment Guide'

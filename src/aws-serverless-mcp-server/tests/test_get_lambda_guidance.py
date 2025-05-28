@@ -10,6 +10,7 @@
 # and limitations under the License.
 """Tests for the get_lambda_guidance module."""
 
+import json
 import pytest
 from awslabs.aws_serverless_mcp_server.models import GetLambdaGuidanceRequest
 from awslabs.aws_serverless_mcp_server.tools.guidance.get_lambda_guidance import (
@@ -38,8 +39,8 @@ class TestGetLambdaGuidance:
         assert 'cons' in result
         assert 'decisionCriteria' in result
 
-        # Check that examples are included when requested
-        when_to_use = result['whenToUse']
+        # Parse JSON strings
+        when_to_use = json.loads(result['whenToUse'])
         assert isinstance(when_to_use, list)
         assert len(when_to_use) > 0
 
@@ -48,7 +49,7 @@ class TestGetLambdaGuidance:
             assert 'scenario' in scenario
             assert 'description' in scenario
             if 'examples' in scenario:
-                assert isinstance(scenario['examples'], list)
+                assert isinstance(json.loads(scenario['examples']), list)
 
     @pytest.mark.asyncio
     async def test_get_lambda_guidance_without_examples(self):
@@ -68,13 +69,15 @@ class TestGetLambdaGuidance:
         assert 'cons' in result
         assert 'decisionCriteria' in result
 
+        # Parse JSON string
+        when_to_use = json.loads(result['whenToUse'])
+
         # Check that examples are not included in scenarios when not requested
-        when_to_use = result['whenToUse']
         for scenario in when_to_use:
             assert 'scenario' in scenario
             assert 'description' in scenario
             # Should not have examples when include_examples=False
-            assert 'examples' not in scenario or len(scenario.get('examples', [])) == 0
+            assert 'examples' not in scenario
 
     @pytest.mark.asyncio
     async def test_get_lambda_guidance_default_examples(self):
@@ -96,7 +99,7 @@ class TestGetLambdaGuidance:
 
         # Check that use case specific guidance is included
         assert 'useCaseSpecificGuidance' in result
-        use_case_guidance = result['useCaseSpecificGuidance']
+        use_case_guidance = json.loads(result['useCaseSpecificGuidance'])
         assert 'title' in use_case_guidance
         assert 'suitability' in use_case_guidance
         assert 'description' in use_case_guidance
@@ -131,7 +134,7 @@ class TestGetLambdaGuidance:
 
             # Should have use case specific guidance for known use cases
             assert 'useCaseSpecificGuidance' in result
-            use_case_guidance = result['useCaseSpecificGuidance']
+            use_case_guidance = json.loads(result['useCaseSpecificGuidance'])
             assert 'title' in use_case_guidance
             assert 'suitability' in use_case_guidance
 
@@ -152,17 +155,20 @@ class TestGetLambdaGuidance:
 
         for field in required_fields:
             assert field in result
-            assert isinstance(result[field], list)
-            assert len(result[field]) > 0
+            parsed_field = json.loads(result[field])
+            assert isinstance(parsed_field, list)
+            assert len(parsed_field) > 0
 
         # Check that lists contain meaningful content
-        for scenario in result['whenToUse']:
+        when_to_use = json.loads(result['whenToUse'])
+        for scenario in when_to_use:
             assert isinstance(scenario, dict)
             assert 'scenario' in scenario
             assert 'description' in scenario
             assert len(scenario['description']) > 10
 
-        for criterion in result['decisionCriteria']:
+        decision_criteria = json.loads(result['decisionCriteria'])
+        for criterion in decision_criteria:
             assert isinstance(criterion, dict)
             assert 'criterion' in criterion
             assert 'description' in criterion
