@@ -27,6 +27,8 @@ The set of tools provided by the Serverless MCP server can be broken down into f
   - Provides guidance on AWS Lambda use-cases, selecting an IaC framework, and deployment process onto AWS Serverless
   - Provides sample SAM templates for different serverless application types from [Serverless Land](https://serverlessland.com/)
   - Provides schema types for different Lambda event sources and runtimes
+  - Provides schema registry management and discovery for AWS EventBridge events
+  - Enables type-safe Lambda function development with complete event schemas
 
 ## Prerequisites
 - Have an AWS account with [credentials configured](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-files.html)
@@ -361,6 +363,37 @@ Returns example SAM templates from the Serverless Land GitHub repo.
 - `template_type` (required): Template type (e.g., API, ETL, Web)
 - `runtime`: Lambda runtime (e.g., nodejs18.x, python3.9)
 
+### Schema Tools
+
+#### list_registries_tool
+
+Lists the registries in your account.
+
+**Parameters:**
+- `registry_name_prefix`: Limits results to registries starting with this prefix
+- `scope`: Filter by registry scope (LOCAL or AWS)
+- `limit`: Maximum number of results to return (1-100)
+- `next_token`: Pagination token for subsequent requests
+
+#### search_schema_tool
+
+Search for schemas in a registry using keywords.
+
+**Parameters:**
+- `keywords` (required): Keywords to search for (prefix with "aws." for service events)
+- `registry_name` (required): Registry to search in (use "aws.events" for AWS service events)
+- `limit`: Maximum number of results (1-100)
+- `next_token`: Pagination token
+
+#### describe_schema_tool
+
+Retrieve complete schema definition for specified schema version.
+
+**Parameters:**
+- `registry_name` (required): Registry containing the schema
+- `schema_name` (required): Name of schema to retrieve
+- `schema_version`: Version number of schema (latest by default)
+
 ## Example Usage
 
 ### Creating a Lambda Function with SAM
@@ -386,6 +419,20 @@ I have a full-stack web app built with Node.js called my-web-app, and I want to 
 ```
 
 This prompt would trigger the AI assistant to use the deploy_webapp_tool to deploy the full stack application with the specified configuration.
+
+### Working with EventBridge Schemas
+
+Example user prompt:
+
+```
+I need to create a Lambda function that processes autoscaling events. Can you help me find the right event schema and implement type-safe event handling?
+```
+
+This prompt would trigger the AI assistant to:
+1. Search for autoscaling event schemas in aws.events registry using search_schema_tool
+2. Retrieve complete schema definition using describe_schema_tool
+3. Generate type-safe handler code based on schema structure
+4. Implement validation for required fields
 
 ## Security Features
 1. **AWS Authentication**: Uses AWS credentials from the environment for secure authentication

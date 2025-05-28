@@ -10,7 +10,9 @@
 # and limitations under the License.
 """Configuration for pytest."""
 
+import os
 import pytest
+from unittest.mock import MagicMock
 
 
 def pytest_addoption(parser):
@@ -35,3 +37,26 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if 'live' in item.keywords:
                 item.add_marker(skip_live)
+
+
+@pytest.fixture
+def mock_context():
+    """Create a mock MCP context."""
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_schemas_client():
+    """Create a mock boto3 schemas client."""
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_env():
+    """Create a mock environment with test AWS credentials."""
+    original_env = dict(os.environ)
+    test_env = {'AWS_PROFILE': 'test-profile', 'AWS_REGION': 'us-west-2'}
+    os.environ.update(test_env)
+    yield test_env
+    os.environ.clear()
+    os.environ.update(original_env)

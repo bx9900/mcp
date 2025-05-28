@@ -11,6 +11,7 @@
 """Tests for the AWS Lambda MCP Server."""
 
 import awslabs.aws_serverless_mcp_server.server
+import importlib
 import os
 import pytest
 import tempfile
@@ -22,6 +23,7 @@ from awslabs.aws_serverless_mcp_server.models import (
 )
 from awslabs.aws_serverless_mcp_server.server import (
     get_iac_guidance_tool,
+    mcp,
     sam_build_tool,
     sam_deploy_tool,
     sam_init_tool,
