@@ -11,10 +11,13 @@
 """Tests for the cloudformation utility module."""
 
 import pytest
-from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
-from awslabs.aws_serverless_mcp_server.utils.cloudformation import get_stack_info, map_cloudformation_status
+from awslabs.aws_serverless_mcp_server.utils.cloudformation import (
+    get_stack_info,
+    map_cloudformation_status,
+)
 from botocore.exceptions import ClientError
+from datetime import datetime
+from unittest.mock import MagicMock, patch
 
 
 class TestCloudFormation:
@@ -27,7 +30,7 @@ class TestCloudFormation:
         mock_client = MagicMock()
         mock_session = MagicMock()
         mock_session.client.return_value = mock_client
-        
+
         # Mock the response from describe_stacks
         creation_time = datetime.now()
         last_updated_time = datetime.now()
@@ -39,25 +42,19 @@ class TestCloudFormation:
                     'LastUpdatedTime': last_updated_time,
                     'CreationTime': creation_time,
                     'Outputs': [
-                        {
-                            'OutputKey': 'ApiUrl',
-                            'OutputValue': 'https://api.example.com'
-                        },
-                        {
-                            'OutputKey': 'FunctionName',
-                            'OutputValue': 'test-function'
-                        }
-                    ]
+                        {'OutputKey': 'ApiUrl', 'OutputValue': 'https://api.example.com'},
+                        {'OutputKey': 'FunctionName', 'OutputValue': 'test-function'},
+                    ],
                 }
             ]
         }
-        
+
         # Patch boto3.Session to return our mock session
         with patch('boto3.Session', return_value=mock_session):
             # Call the function
             stack_name = 'test-stack'
             result = await get_stack_info(stack_name)
-            
+
             # Verify the result
             assert result['status'] == 'CREATE_COMPLETE'
             assert result['statusReason'] == 'Stack creation completed successfully'
@@ -65,9 +62,9 @@ class TestCloudFormation:
             assert result['creationTime'] == creation_time.isoformat()
             assert result['outputs'] == {
                 'ApiUrl': 'https://api.example.com',
-                'FunctionName': 'test-function'
+                'FunctionName': 'test-function',
             }
-            
+
             # Verify the client was called correctly
             mock_session.client.assert_called_once_with('cloudformation')
             mock_client.describe_stacks.assert_called_once_with(StackName=stack_name)
@@ -79,7 +76,7 @@ class TestCloudFormation:
         mock_client = MagicMock()
         mock_session = MagicMock()
         mock_session.client.return_value = mock_client
-        
+
         # Mock the response from describe_stacks
         creation_time = datetime.now()
         last_updated_time = datetime.now()
@@ -90,22 +87,22 @@ class TestCloudFormation:
                     'StackStatusReason': 'Stack update completed successfully',
                     'LastUpdatedTime': last_updated_time,
                     'CreationTime': creation_time,
-                    'Outputs': []
+                    'Outputs': [],
                 }
             ]
         }
-        
+
         # Patch boto3.Session to return our mock session
         with patch('boto3.Session', return_value=mock_session):
             # Call the function with a region
             stack_name = 'test-stack'
             region = 'us-west-2'
             result = await get_stack_info(stack_name, region)
-            
+
             # Verify the result
             assert result['status'] == 'UPDATE_COMPLETE'
             assert result['statusReason'] == 'Stack update completed successfully'
-            
+
             # Verify the session was created with the correct region
             mock_session.client.assert_called_once_with('cloudformation')
             mock_client.describe_stacks.assert_called_once_with(StackName=stack_name)
@@ -117,19 +114,19 @@ class TestCloudFormation:
         mock_client = MagicMock()
         mock_session = MagicMock()
         mock_session.client.return_value = mock_client
-        
+
         # Mock the ClientError exception
         error_response = {'Error': {'Code': 'ValidationError', 'Message': 'Stack does not exist'}}
         mock_client.exceptions = MagicMock()
         mock_client.exceptions.ClientError = ClientError
         mock_client.describe_stacks.side_effect = ClientError(error_response, 'DescribeStacks')
-        
+
         # Patch boto3.Session to return our mock session
         with patch('boto3.Session', return_value=mock_session):
             # Call the function
             stack_name = 'nonexistent-stack'
             result = await get_stack_info(stack_name)
-            
+
             # Verify the result
             assert result['status'] == 'NOT_FOUND'
             assert f'Stack {stack_name} not found' in result['message']
@@ -141,16 +138,16 @@ class TestCloudFormation:
         mock_client = MagicMock()
         mock_session = MagicMock()
         mock_session.client.return_value = mock_client
-        
+
         # Mock an empty response
         mock_client.describe_stacks.return_value = {}
-        
+
         # Patch boto3.Session to return our mock session
         with patch('boto3.Session', return_value=mock_session):
             # Call the function
             stack_name = 'test-stack'
             result = await get_stack_info(stack_name)
-            
+
             # Verify the result
             assert result['status'] == 'NOT_FOUND'
             assert f'Stack {stack_name} not found' in result['message']
@@ -162,17 +159,17 @@ class TestCloudFormation:
         mock_client = MagicMock()
         mock_session = MagicMock()
         mock_session.client.return_value = mock_client
-        
+
         # Mock a general exception
         mock_client.exceptions = MagicMock()
         mock_client.exceptions.ClientError = ClientError
-        mock_client.describe_stacks.side_effect = Exception("Test exception")
-        
+        mock_client.describe_stacks.side_effect = Exception('Test exception')
+
         # Patch boto3.Session to return our mock session
         with patch('boto3.Session', return_value=mock_session):
             # Call the function and expect an exception
             stack_name = 'test-stack'
-            with pytest.raises(Exception, match="Test exception"):
+            with pytest.raises(Exception, match='Test exception'):
                 await get_stack_info(stack_name)
 
     def test_map_cloudformation_status(self):
@@ -180,22 +177,22 @@ class TestCloudFormation:
         # Test successful deployments
         assert map_cloudformation_status('CREATE_COMPLETE') == 'DEPLOYED'
         assert map_cloudformation_status('UPDATE_COMPLETE') == 'DEPLOYED'
-        
+
         # Test deletion
         assert map_cloudformation_status('DELETE_COMPLETE') == 'DELETED'
-        
+
         # Test failures
         assert map_cloudformation_status('CREATE_FAILED') == 'FAILED'
         assert map_cloudformation_status('UPDATE_FAILED') == 'FAILED'
         assert map_cloudformation_status('DELETE_FAILED') == 'FAILED'
-        
+
         # Test in-progress statuses
         assert map_cloudformation_status('CREATE_IN_PROGRESS') == 'IN_PROGRESS'
         assert map_cloudformation_status('UPDATE_IN_PROGRESS') == 'IN_PROGRESS'
         assert map_cloudformation_status('DELETE_IN_PROGRESS') == 'IN_PROGRESS'
-        
+
         # Test not found
         assert map_cloudformation_status('NOT_FOUND') == 'NOT_FOUND'
-        
+
         # Test unknown status
         assert map_cloudformation_status('SOME_UNKNOWN_STATUS') == 'UNKNOWN'

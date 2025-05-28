@@ -10,18 +10,16 @@
 # and limitations under the License.
 """Tests for the deploy_service module."""
 
-import os
 import pytest
-import tempfile
 from awslabs.aws_serverless_mcp_server.models import (
     BackendConfiguration,
     DeployWebAppRequest,
     FrontendConfiguration,
 )
 from awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service import (
+    build_and_deploy_application,
     deploy_application,
     generate_sam_template,
-    build_and_deploy_application,
     get_stack_outputs,
 )
 from awslabs.aws_serverless_mcp_server.tools.webapps.utils.startup_script_generator import (
@@ -29,7 +27,7 @@ from awslabs.aws_serverless_mcp_server.tools.webapps.utils.startup_script_genera
 )
 from awslabs.aws_serverless_mcp_server.utils.deployment_manager import DeploymentStatus
 from botocore.exceptions import ClientError
-from unittest.mock import AsyncMock, MagicMock, patch, mock_open
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 
 class TestDeployService:
@@ -44,7 +42,7 @@ class TestDeployService:
             port=3000,
             startup_script='bootstrap',
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='backend',
             project_name='test-project',
@@ -52,48 +50,57 @@ class TestDeployService:
             region='us-east-1',
             backend_configuration=backend_config,
         )
-        
+
         mock_deploy_result = {
             'stackName': 'test-project',
             'outputs': {'ApiUrl': 'https://api.example.com'},
         }
-        
+
         mock_status_result = {
             'status': DeploymentStatus.DEPLOYED,
             'success': True,
             'outputs': {'ApiUrl': 'https://api.example.com'},
             'stackName': 'test-project',
         }
-        
+
         with (
             patch('os.path.exists', return_value=True),
             patch('os.stat') as mock_stat,
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status') as mock_init,
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.generate_sam_template') as mock_template,
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.build_and_deploy_application', return_value=mock_deploy_result) as mock_deploy,
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_metadata') as mock_store,
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.get_deployment_status', return_value=mock_status_result) as mock_get_status,
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.generate_sam_template'
+            ) as mock_template,
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.build_and_deploy_application',
+                return_value=mock_deploy_result,
+            ) as mock_deploy,
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_metadata'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.get_deployment_status',
+                return_value=mock_status_result,
+            ) as mock_get_status,
         ):
             # Mock file stats to show script is executable
             mock_stat.return_value.st_mode = 0o755
-            
+
             result = await deploy_application(request)
-            
+
             # Verify initialization was called - not needed as it's not called in the implementation
             # mock_init.assert_called_once_with('test-project', 'backend', 'unknown', 'us-east-1')
-            
+
             # Verify template generation was called
             mock_template.assert_called_once_with('/dir/test-project', request)
-            
+
             # Verify deployment was called
             mock_deploy.assert_called_once_with('/dir/test-project', request)
-            
-            # Verify metadata was stored - not needed as it's not called in the implementation
-            # mock_store.assert_called_once()
-            
+
             # The implementation does call get_deployment_status, so we need to verify it
             mock_get_status.assert_called_once_with('test-project')
-            
+
             assert result == mock_status_result
 
     @pytest.mark.asyncio
@@ -105,12 +112,12 @@ class TestDeployService:
             port=3000,
             startup_script='bootstrap',
         )
-        
+
         frontend_config = FrontendConfiguration(
             built_assets_path='build',
             framework='react',
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='fullstack',
             project_name='test-project',
@@ -118,26 +125,40 @@ class TestDeployService:
             backend_configuration=backend_config,
             frontend_configuration=frontend_config,
         )
-        
+
         mock_deploy_result = {
             'stackName': 'test-project',
             'outputs': {'ApiUrl': 'https://api.example.com', 'WebsiteBucket': 'test-bucket'},
         }
-        
+
         with (
             patch('os.path.exists', return_value=True),
             patch('os.stat') as mock_stat,
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.generate_sam_template'),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.build_and_deploy_application', return_value=mock_deploy_result),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.frontend_uploader.upload_frontend_assets') as mock_upload,
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_metadata'),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.get_deployment_status', return_value={}),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.generate_sam_template'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.build_and_deploy_application',
+                return_value=mock_deploy_result,
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.frontend_uploader.upload_frontend_assets'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_metadata'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.get_deployment_status',
+                return_value={},
+            ),
         ):
             mock_stat.return_value.st_mode = 0o755
-            
+
             await deploy_application(request)
-            
+
             # Verify frontend assets were uploaded - not needed as it's not called in the implementation
             # mock_upload.assert_called_once_with(request, mock_deploy_result)
 
@@ -150,29 +171,41 @@ class TestDeployService:
             port=3000,
             startup_script='bootstrap',
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
             backend_configuration=backend_config,
         )
-        
+
         with (
             patch('os.path.exists', return_value=True),
             patch('os.stat') as mock_stat,
             patch('os.chmod') as mock_chmod,
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.generate_sam_template'),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.build_and_deploy_application', return_value={}),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_metadata'),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.get_deployment_status', return_value={}),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.generate_sam_template'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.build_and_deploy_application',
+                return_value={},
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_metadata'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.get_deployment_status',
+                return_value={},
+            ),
         ):
             # Mock file stats to show script is not executable
             mock_stat.return_value.st_mode = 0o644
-            
+
             await deploy_application(request)
-            
+
             # Verify chmod was called to make it executable
             mock_chmod.assert_called_once_with('/dir/test-project/dist/bootstrap', 0o755)
 
@@ -185,21 +218,25 @@ class TestDeployService:
             port=3000,
             startup_script='nonexistent',
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
             backend_configuration=backend_config,
         )
-        
+
         with (
             patch('os.path.exists', return_value=False),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_error') as mock_store_error,
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_error'
+            ),
         ):
             result = await deploy_application(request)
-            
+
             assert result['status'] == DeploymentStatus.FAILED
             assert 'Startup script not found' in result['message']
             # mock_store_error.assert_called_once() - not needed as it's not called in the implementation
@@ -214,24 +251,39 @@ class TestDeployService:
             entry_point='app.js',
             generate_startup_script=True,
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
             backend_configuration=backend_config,
         )
-        
+
         with (
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.startup_script_generator.generate_startup_script', return_value='bootstrap') as mock_generate,
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.generate_sam_template'),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.build_and_deploy_application', return_value={}),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_metadata'),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.get_deployment_status', return_value={}),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.startup_script_generator.generate_startup_script',
+                return_value='bootstrap',
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.generate_sam_template'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.build_and_deploy_application',
+                return_value={},
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_metadata'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.get_deployment_status',
+                return_value={},
+            ),
         ):
             await deploy_application(request)
-            
+
             # Verify startup script was generated - not needed as it's not called in the implementation
             # mock_generate.assert_called_once_with(
             #     runtime='nodejs18.x',
@@ -240,7 +292,7 @@ class TestDeployService:
             #     startup_script_name=None,
             #     additional_env=None,
             # )
-            
+
             # Verify the configuration was updated - not needed as it's not set in the implementation
             # assert backend_config.startup_script == 'bootstrap'
 
@@ -254,21 +306,28 @@ class TestDeployService:
             entry_point='nonexistent.js',
             generate_startup_script=True,
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
             backend_configuration=backend_config,
         )
-        
+
         with (
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.startup_script_generator.generate_startup_script', side_effect=EntryPointNotFoundError('nonexistent.js', 'dist')),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_error') as mock_store_error,
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.startup_script_generator.generate_startup_script',
+                side_effect=EntryPointNotFoundError('nonexistent.js', 'dist'),
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_error'
+            ),
         ):
             result = await deploy_application(request)
-            
+
             assert result['status'] == DeploymentStatus.FAILED
             assert 'Failed to generate startup script' in result['message']
             # mock_store_error.assert_called_once() - not needed as it's not called in the implementation
@@ -281,20 +340,24 @@ class TestDeployService:
             runtime='nodejs18.x',
             port=3000,
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
             backend_configuration=backend_config,
         )
-        
+
         with (
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_error') as mock_store_error,
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_error'
+            ),
         ):
             result = await deploy_application(request)
-            
+
             assert result['status'] == DeploymentStatus.FAILED
             assert 'No startup script provided or generated' in result['message']
             # mock_store_error.assert_called_once() - not needed as it's not called in the implementation
@@ -308,20 +371,24 @@ class TestDeployService:
             port=3000,
             startup_script='/absolute/path/bootstrap',
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
             backend_configuration=backend_config,
         )
-        
+
         with (
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_error') as mock_store_error,
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_error'
+            ),
         ):
             result = await deploy_application(request)
-            
+
             assert result['status'] == DeploymentStatus.FAILED
             assert 'Startup script must be relative to built_artifacts_path' in result['message']
             # mock_store_error.assert_called_once() - not needed as it's not called in the implementation
@@ -334,15 +401,18 @@ class TestDeployService:
             project_name='test-project',
             project_root='/dir/test-project',
         )
-        
+
         mock_template_content = 'AWSTemplateFormatVersion: "2010-09-09"'
-        
+
         with (
-            patch('awslabs.aws_serverless_mcp_server.template.renderer.render_template', return_value=mock_template_content) as mock_render,
+            patch(
+                'awslabs.aws_serverless_mcp_server.template.renderer.render_template',
+                return_value=mock_template_content,
+            ),
             patch('builtins.open', mock_open()) as mock_file,
         ):
             await generate_sam_template('/dir/test-project', request)
-            
+
             # mock_render.assert_called_once_with(request) - not needed as it's not called in the implementation
             # mock_file is called multiple times, so we can't use assert_called_once_with
             mock_file.assert_any_call('/dir/test-project/template.yaml', 'w', encoding='utf-8')
@@ -357,13 +427,16 @@ class TestDeployService:
             project_name='test-project',
             project_root='/dir/test-project',
         )
-        
-        with patch('awslabs.aws_serverless_mcp_server.template.renderer.render_template', side_effect=Exception('Template error')):
+
+        with patch(
+            'awslabs.aws_serverless_mcp_server.template.renderer.render_template',
+            side_effect=Exception('Template error'),
+        ):
             # The implementation doesn't raise the expected exception with the exact message
             # so we'll just check that an exception is raised
             with pytest.raises(Exception):
                 await generate_sam_template('/dir/test-project', request)
-   
+
     @pytest.mark.asyncio
     async def test_build_and_deploy_application_failure(self):
         """Test build and deploy application failure."""
@@ -372,11 +445,15 @@ class TestDeployService:
             project_name='test-project',
             project_root='/dir/test-project',
         )
-        
+
         with (
             patch('builtins.open', mock_open()),
             patch('os.path.exists', return_value=True),  # Make sure directory exists
-            patch('awslabs.aws_serverless_mcp_server.utils.process.run_command', new_callable=AsyncMock, side_effect=Exception('Deploy failed')),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.process.run_command',
+                new_callable=AsyncMock,
+                side_effect=Exception('Deploy failed'),
+            ),
         ):
             # The implementation might not raise the exception with the exact message
             # so we'll just check that an exception is raised
@@ -388,20 +465,22 @@ class TestDeployService:
         """Test successful get_stack_outputs."""
         mock_cfn_client = MagicMock()
         mock_cfn_client.describe_stacks.return_value = {
-            'Stacks': [{
-                'Outputs': [
-                    {'OutputKey': 'ApiUrl', 'OutputValue': 'https://api.example.com'},
-                    {'OutputKey': 'WebsiteBucket', 'OutputValue': 'test-bucket'},
-                ]
-            }]
+            'Stacks': [
+                {
+                    'Outputs': [
+                        {'OutputKey': 'ApiUrl', 'OutputValue': 'https://api.example.com'},
+                        {'OutputKey': 'WebsiteBucket', 'OutputValue': 'test-bucket'},
+                    ]
+                }
+            ]
         }
-        
+
         mock_session = MagicMock()
         mock_session.client.return_value = mock_cfn_client
-        
+
         with patch('boto3.Session', return_value=mock_session):
             result = await get_stack_outputs('test-stack', 'us-east-1')
-            
+
             expected = {
                 'ApiUrl': 'https://api.example.com',
                 'WebsiteBucket': 'test-bucket',
@@ -413,10 +492,10 @@ class TestDeployService:
         """Test get_stack_outputs with no stacks found."""
         mock_cfn_client = MagicMock()
         mock_cfn_client.describe_stacks.return_value = {'Stacks': []}
-        
+
         mock_session = MagicMock()
         mock_session.client.return_value = mock_cfn_client
-        
+
         with patch('boto3.Session', return_value=mock_session):
             result = await get_stack_outputs('nonexistent-stack', 'us-east-1')
             assert result == {}
@@ -427,12 +506,12 @@ class TestDeployService:
         mock_cfn_client = MagicMock()
         mock_cfn_client.describe_stacks.side_effect = ClientError(
             {'Error': {'Code': 'ValidationError', 'Message': 'Stack does not exist'}},
-            'describe_stacks'
+            'describe_stacks',
         )
-        
+
         mock_session = MagicMock()
         mock_session.client.return_value = mock_cfn_client
-        
+
         with patch('boto3.Session', return_value=mock_session):
             result = await get_stack_outputs('nonexistent-stack', 'us-east-1')
             assert result == {}
@@ -442,13 +521,13 @@ class TestDeployService:
         """Test get_stack_outputs without region."""
         mock_cfn_client = MagicMock()
         mock_cfn_client.describe_stacks.return_value = {'Stacks': [{'Outputs': []}]}
-        
+
         mock_session = MagicMock()
         mock_session.client.return_value = mock_cfn_client
-        
+
         with patch('boto3.Session', return_value=mock_session):
             result = await get_stack_outputs('test-stack')
-            
+
             # Verify Session was created without region
             mock_session.client.assert_called_once_with('cloudformation')
             assert result == {}
@@ -469,12 +548,12 @@ class TestDeployService:
             port=3000,
             startup_script='bootstrap',
         )
-        
+
         frontend_config = FrontendConfiguration(
             built_assets_path='build',  # Relative path
             framework='react',
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='fullstack',
             project_name='test-project',
@@ -482,21 +561,35 @@ class TestDeployService:
             backend_configuration=backend_config,
             frontend_configuration=frontend_config,
         )
-        
+
         with (
             patch('os.path.exists', return_value=True),
             patch('os.stat') as mock_stat,
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.generate_sam_template'),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.build_and_deploy_application', return_value={}),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.frontend_uploader.upload_frontend_assets'),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_metadata'),
-            patch('awslabs.aws_serverless_mcp_server.utils.deployment_manager.get_deployment_status', return_value={}),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.initialize_deployment_status'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.generate_sam_template'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service.build_and_deploy_application',
+                return_value={},
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.frontend_uploader.upload_frontend_assets'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.store_deployment_metadata'
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.deployment_manager.get_deployment_status',
+                return_value={},
+            ),
         ):
             mock_stat.return_value.st_mode = 0o755
-            
+
             await deploy_application(request)
-            
+
             # Verify paths were converted to absolute
             assert backend_config.built_artifacts_path == '/dir/test-project/dist'
             assert frontend_config.built_assets_path == '/dir/test-project/build'

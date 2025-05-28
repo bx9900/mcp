@@ -12,7 +12,6 @@
 
 import os
 import pytest
-import tempfile
 from awslabs.aws_serverless_mcp_server.models import (
     DeployWebAppRequest,
     FrontendConfiguration,
@@ -22,7 +21,7 @@ from awslabs.aws_serverless_mcp_server.tools.webapps.utils.frontend_uploader imp
     upload_to_s3,
 )
 from botocore.exceptions import BotoCoreError, ClientError
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, patch
 
 
 class TestFrontendUploader:
@@ -38,9 +37,9 @@ class TestFrontendUploader:
             project_root='/dir/test-project',
             frontend_configuration=None,
         )
-        
+
         deploy_result = {'outputs': {'WebsiteBucket': 'test-bucket'}}
-        
+
         # Should return without error when no frontend config
         await upload_frontend_assets(request, deploy_result)
 
@@ -51,16 +50,16 @@ class TestFrontendUploader:
             built_assets_path='',
             framework='react',
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='frontend',
             project_name='test-project',
             project_root='/dir/test-project',
             frontend_configuration=frontend_config,
         )
-        
+
         deploy_result = {'outputs': {'WebsiteBucket': 'test-bucket'}}
-        
+
         # Should return without error when no built assets path
         await upload_frontend_assets(request, deploy_result)
 
@@ -71,16 +70,16 @@ class TestFrontendUploader:
             built_assets_path='/dir/build',
             framework='react',
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='frontend',
             project_name='test-project',
             project_root='/dir/test-project',
             frontend_configuration=frontend_config,
         )
-        
+
         deploy_result = {'outputs': {}}
-        
+
         with pytest.raises(Exception, match='S3 bucket name not found in deployment outputs'):
             await upload_frontend_assets(request, deploy_result)
 
@@ -91,16 +90,16 @@ class TestFrontendUploader:
             built_assets_path='/dir/nonexistent',
             framework='react',
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='frontend',
             project_name='test-project',
             project_root='/dir/test-project',
             frontend_configuration=frontend_config,
         )
-        
+
         deploy_result = {'outputs': {'WebsiteBucket': 'test-bucket'}}
-        
+
         with patch('os.path.exists', return_value=False):
             with pytest.raises(Exception, match='Built assets path not found: /dir/nonexistent'):
                 await upload_frontend_assets(request, deploy_result)
@@ -112,7 +111,7 @@ class TestFrontendUploader:
             built_assets_path='/dir/build',
             framework='react',
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='frontend',
             project_name='test-project',
@@ -120,12 +119,14 @@ class TestFrontendUploader:
             region='us-east-1',
             frontend_configuration=frontend_config,
         )
-        
+
         deploy_result = {'outputs': {'WebsiteBucket': 'test-bucket'}}
-        
+
         with (
             patch('os.path.exists', return_value=True),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.frontend_uploader.upload_to_s3') as mock_upload,
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.frontend_uploader.upload_to_s3'
+            ) as mock_upload,
         ):
             await upload_frontend_assets(request, deploy_result)
             mock_upload.assert_called_once_with('/dir/build', 'test-bucket', 'us-east-1')
@@ -137,19 +138,22 @@ class TestFrontendUploader:
             built_assets_path='/dir/build',
             framework='react',
         )
-        
+
         request = DeployWebAppRequest(
             deployment_type='frontend',
             project_name='test-project',
             project_root='/dir/test-project',
             frontend_configuration=frontend_config,
         )
-        
+
         deploy_result = {'outputs': {'WebsiteBucket': 'test-bucket'}}
-        
+
         with (
             patch('os.path.exists', return_value=True),
-            patch('awslabs.aws_serverless_mcp_server.tools.webapps.utils.frontend_uploader.upload_to_s3', side_effect=Exception('Upload failed')),
+            patch(
+                'awslabs.aws_serverless_mcp_server.tools.webapps.utils.frontend_uploader.upload_to_s3',
+                side_effect=Exception('Upload failed'),
+            ),
         ):
             with pytest.raises(Exception, match='Upload failed'):
                 await upload_frontend_assets(request, deploy_result)
@@ -160,19 +164,19 @@ class TestFrontendUploader:
         mock_s3_client = MagicMock()
         mock_session = MagicMock()
         mock_session.client.return_value = mock_s3_client
-        
+
         # Mock file system
         test_files = [
             ('/dir/source', ['subdir'], ['file1.txt', 'file2.html']),
             ('/dir/source/subdir', [], ['file3.js']),
         ]
-        
+
         def mock_relpath(path, start):
             """Mock os.path.relpath to return relative paths correctly."""
             if path.startswith(start):
-                return path[len(start):].lstrip('/')
+                return path[len(start) :].lstrip('/')
             return path
-        
+
         with (
             patch('boto3.Session', return_value=mock_session),
             patch('os.walk', return_value=test_files),
@@ -180,17 +184,17 @@ class TestFrontendUploader:
             patch('os.path.relpath', side_effect=mock_relpath),
         ):
             await upload_to_s3('/dir/source', 'test-bucket', 'us-east-1')
-            
+
             # Verify S3 client was created with correct region
             mock_session.client.assert_called_once_with('s3')
-            
+
             # Verify files were uploaded
             expected_calls = [
                 ('/dir/source/file1.txt', 'test-bucket', 'file1.txt'),
                 ('/dir/source/file2.html', 'test-bucket', 'file2.html'),
                 ('/dir/source/subdir/file3.js', 'test-bucket', 'subdir/file3.js'),
             ]
-            
+
             assert mock_s3_client.upload_file.call_count == 3
             for i, call in enumerate(mock_s3_client.upload_file.call_args_list):
                 args = call[0]
@@ -202,17 +206,19 @@ class TestFrontendUploader:
         mock_s3_client = MagicMock()
         mock_session = MagicMock()
         mock_session.client.return_value = mock_s3_client
-        
+
         test_files = [('root', [], ['file1.txt'])]
-        
+
         with (
             patch('boto3.Session', return_value=mock_session),
             patch('os.walk', return_value=test_files),
             patch('os.path.join', side_effect=lambda *args: '/'.join(args)),
-            patch('os.path.relpath', side_effect=lambda path, start: path.replace(start + '/', '')),
+            patch(
+                'os.path.relpath', side_effect=lambda path, start: path.replace(start + '/', '')
+            ),
         ):
             await upload_to_s3('/dir/source', 'test-bucket')
-            
+
             # Verify Session was created without region
             mock_session.client.assert_called_once_with('s3')
 
@@ -221,19 +227,20 @@ class TestFrontendUploader:
         """Test upload_to_s3 with ClientError."""
         mock_s3_client = MagicMock()
         mock_s3_client.upload_file.side_effect = ClientError(
-            {'Error': {'Code': 'NoSuchBucket', 'Message': 'Bucket does not exist'}},
-            'upload_file'
+            {'Error': {'Code': 'NoSuchBucket', 'Message': 'Bucket does not exist'}}, 'upload_file'
         )
         mock_session = MagicMock()
         mock_session.client.return_value = mock_s3_client
-        
+
         test_files = [('root', [], ['file1.txt'])]
-        
+
         with (
             patch('boto3.Session', return_value=mock_session),
             patch('os.walk', return_value=test_files),
             patch('os.path.join', side_effect=lambda *args: '/'.join(args)),
-            patch('os.path.relpath', side_effect=lambda path, start: path.replace(start + '/', '')),
+            patch(
+                'os.path.relpath', side_effect=lambda path, start: path.replace(start + '/', '')
+            ),
         ):
             with pytest.raises(ClientError):
                 await upload_to_s3('/dir/source', 'test-bucket', 'us-east-1')
@@ -245,14 +252,16 @@ class TestFrontendUploader:
         mock_s3_client.upload_file.side_effect = BotoCoreError()
         mock_session = MagicMock()
         mock_session.client.return_value = mock_s3_client
-        
+
         test_files = [('root', [], ['file1.txt'])]
-        
+
         with (
             patch('boto3.Session', return_value=mock_session),
             patch('os.walk', return_value=test_files),
             patch('os.path.join', side_effect=lambda *args: '/'.join(args)),
-            patch('os.path.relpath', side_effect=lambda path, start: path.replace(start + '/', '')),
+            patch(
+                'os.path.relpath', side_effect=lambda path, start: path.replace(start + '/', '')
+            ),
         ):
             with pytest.raises(BotoCoreError):
                 await upload_to_s3('/dir/source', 'test-bucket', 'us-east-1')
@@ -263,15 +272,15 @@ class TestFrontendUploader:
         mock_s3_client = MagicMock()
         mock_session = MagicMock()
         mock_session.client.return_value = mock_s3_client
-        
+
         # Empty directory
         test_files = [('root', [], [])]
-        
+
         with (
             patch('boto3.Session', return_value=mock_session),
             patch('os.walk', return_value=test_files),
         ):
             await upload_to_s3('/dir/source', 'test-bucket', 'us-east-1')
-            
+
             # No files should be uploaded
             mock_s3_client.upload_file.assert_not_called()

@@ -10,23 +10,22 @@
 # and limitations under the License.
 """Tests for the template renderer module."""
 
-import os
 import pytest
-from unittest.mock import patch, MagicMock
-from awslabs.aws_serverless_mcp_server.template.renderer import (
-    get_jinja_filters,
-    get_jinja_tests,
-    render_template,
+from awslabs.aws_serverless_mcp_server.models import (
+    BackendConfiguration,
+    DeployWebAppRequest,
+    FrontendConfiguration,
 )
 from awslabs.aws_serverless_mcp_server.template.registry import (
     DeploymentTypes,
     Template,
 )
-from awslabs.aws_serverless_mcp_server.models import (
-    DeployWebAppRequest,
-    BackendConfiguration,
-    FrontendConfiguration,
+from awslabs.aws_serverless_mcp_server.template.renderer import (
+    get_jinja_filters,
+    get_jinja_tests,
+    render_template,
 )
+from unittest.mock import MagicMock, patch
 
 
 class TestTemplateRenderer:
@@ -35,20 +34,23 @@ class TestTemplateRenderer:
     def test_get_jinja_filters(self):
         """Test the get_jinja_filters function."""
         filters = get_jinja_filters()
-        
+
         # Verify the filters exist
         assert 'cf_ref' in filters
         assert 'cf_get_att' in filters
         assert 'cf_sub' in filters
-        
+
         # Test the cf_ref filter
         cf_ref = filters['cf_ref']
         assert cf_ref('MyResource') == '{ "Ref": "MyResource" }'
-        
+
         # Test the cf_get_att filter
         cf_get_att = filters['cf_get_att']
-        assert cf_get_att('MyResource', 'Attribute') == '{ "Fn::GetAtt": ["MyResource", "Attribute"] }'
-        
+        assert (
+            cf_get_att('MyResource', 'Attribute')
+            == '{ "Fn::GetAtt": ["MyResource", "Attribute"] }'
+        )
+
         # Test the cf_sub filter
         cf_sub = filters['cf_sub']
         assert cf_sub('${AWS::Region}') == '{ "Fn::Sub": "${AWS::Region}" }'
@@ -56,18 +58,18 @@ class TestTemplateRenderer:
     def test_get_jinja_tests(self):
         """Test the get_jinja_tests function."""
         tests = get_jinja_tests()
-        
+
         # Verify the tests exist
         assert 'equals' in tests
         assert 'exists' in tests
-        
+
         # Test the equals test
         equals = tests['equals']
         assert equals(1, 1) is True
         assert equals(1, 2) is False
         assert equals('a', 'a') is True
         assert equals('a', 'b') is False
-        
+
         # Test the exists test
         exists = tests['exists']
         assert exists('value') is True
@@ -90,7 +92,7 @@ class TestTemplateRenderer:
                 framework='express',
             ),
         )
-        
+
         # Mock the template
         mock_template = Template(
             name='backend-express',
@@ -98,30 +100,34 @@ class TestTemplateRenderer:
             type_=DeploymentTypes.BACKEND,
             framework='express',
         )
-        
+
         # Mock the get_template_for_deployment function
-        with patch('awslabs.aws_serverless_mcp_server.template.renderer.get_template_for_deployment') as mock_get_template:
+        with patch(
+            'awslabs.aws_serverless_mcp_server.template.renderer.get_template_for_deployment'
+        ) as mock_get_template:
             mock_get_template.return_value = mock_template
-            
+
             # Mock the Jinja2 environment
             mock_env = MagicMock()
             mock_template_obj = MagicMock()
             mock_template_obj.render.return_value = 'Rendered template content'
             mock_env.get_template.return_value = mock_template_obj
-            
-            with patch('awslabs.aws_serverless_mcp_server.template.renderer.Environment') as mock_env_class:
+
+            with patch(
+                'awslabs.aws_serverless_mcp_server.template.renderer.Environment'
+            ) as mock_env_class:
                 mock_env_class.return_value = mock_env
-                
+
                 # Call the function
                 result = await render_template(request)
-                
+
                 # Verify the result
                 assert result == 'Rendered template content'
-                
+
                 # Verify the template was loaded correctly
                 mock_get_template.assert_called_once_with(DeploymentTypes.BACKEND, 'express')
                 mock_env.get_template.assert_called_once_with('backend-express.yaml')
-                
+
                 # Verify the template was rendered with the correct variables
                 template_vars = mock_template_obj.render.call_args[1]
                 assert template_vars['project_name'] == 'test-project'
@@ -144,7 +150,7 @@ class TestTemplateRenderer:
                 framework='react',
             ),
         )
-        
+
         # Mock the template
         mock_template = Template(
             name='frontend-react',
@@ -152,30 +158,34 @@ class TestTemplateRenderer:
             type_=DeploymentTypes.FRONTEND,
             framework='react',
         )
-        
+
         # Mock the get_template_for_deployment function
-        with patch('awslabs.aws_serverless_mcp_server.template.renderer.get_template_for_deployment') as mock_get_template:
+        with patch(
+            'awslabs.aws_serverless_mcp_server.template.renderer.get_template_for_deployment'
+        ) as mock_get_template:
             mock_get_template.return_value = mock_template
-            
+
             # Mock the Jinja2 environment
             mock_env = MagicMock()
             mock_template_obj = MagicMock()
             mock_template_obj.render.return_value = 'Rendered template content'
             mock_env.get_template.return_value = mock_template_obj
-            
-            with patch('awslabs.aws_serverless_mcp_server.template.renderer.Environment') as mock_env_class:
+
+            with patch(
+                'awslabs.aws_serverless_mcp_server.template.renderer.Environment'
+            ) as mock_env_class:
                 mock_env_class.return_value = mock_env
-                
+
                 # Call the function
                 result = await render_template(request)
-                
+
                 # Verify the result
                 assert result == 'Rendered template content'
-                
+
                 # Verify the template was loaded correctly
                 mock_get_template.assert_called_once_with(DeploymentTypes.FRONTEND, 'react')
                 mock_env.get_template.assert_called_once_with('frontend-react.yaml')
-                
+
                 # Verify the template was rendered with the correct variables
                 template_vars = mock_template_obj.render.call_args[1]
                 assert template_vars['project_name'] == 'test-project'
@@ -204,7 +214,7 @@ class TestTemplateRenderer:
                 framework='react',
             ),
         )
-        
+
         # Mock the template
         mock_template = Template(
             name='fullstack-express-react',
@@ -212,30 +222,36 @@ class TestTemplateRenderer:
             type_=DeploymentTypes.FULLSTACK,
             framework='express-react',
         )
-        
+
         # Mock the get_template_for_deployment function
-        with patch('awslabs.aws_serverless_mcp_server.template.renderer.get_template_for_deployment') as mock_get_template:
+        with patch(
+            'awslabs.aws_serverless_mcp_server.template.renderer.get_template_for_deployment'
+        ) as mock_get_template:
             mock_get_template.return_value = mock_template
-            
+
             # Mock the Jinja2 environment
             mock_env = MagicMock()
             mock_template_obj = MagicMock()
             mock_template_obj.render.return_value = 'Rendered template content'
             mock_env.get_template.return_value = mock_template_obj
-            
-            with patch('awslabs.aws_serverless_mcp_server.template.renderer.Environment') as mock_env_class:
+
+            with patch(
+                'awslabs.aws_serverless_mcp_server.template.renderer.Environment'
+            ) as mock_env_class:
                 mock_env_class.return_value = mock_env
-                
+
                 # Call the function
                 result = await render_template(request)
-                
+
                 # Verify the result
                 assert result == 'Rendered template content'
-                
+
                 # Verify the template was loaded correctly
-                mock_get_template.assert_called_once_with(DeploymentTypes.FULLSTACK, 'express-react')
+                mock_get_template.assert_called_once_with(
+                    DeploymentTypes.FULLSTACK, 'express-react'
+                )
                 mock_env.get_template.assert_called_once_with('fullstack-express-react.yaml')
-                
+
                 # Verify the template was rendered with the correct variables
                 template_vars = mock_template_obj.render.call_args[1]
                 assert template_vars['project_name'] == 'test-project'
@@ -261,7 +277,7 @@ class TestTemplateRenderer:
                 # No framework specified
             ),
         )
-        
+
         # Mock the template
         mock_template = Template(
             name='backend',
@@ -269,26 +285,30 @@ class TestTemplateRenderer:
             type_=DeploymentTypes.BACKEND,
             framework=None,
         )
-        
+
         # Mock the get_template_for_deployment function
-        with patch('awslabs.aws_serverless_mcp_server.template.renderer.get_template_for_deployment') as mock_get_template:
+        with patch(
+            'awslabs.aws_serverless_mcp_server.template.renderer.get_template_for_deployment'
+        ) as mock_get_template:
             mock_get_template.return_value = mock_template
-            
+
             # Mock the Jinja2 environment
             mock_env = MagicMock()
             mock_template_obj = MagicMock()
             mock_template_obj.render.return_value = 'Rendered template content'
             mock_env.get_template.return_value = mock_template_obj
-            
-            with patch('awslabs.aws_serverless_mcp_server.template.renderer.Environment') as mock_env_class:
+
+            with patch(
+                'awslabs.aws_serverless_mcp_server.template.renderer.Environment'
+            ) as mock_env_class:
                 mock_env_class.return_value = mock_env
-                
+
                 # Call the function
                 result = await render_template(request)
-                
+
                 # Verify the result
                 assert result == 'Rendered template content'
-                
+
                 # Verify the template was loaded correctly
                 mock_get_template.assert_called_once_with(DeploymentTypes.BACKEND, None)
                 mock_env.get_template.assert_called_once_with('backend.yaml')
@@ -308,15 +328,17 @@ class TestTemplateRenderer:
                 framework='express',
             ),
         )
-        
+
         # Mock the get_template_for_deployment function to raise an exception
-        with patch('awslabs.aws_serverless_mcp_server.template.renderer.get_template_for_deployment') as mock_get_template:
+        with patch(
+            'awslabs.aws_serverless_mcp_server.template.renderer.get_template_for_deployment'
+        ) as mock_get_template:
             mock_get_template.side_effect = Exception('Test error')
-            
+
             # Call the function and expect an exception
             with pytest.raises(Exception) as excinfo:
                 await render_template(request)
-            
+
             # Just verify that an exception was raised
             # The exact error message format may vary
             assert 'Test error' in str(excinfo.value)

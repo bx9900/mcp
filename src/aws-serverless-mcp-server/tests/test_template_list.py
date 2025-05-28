@@ -26,20 +26,20 @@ class TestTemplateList:
         assert 'contents' in result
         assert 'metadata' in result
         assert 'count' in result['metadata']
-        
+
         # Verify the count matches the number of templates
         assert result['metadata']['count'] == len(result['contents'])
-        
+
         # Verify we have the expected templates
         template_names = [json.loads(item['text'])['name'] for item in result['contents']]
         assert 'backend' in template_names
         assert 'frontend' in template_names
         assert 'fullstack' in template_names
-        
+
         # Verify the URI format
         for item in result['contents']:
             assert item['uri'].startswith('template://')
-            
+
         # Verify each template has the required fields
         for item in result['contents']:
             template = json.loads(item['text'])

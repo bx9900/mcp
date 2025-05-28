@@ -12,8 +12,8 @@
 
 import asyncio
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from awslabs.aws_serverless_mcp_server.utils.process import run_command
+from unittest.mock import AsyncMock, patch
 
 
 class TestProcess:
@@ -25,24 +25,23 @@ class TestProcess:
         # Mock the subprocess
         mock_process = AsyncMock()
         mock_process.returncode = 0
-        mock_process.communicate = AsyncMock(return_value=(b"stdout output", b"stderr output"))
-        
+        mock_process.communicate = AsyncMock(return_value=(b'stdout output', b'stderr output'))
+
         # Patch asyncio.create_subprocess_exec to return our mock process
-        with patch('asyncio.create_subprocess_exec', return_value=mock_process) as mock_create_subprocess:
+        with patch(
+            'asyncio.create_subprocess_exec', return_value=mock_process
+        ) as mock_create_subprocess:
             # Call the function
             cmd_list = ['echo', 'hello']
             stdout, stderr = await run_command(cmd_list)
-            
+
             # Verify the result
-            assert stdout == b"stdout output"
-            assert stderr == b"stderr output"
-            
+            assert stdout == b'stdout output'
+            assert stderr == b'stderr output'
+
             # Verify the subprocess was created correctly
             mock_create_subprocess.assert_called_once_with(
-                *cmd_list, 
-                cwd=None, 
-                stdout=asyncio.subprocess.PIPE, 
-                stderr=asyncio.subprocess.PIPE
+                *cmd_list, cwd=None, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             mock_process.communicate.assert_called_once()
 
@@ -52,25 +51,24 @@ class TestProcess:
         # Mock the subprocess
         mock_process = AsyncMock()
         mock_process.returncode = 0
-        mock_process.communicate = AsyncMock(return_value=(b"stdout output", b"stderr output"))
-        
+        mock_process.communicate = AsyncMock(return_value=(b'stdout output', b'stderr output'))
+
         # Patch asyncio.create_subprocess_exec to return our mock process
-        with patch('asyncio.create_subprocess_exec', return_value=mock_process) as mock_create_subprocess:
+        with patch(
+            'asyncio.create_subprocess_exec', return_value=mock_process
+        ) as mock_create_subprocess:
             # Call the function with a working directory
             cmd_list = ['ls', '-la']
             cwd = '/dir'
             stdout, stderr = await run_command(cmd_list, cwd=cwd)
-            
+
             # Verify the result
-            assert stdout == b"stdout output"
-            assert stderr == b"stderr output"
-            
+            assert stdout == b'stdout output'
+            assert stderr == b'stderr output'
+
             # Verify the subprocess was created with the correct working directory
             mock_create_subprocess.assert_called_once_with(
-                *cmd_list, 
-                cwd=cwd, 
-                stdout=asyncio.subprocess.PIPE, 
-                stderr=asyncio.subprocess.PIPE
+                *cmd_list, cwd=cwd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
 
     @pytest.mark.asyncio
@@ -79,15 +77,15 @@ class TestProcess:
         # Mock the subprocess
         mock_process = AsyncMock()
         mock_process.returncode = 1
-        mock_process.communicate = AsyncMock(return_value=(b"stdout output", b"command failed"))
-        
+        mock_process.communicate = AsyncMock(return_value=(b'stdout output', b'command failed'))
+
         # Patch asyncio.create_subprocess_exec to return our mock process
         with patch('asyncio.create_subprocess_exec', return_value=mock_process):
             # Call the function and expect an exception
             cmd_list = ['nonexistent-command']
-            with pytest.raises(Exception, match="Command failed: command failed"):
+            with pytest.raises(Exception, match='Command failed: command failed'):
                 await run_command(cmd_list)
-            
+
             # Verify communicate was called
             mock_process.communicate.assert_called_once()
 
@@ -97,22 +95,21 @@ class TestProcess:
         # Mock the subprocess
         mock_process = AsyncMock()
         mock_process.returncode = 0
-        mock_process.communicate = AsyncMock(return_value=(b"stdout output", b"stderr output"))
-        
+        mock_process.communicate = AsyncMock(return_value=(b'stdout output', b'stderr output'))
+
         # Patch asyncio.create_subprocess_exec to return our mock process
-        with patch('asyncio.create_subprocess_exec', return_value=mock_process) as mock_create_subprocess:
+        with patch(
+            'asyncio.create_subprocess_exec', return_value=mock_process
+        ) as mock_create_subprocess:
             # Call the function with a more complex command
             cmd_list = ['npm', 'install', '--save-dev', 'jest']
             stdout, stderr = await run_command(cmd_list)
-            
+
             # Verify the result
-            assert stdout == b"stdout output"
-            assert stderr == b"stderr output"
-            
+            assert stdout == b'stdout output'
+            assert stderr == b'stderr output'
+
             # Verify the subprocess was created correctly
             mock_create_subprocess.assert_called_once_with(
-                *cmd_list, 
-                cwd=None, 
-                stdout=asyncio.subprocess.PIPE, 
-                stderr=asyncio.subprocess.PIPE
+                *cmd_list, cwd=None, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
