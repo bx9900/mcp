@@ -54,11 +54,11 @@ Add the following code to your MCP client configuration. The Serverless MCP serv
       ],
       "env": {
           "AWS_PROFILE": "your-aws-profile",
-          "AWS_REGION": "us-east-1",
-          "FASTMCP_LOG_LEVEL": "ERROR"
+          "AWS_REGION": "us-east-1"
         },
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [],
+      "timeout": 60
     }
   }
 }
@@ -75,11 +75,11 @@ Add the following code to your MCP client configuration. The Serverless MCP serv
           "AWS_ACCESS_KEY_ID": "your-temporary-access-key",
           "AWS_SECRET_ACCESS_KEY": "your-temporary-secret-key", # pragma: allowlist secret
           "AWS_SESSION_TOKEN": "your-session-token",
-          "AWS_REGION": "us-east-1",
-          "FASTMCP_LOG_LEVEL": "ERROR"
+          "AWS_REGION": "us-east-1"
         },
         "disabled": false,
-        "autoApprove": []
+        "autoApprove": [],
+        "timeout": 60
     }
   }
 }
@@ -133,7 +133,6 @@ To make changes to this MCP locally and run it:
         "env": {
           "AWS_PROFILE": "your-aws-profile",
           "AWS_REGION": "us-east-1",
-          "FASTMCP_LOG_LEVEL": "ERROR"
         },
         "disabled": false,
         "autoApprove": []
