@@ -360,7 +360,7 @@ class GetIaCGuidanceRequest(BaseModel):
 class GetLambdaEventSchemasRequest(BaseModel):
     """Request model for getting Lambda event schemas."""
 
-    event_source: str = Field(..., description='Event source (e.g., S3, DynamoDB, API Gateway)')
+    event_source: str = Field(..., description='Event source (e.g., api-gw, s3, sqs, sns, kinesis, eventbridge, dynamodb)')
     runtime: str = Field(
         ...,
         description='Programming language for the schema references (e.g., go, nodejs, python, java)',
