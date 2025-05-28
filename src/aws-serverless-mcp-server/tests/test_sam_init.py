@@ -12,9 +12,9 @@
 
 import pytest
 import subprocess
-from unittest.mock import patch, MagicMock
 from awslabs.aws_serverless_mcp_server.models import SamInitRequest
 from awslabs.aws_serverless_mcp_server.tools.sam.sam_init import sam_init
+from unittest.mock import MagicMock, patch
 
 
 class TestSamInit:
@@ -25,128 +25,140 @@ class TestSamInit:
         """Test successful SAM initialization."""
         # Create a mock request
         request = SamInitRequest(
-            project_name="test-project",
-            runtime="nodejs18.x",
-            project_directory="/tmp/test-project",
-            dependency_manager="npm"
+            project_name='test-project',
+            runtime='nodejs18.x',
+            project_directory='/tmp/test-project',
+            dependency_manager='npm',
         )
 
         # Mock the subprocess.run function
         mock_result = MagicMock()
-        mock_result.stdout = b"Successfully initialized SAM project"
-        mock_result.stderr = b""
+        mock_result.stdout = b'Successfully initialized SAM project'
+        mock_result.stderr = b''
 
-        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch(
+            'awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command',
+            return_value=(mock_result.stdout, mock_result.stderr),
+        ) as mock_run:
             # Call the function
             result = await sam_init(request)
             print(result)
             # Verify the result
-            assert result["success"] is True
-            assert "Successfully initialized SAM project" in result["message"]
-            assert result["output"] == "Successfully initialized SAM project"
+            assert result['success'] is True
+            assert 'Successfully initialized SAM project' in result['message']
+            assert result['output'] == 'Successfully initialized SAM project'
 
             # Verify subprocess.run was called with the correct arguments
             mock_run.assert_called_once()
             args, kwargs = mock_run.call_args
             cmd = args[0]
-            
+
             # Check required parameters
-            assert "sam" in cmd
-            assert "init" in cmd
-            assert "--name" in cmd
-            assert "test-project" in cmd
-            assert "--runtime" in cmd
-            assert "nodejs18.x" in cmd
-            assert "--dependency-manager" in cmd
-            assert "npm" in cmd
-            assert "--output-dir" in cmd
-            assert "/tmp/test-project" in cmd
-            assert "--no-interactive" in cmd
+            assert 'sam' in cmd
+            assert 'init' in cmd
+            assert '--name' in cmd
+            assert 'test-project' in cmd
+            assert '--runtime' in cmd
+            assert 'nodejs18.x' in cmd
+            assert '--dependency-manager' in cmd
+            assert 'npm' in cmd
+            assert '--output-dir' in cmd
+            assert '/tmp/test-project' in cmd
+            assert '--no-interactive' in cmd
 
     @pytest.mark.asyncio
     async def test_sam_init_with_optional_params(self):
         """Test SAM initialization with optional parameters."""
         # Create a mock request with optional parameters
         request = SamInitRequest(
-            project_name="test-project",
-            runtime="python3.9",
-            project_directory="/tmp/test-project",
-            dependency_manager="pip",
-            architecture="arm64",
-            application_template="hello-world",
+            project_name='test-project',
+            runtime='python3.9',
+            project_directory='/tmp/test-project',
+            dependency_manager='pip',
+            architecture='arm64',
+            application_template='hello-world',
             application_insights=True,
             debug=True,
             save_params=True,
-            tracing=True
+            tracing=True,
         )
 
         # Mock the subprocess.run function
         mock_result = MagicMock()
-        mock_result.stdout = b"Successfully initialized SAM project"
-        mock_result.stderr = b""
+        mock_result.stdout = b'Successfully initialized SAM project'
+        mock_result.stderr = b''
 
-        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch(
+            'awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command',
+            return_value=(mock_result.stdout, mock_result.stderr),
+        ) as mock_run:
             # Call the function
             result = await sam_init(request)
 
             # Verify the result
-            assert result["success"] is True
+            assert result['success'] is True
 
             # Verify subprocess.run was called with the correct arguments
             mock_run.assert_called_once()
             args, kwargs = mock_run.call_args
             cmd = args[0]
-            
+
             # Check optional parameters
-            assert "--architecture" in cmd
-            assert "arm64" in cmd
-            assert "--app-template" in cmd
-            assert "hello-world" in cmd
-            assert "--application-insights" in cmd
-            assert "--debug" in cmd
-            assert "--save-params" in cmd
-            assert "--tracing" in cmd
+            assert '--architecture' in cmd
+            assert 'arm64' in cmd
+            assert '--app-template' in cmd
+            assert 'hello-world' in cmd
+            assert '--application-insights' in cmd
+            assert '--debug' in cmd
+            assert '--save-params' in cmd
+            assert '--tracing' in cmd
 
     @pytest.mark.asyncio
     async def test_sam_init_failure(self):
         """Test SAM initialization failure."""
         # Create a mock request
         request = SamInitRequest(
-            project_name="test-project",
-            runtime="nodejs18.x",
-            project_directory="/tmp/test-project",
-            dependency_manager="npm"
+            project_name='test-project',
+            runtime='nodejs18.x',
+            project_directory='/tmp/test-project',
+            dependency_manager='npm',
         )
 
         # Mock the subprocess.run function to raise an exception
-        error_message = "Command failed with exit code 1"
-        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command', side_effect=subprocess.CalledProcessError(1, "sam init", stderr=error_message)) as mock_run:
+        error_message = 'Command failed with exit code 1'
+        with patch(
+            'awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command',
+            side_effect=subprocess.CalledProcessError(1, 'sam init', stderr=error_message),
+        ):
             # Call the function
             result = await sam_init(request)
 
             # Verify the result
-            assert result["success"] is False
-            assert "Failed to initialize SAM project" in result["message"]
-            assert error_message in result["message"]
+            assert result['success'] is False
+            assert 'Failed to initialize SAM project' in result['message']
+            assert error_message in result['message']
 
     @pytest.mark.asyncio
     async def test_sam_init_general_exception(self):
         """Test SAM initialization with a general exception."""
         # Create a mock request
         request = SamInitRequest(
-            project_name="test-project",
-            runtime="nodejs18.x",
-            project_directory="/tmp/test-project",
-            dependency_manager="npm"
+            project_name='test-project',
+            runtime='nodejs18.x',
+            project_directory='/tmp/test-project',
+            dependency_manager='npm',
         )
 
         # Mock the subprocess.run function to raise a general exception
-        error_message = "Some unexpected error"
-        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command', side_effect=Exception(error_message)) as mock_run:
+        error_message = 'Some unexpected error'
+        with patch(
+            'awslabs.aws_serverless_mcp_server.tools.sam.sam_init.run_command',
+            side_effect=Exception(error_message),
+        ):
             # Call the function
             result = await sam_init(request)
 
             # Verify the result
-            assert result["success"] is False
-            assert "Failed to initialize SAM project" in result["message"]
-            assert error_message in result["message"]
+            assert result['success'] is False
+            assert 'Failed to initialize SAM project' in result['message']
+            assert error_message in result['message']

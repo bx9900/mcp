@@ -19,54 +19,63 @@ to work with Lambda Web Adapter.
 
 import os
 import stat
-from typing import Dict, Optional
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from typing import Dict, Optional
+
 
 class EntryPointNotFoundError(Exception):
     """Custom error class for entry point not found errors."""
-    
+
     def __init__(self, entry_point: str, built_artifacts_path: str):
+        """Initializes the EntryPointNotFoundError with the specified entry point and built artifacts path.
+
+        Args:
+            entry_point (str): The name of the entry point file that was not found.
+            built_artifacts_path (str): The path to the directory containing built artifacts.
+
+        Raises:
+            EntryPointNotFoundError: If the specified entry point file does not exist in the built artifacts path.
+        """
         self.entry_point = entry_point
         self.built_artifacts_path = built_artifacts_path
-        message = f"Entry point file not found: {os.path.join(built_artifacts_path, entry_point)}"
+        message = f'Entry point file not found: {os.path.join(built_artifacts_path, entry_point)}'
         super().__init__(message)
         self.name = 'EntryPointNotFoundError'
+
 
 async def generate_startup_script(
     runtime: str,
     entry_point: str,
     built_artifacts_path: str,
     startup_script_name: Optional[str] = None,
-    additional_env: Optional[Dict[str, str]] = None
+    additional_env: Optional[Dict[str, str]] = None,
 ) -> str:
-    """
-    Generate a startup script based on runtime and entry point. This script starts up your web server
-    so that beings listening for requests.
-    
+    """Generate a startup script based on runtime and entry point. This script starts up your web server so that beings listening for requests.
+
     Args:
         runtime: Lambda runtime (e.g., nodejs22.x, python3.11)
         entry_point: Application entry point
         built_artifacts_path: Path to the built artifacts
         startup_script_name: Name of the startup script (default: 'bootstrap')
         additional_env: Additional environment variables
-    
+
     Returns:
         str: Path to the generated startup script
-    
+
     Raises:
         EntryPointNotFoundError: If the entry point file doesn't exist
     """
     startup_script_name = startup_script_name or get_default_startup_script_name(runtime)
     script_path = os.path.join(built_artifacts_path, startup_script_name)
     entry_point_path = os.path.join(built_artifacts_path, entry_point)
-    
-    logger.info(f"Generating startup script for runtime: {runtime}, entry point: {entry_point}")
-    
+
+    logger.info(f'Generating startup script for runtime: {runtime}, entry point: {entry_point}')
+
     # Check if entry point exists
     if not os.path.exists(entry_point_path):
         error = EntryPointNotFoundError(entry_point, built_artifacts_path)
         logger.error(error.args[0])
-        
+
         # Provide helpful suggestions
         logger.info('Available files in the artifacts directory:')
         try:
@@ -75,52 +84,52 @@ async def generate_startup_script(
                 logger.info('  (directory is empty)')
             else:
                 for file in files:
-                    logger.info(f"  - {file}")
-        except Exception as e:
-            logger.error(f"Could not read directory: {built_artifacts_path}")
-        
+                    logger.info(f'  - {file}')
+        except Exception:
+            logger.error(f'Could not read directory: {built_artifacts_path}')
+
         raise error
-    
+
     # Generate script content based on runtime
     script_content = generate_script_content(runtime, entry_point, additional_env)
-    
+
     # Write script to file
     with open(script_path, 'w', encoding='utf-8') as f:
         f.write(script_content)
-    
+
     # Make script executable
-    os.chmod(script_path, os.stat(script_path).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-    
-    logger.info(f"Startup script generated at: {script_path}")
-    
+    os.chmod(
+        script_path, os.stat(script_path).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    )
+
+    logger.info(f'Startup script generated at: {script_path}')
+
     return startup_script_name
 
+
 def get_default_startup_script_name(runtime: str) -> str:
-    """
-    Get default startup script name for a runtime.
-    
+    """Get default startup script name for a runtime.
+
     Args:
         runtime: Lambda runtime
-    
+
     Returns:
         str: Default startup script name
     """
     # Lambda expects a file named "bootstrap" for custom runtimes
     return 'bootstrap'
 
+
 def generate_script_content(
-    runtime: str,
-    entry_point: str,
-    additional_env: Optional[Dict[str, str]] = None
+    runtime: str, entry_point: str, additional_env: Optional[Dict[str, str]] = None
 ) -> str:
-    """
-    Generate script content based on runtime and entry point.
-    
+    """Generate script content based on runtime and entry point.
+
     Args:
         runtime: Lambda runtime
         entry_point: Application entry point
         additional_env: Additional environment variables
-    
+
     Returns:
         str: Script content
     """
@@ -131,7 +140,7 @@ def generate_script_content(
         for key, value in additional_env.items():
             env_vars.append(f'export {key}="{value}"')
         env_setup = '\n'.join(env_vars) + '\n\n'
-    
+
     if runtime.startswith('nodejs'):
         return f"""#!/bin/bash
 {env_setup}# Start the application
@@ -145,7 +154,7 @@ exec python {entry_point}
     elif runtime.startswith('java'):
         # Determine if it's a JAR file or a class
         is_jar = entry_point.lower().endswith('.jar')
-        
+
         if is_jar:
             return f"""#!/bin/bash
 {env_setup}# Start the application

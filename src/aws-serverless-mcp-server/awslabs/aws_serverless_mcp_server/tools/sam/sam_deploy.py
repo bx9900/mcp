@@ -11,67 +11,67 @@
 # and limitations under the License.
 #
 
-from awslabs.aws_serverless_mcp_server.utils.process import run_command
 from awslabs.aws_serverless_mcp_server.models import SamDeployRequest
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.process import run_command
+
 
 async def sam_deploy(request: SamDeployRequest):
-    """
-    Execute the AWS SAM deploy command with the provided parameters.
-    
+    """Execute the AWS SAM deploy command with the provided parameters.
+
     Args:
         request: SamDeployRequest object containing all deploy parameters
     """
-    cmd = ["sam", "deploy"]
-    
-    cmd.extend(["--stack-name", request.application_name])
-    cmd.append("--no-confirm-changeset")
+    cmd = ['sam', 'deploy']
+
+    cmd.extend(['--stack-name', request.application_name])
+    cmd.append('--no-confirm-changeset')
 
     if request.template_file:
-        cmd.extend(["--template-file", request.template_file])
+        cmd.extend(['--template-file', request.template_file])
     if request.s3_bucket:
-        cmd.extend(["--s3-bucket", request.s3_bucket])
+        cmd.extend(['--s3-bucket', request.s3_bucket])
     if request.s3_prefix:
-        cmd.extend(["--s3-prefix", request.s3_prefix])
+        cmd.extend(['--s3-prefix', request.s3_prefix])
     if request.region:
-        cmd.extend(["--region", request.region])
+        cmd.extend(['--region', request.region])
     if request.profile:
-        cmd.extend(["--profile", request.profile])
+        cmd.extend(['--profile', request.profile])
     if request.parameter_overrides:
-        cmd.extend(["--parameter-overrides", request.parameter_overrides])
+        cmd.extend(['--parameter-overrides', request.parameter_overrides])
     if request.capabilities:
-        cmd.extend(["--capabilities"])
+        cmd.extend(['--capabilities'])
         for capability in request.capabilities:
             cmd.append(capability)
     if request.config_file:
-        cmd.extend(["--config-file", request.config_file])
+        cmd.extend(['--config-file', request.config_file])
     if request.config_env:
-        cmd.extend(["--config-env", request.config_env])
+        cmd.extend(['--config-env', request.config_env])
     if request.metadata:
-        cmd.extend(["--metadata"])
+        cmd.extend(['--metadata'])
         for key, value in request.metadata.items():
-            cmd.append(f"{key}={value}")
+            cmd.append(f'{key}={value}')
     if request.tags:
-        cmd.extend(["--tags"])
+        cmd.extend(['--tags'])
         for key, value in request.tags.items():
-            cmd.append(f"{key}={value}")
+            cmd.append(f'{key}={value}')
     if request.resolve_s3:
-        cmd.append("--resolve-s3")
+        cmd.append('--resolve-s3')
     if request.debug:
-        cmd.append("--debug")
-    
+        cmd.append('--debug')
+
     try:
         stdout, stderr = await run_command(cmd, cwd=request.project_directory)
         return {
-            "success": True,
-            "message": "SAM project deployed successfully",
-            "output": stdout.decode()
-        } 
+            'success': True,
+            'message': 'SAM project deployed successfully',
+            'output': stdout.decode(),
+        }
     except Exception as e:
         error_msg = getattr(e, 'stderr', str(e))
-        logger.error(f"SAM deploy failed with error: {error_msg}")
+        logger.error(f'SAM deploy failed with error: {error_msg}')
         return {
-            "success": False,
-            "message": f"Failed to deploy SAM project: {error_msg}",
-            "error": str(e)
+            'success': False,
+            'message': f'Failed to deploy SAM project: {error_msg}',
+            'error': str(e),
         }

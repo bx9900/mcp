@@ -11,11 +11,9 @@
 """Tests for the github module."""
 
 import pytest
-from unittest.mock import patch, Mock, MagicMock
 import requests
-from awslabs.aws_serverless_mcp_server.utils.github import (
-    fetch_github_content
-)
+from awslabs.aws_serverless_mcp_server.utils.github import fetch_github_content
+from unittest.mock import MagicMock, Mock, patch
 
 
 class TestGithubUtils:
@@ -26,25 +24,27 @@ class TestGithubUtils:
         """Test successful GitHub content fetch."""
         # Mock response data
         mock_content = {
-            "content": "SGVsbG8sIHdvcmxkIQ==",  # Base64 encoded "Hello, world!"
-            "encoding": "base64"
+            'content': 'SGVsbG8sIHdvcmxkIQ==',  # Base64 encoded "Hello, world!"
+            'encoding': 'base64',
         }
-        
+
         # Create a mock response
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = mock_content
-        
+
         # Mock the httpx.AsyncClient.get method
         with patch('requests.get', new_callable=Mock) as mock_get:
             mock_get.return_value = mock_response
-            
+
             # Call the function
-            result = fetch_github_content("https://api.github.com/repos/owner/repo/contents/path/to/file.txt")
-            
+            result = fetch_github_content(
+                'https://api.github.com/repos/owner/repo/contents/path/to/file.txt'
+            )
+
             # Verify the result
-            assert "content" in result
-            
+            assert 'content' in result
+
             # Verify the API call
             mock_get.assert_called_once()
 
@@ -54,23 +54,27 @@ class TestGithubUtils:
         # Create a mock response for 404
         mock_response = MagicMock()
         mock_response.status_code = 404
-        mock_response.raise_for_status.side_effect = requests.HTTPError("404 Client Error")
-        
+        mock_response.raise_for_status.side_effect = requests.HTTPError('404 Client Error')
+
         # Mock the httpx.AsyncClient.get method
         with patch('requests.get', new_callable=Mock) as mock_get:
             mock_get.return_value = mock_response
-            
+
             # Call the function and assert that any exception is raised
             with pytest.raises(ValueError):
-                fetch_github_content("https://api.github.com/repos/owner/repo/contents/path/to/non-existent-file.txt")
+                fetch_github_content(
+                    'https://api.github.com/repos/owner/repo/contents/path/to/non-existent-file.txt'
+                )
 
     @pytest.mark.asyncio
     async def test_fetch_github_content_error(self):
         """Test GitHub content fetch with error."""
         # Mock the httpx.AsyncClient.get method to raise an exception
         with patch('requests.get', new_callable=Mock) as mock_get:
-            mock_get.side_effect = requests.ConnectionError("Connection error")
-            
+            mock_get.side_effect = requests.ConnectionError('Connection error')
+
             # Call the function and assert that a ValueError is raised
             with pytest.raises(ValueError):
-                fetch_github_content("https://api.github.com/repos/owner/repo/contents/path/to/file.txt")
+                fetch_github_content(
+                    'https://api.github.com/repos/owner/repo/contents/path/to/file.txt'
+                )

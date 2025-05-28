@@ -91,15 +91,15 @@ Outputs:
   ApiEndpoint:
     Description: API Gateway endpoint URL
     Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/{{ backend_configuration.stage }}/"
-  
+
   FunctionArn:
     Description: Lambda function ARN
     Value: !GetAtt ApiFunction.Arn
-  
+
   FunctionName:
     Description: Lambda function name
     Value: !Ref ApiFunction
-  
+
   {% if backend_configuration.database_configuration is exists %}
   table_name:
     Description: Name of the DynamoDB table

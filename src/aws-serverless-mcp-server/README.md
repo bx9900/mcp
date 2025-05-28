@@ -16,7 +16,7 @@ The set of tools provided by the Serverless MCP server can be broken down into f
 
 1. Serverless Application Lifecycle
   - Intialize, build, and deploy Serverless Application Model (SAM) applications with SAM CLI
-  - Test Lambda functions locally and remotely 
+  - Test Lambda functions locally and remotely
 2. Web Application Deployment & Management
   - Deploy fullstack, frontend, and backend web applications onto AWS Serverless using Lambda Web Adapter.
   - Update frontend assets and optionally invaliate CloudFront caches
@@ -37,9 +37,9 @@ The set of tools provided by the Serverless MCP server can be broken down into f
 
 ## Installation
 
-You can download the AWS Serverless MCP Server from GitHub. To get started using your favorite code assistant with MCP support, like Q Developer, Cursor or Cline. 
+You can download the AWS Serverless MCP Server from GitHub. To get started using your favorite code assistant with MCP support, like Q Developer, Cursor or Cline.
 
-Add the following code to your MCP client configuration. The Serverless MCP server uses the default AWS profile by default. You only need to set the AWS_PROFILE if you want to use a different profile. Adjust the region and log level as necessary. 
+Add the following code to your MCP client configuration. The Serverless MCP server uses the default AWS profile by default. You only need to set the AWS_PROFILE if you want to use a different profile. Adjust the region and log level as necessary.
 ```json
 {
   "mcpServers": {
@@ -71,7 +71,7 @@ Add the following code to your MCP client configuration. The Serverless MCP serv
         "args": ["awslabs.aws-serverless-mcp-server@latest"],
         "env": {
           "AWS_ACCESS_KEY_ID": "your-temporary-access-key",
-          "AWS_SECRET_ACCESS_KEY": "your-temporary-secret-key",
+          "AWS_SECRET_ACCESS_KEY": "your-temporary-secret-key", # pragma: allowlist secret
           "AWS_SESSION_TOKEN": "your-session-token",
           "AWS_REGION": "us-east-1",
           "FASTMCP_LOG_LEVEL": "ERROR"

@@ -14,29 +14,28 @@
 import json
 import requests
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 
 def fetch_github_content(url: str, headers: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
-    """
-    Fetch content from GitHub API.
-    
+    """Fetch content from GitHub API.
+
     Args:
         url: GitHub API URL
         headers: Optional additional headers
-    
+
     Returns:
         Dict: GitHub API response
     """
-    default_headers = {"Accept": "application/vnd.github+json"}
+    default_headers = {'Accept': 'application/vnd.github+json'}
     if headers:
         default_headers.update(headers)
-    
+
     try:
-        logger.info(f"Fetching GitHub content from {url}")
+        logger.info(f'Fetching GitHub content from {url}')
         response = requests.get(url, headers=default_headers, timeout=30)
         response.raise_for_status()  # Raise an exception for 4XX/5XX responses
         return response.json()
     except (requests.RequestException, json.JSONDecodeError) as e:
-        logger.error(f"Error fetching or decoding GitHub content: {str(e)}")
-        raise ValueError(f"Failed to fetch or decode GitHub content: {str(e)}")
+        logger.error(f'Error fetching or decoding GitHub content: {str(e)}')
+        raise ValueError(f'Failed to fetch or decode GitHub content: {str(e)}')

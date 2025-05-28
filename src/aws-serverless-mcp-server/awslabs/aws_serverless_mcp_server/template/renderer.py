@@ -1,66 +1,57 @@
-"""
-Template Renderer
+"""Template Renderer.
 
 Handles rendering of templates for CloudFormation/SAM deployments.
 """
 
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 import os
 from .registry import DeploymentTypes, get_template_for_deployment
 from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
+from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
 def get_jinja_filters():
-    """
-    Get Jinja2 custom filters
+    """Get Jinja2 custom filters.
 
     Returns:
         dict: Dictionary of filter functions
     """
+
     def cf_ref(value):
-        """CloudFormation Ref function"""
+        """CloudFormation Ref function."""
         return f'{{ "Ref": "{value}" }}'
-    
+
     def cf_get_att(resource, attribute):
-        """CloudFormation GetAtt function"""
+        """CloudFormation GetAtt function."""
         return f'{{ "Fn::GetAtt": ["{resource}", "{attribute}"] }}'
-    
+
     def cf_sub(value):
-        """CloudFormation Sub function"""
+        """CloudFormation Sub function."""
         return f'{{ "Fn::Sub": "{value}" }}'
-    
-    return {
-        'cf_ref': cf_ref,
-        'cf_get_att': cf_get_att,
-        'cf_sub': cf_sub
-    }
+
+    return {'cf_ref': cf_ref, 'cf_get_att': cf_get_att, 'cf_sub': cf_sub}
 
 
 def get_jinja_tests():
-    """
-    Get Jinja2 custom tests
+    """Get Jinja2 custom tests.
 
     Returns:
         dict: Dictionary of test functions
     """
+
     def equals(value, other):
-        """Test if two values are equal"""
+        """Test if two values are equal."""
         return value == other
-    
+
     def exists(value):
-        """Test if a value exists (not None and not empty string)"""
+        """Test if a value exists (not None and not empty string)."""
         return value is not None and value != ''
-    
-    return {
-        'equals': equals,
-        'exists': exists
-    }
+
+    return {'equals': equals, 'exists': exists}
 
 
 async def render_template(request: DeployWebAppRequest) -> str:
-    """
-    Render a template with the given parameters
+    """Render a template with the given parameters.
 
     Args:
         request: Deployment request parameters
@@ -85,39 +76,39 @@ async def render_template(request: DeployWebAppRequest) -> str:
         backend_framework = request.backend_configuration.framework
         frontend_framework = request.frontend_configuration.framework
         if backend_framework and frontend_framework:
-            framework = f"{backend_framework}-{frontend_framework}"
+            framework = f'{backend_framework}-{frontend_framework}'
 
     # Get the template for this deployment
     template = await get_template_for_deployment(deployment_type, framework)
-    logger.debug(f"Using template: {template.name} at {template.path}")
+    logger.debug(f'Using template: {template.name} at {template.path}')
 
     try:
         # Get the template directory
         template_dir = os.path.dirname(template.path)
         template_name = os.path.basename(template.path)
-        
+
         # Create Jinja2 environment
         env = Environment(
             loader=FileSystemLoader(template_dir),
             autoescape=select_autoescape(['html', 'xml']),
             trim_blocks=True,
-            lstrip_blocks=True
+            lstrip_blocks=True,
         )
-        
+
         # Add custom filters and tests
         env.filters.update(get_jinja_filters())
         env.tests.update(get_jinja_tests())
-        
+
         # Load the template
         jinja_template = env.get_template(template_name)
 
         # Create a description for the template
-        description = f"{request.project_name} - {deployment_type.value} deployment"
+        description = f'{request.project_name} - {deployment_type.value} deployment'
 
         # Prepare template variables
-        params_dict = request.dict() if hasattr(request, "dict") else vars(request)
+        params_dict = request.dict() if hasattr(request, 'dict') else vars(request)
         template_vars = {**params_dict, 'description': description}
-        logger.info(f"Template variables: {template_vars}")
+        logger.info(f'Template variables: {template_vars}')
 
         # Render the template
         rendered_template = jinja_template.render(**template_vars)
@@ -125,5 +116,5 @@ async def render_template(request: DeployWebAppRequest) -> str:
         logger.debug('Template rendered successfully')
         return rendered_template
     except Exception as error:
-        logger.error(f"Error rendering template: {error}")
-        raise Exception(f"Failed to render template: {str(error)}")
+        logger.error(f'Error rendering template: {error}')
+        raise Exception(f'Failed to render template: {str(error)}')

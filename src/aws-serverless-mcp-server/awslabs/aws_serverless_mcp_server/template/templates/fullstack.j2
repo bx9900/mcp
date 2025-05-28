@@ -206,20 +206,20 @@ Resources:
         function handler(event) {
           var request = event.request;
           var uri = request.uri;
-          
+
           // Don't rewrite API requests
           if (uri.startsWith('/api/')) {
             return request;
           }
-          
+
           // Standard SPA routing
           if (uri.includes('.')) {
             return request;
           }
-          
+
           // Rewrite to index.html for SPA routing
           request.uri = '/{% if frontend_configuration.index_document is exists %}{{ frontend_configuration.index_document }}{% else %}index.html{% endif %}';
-          
+
           return request;
         }
       FunctionConfig:
@@ -230,33 +230,33 @@ Outputs:
   ApiEndpoint:
     Description: API Gateway endpoint URL
     Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/{{ backend_configuration.stage }}/"
-  
+
   FunctionArn:
     Description: Lambda function ARN
     Value: !GetAtt ApiFunction.Arn
-  
+
   FunctionName:
     Description: Lambda function name
     Value: !Ref ApiFunction
-  
+
   {% if backend_configuration.database_configuration is exists %}
   TableName:
     Description: Name of the DynamoDB table
     Value: !Ref ApiDatabaseTable
   {% endif %}
-  
+
   WebsiteBucket:
     Description: S3 bucket for website content
     Value: !Ref WebsiteBucket
-  
+
   CloudFrontURL:
     Description: CloudFront distribution URL
     Value: !Sub "https://${WebsiteDistribution.DomainName}"
-  
+
   CloudFrontDistributionId:
     Description: CloudFront distribution ID
     Value: !Ref WebsiteDistribution
-  
+
   {% if frontend_configuration.custom_domain is exists %}
   CustomDomainURL:
     Description: Custom domain URL

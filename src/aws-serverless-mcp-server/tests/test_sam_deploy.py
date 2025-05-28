@@ -12,9 +12,9 @@
 
 import pytest
 import subprocess
-from unittest.mock import patch, MagicMock
 from awslabs.aws_serverless_mcp_server.models import SamDeployRequest
 from awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy import sam_deploy
+from unittest.mock import MagicMock, patch
 
 
 class TestSamDeploy:
@@ -25,143 +25,152 @@ class TestSamDeploy:
         """Test successful SAM deployment."""
         # Create a mock request
         request = SamDeployRequest(
-            application_name="test-app",
-            project_directory="/tmp/test-project"
+            application_name='test-app', project_directory='/tmp/test-project'
         )
 
         # Mock the subprocess.run function
         mock_result = MagicMock()
-        mock_result.stdout = b"Successfully deployed SAM project"
-        mock_result.stderr = b""
+        mock_result.stdout = b'Successfully deployed SAM project'
+        mock_result.stderr = b''
 
-        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch(
+            'awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command',
+            return_value=(mock_result.stdout, mock_result.stderr),
+        ) as mock_run:
             # Call the function
             result = await sam_deploy(request)
 
             # Verify the result
-            assert result["success"] is True
-            assert "SAM project deployed successfully" in result["message"]
-            assert result["output"] == "Successfully deployed SAM project"
+            assert result['success'] is True
+            assert 'SAM project deployed successfully' in result['message']
+            assert result['output'] == 'Successfully deployed SAM project'
 
             # Verify run_command was called with the correct arguments
             mock_run.assert_called_once()
             args, kwargs = mock_run.call_args
             cmd = args[0]
-            
+
             # Check required parameters
-            assert "sam" in cmd
-            assert "deploy" in cmd
-            assert "--stack-name" in cmd
-            assert "test-app" in cmd
-            assert kwargs["cwd"] == "/tmp/test-project"
+            assert 'sam' in cmd
+            assert 'deploy' in cmd
+            assert '--stack-name' in cmd
+            assert 'test-app' in cmd
+            assert kwargs['cwd'] == '/tmp/test-project'
 
     @pytest.mark.asyncio
     async def test_sam_deploy_with_optional_params(self):
         """Test SAM deployment with optional parameters."""
         # Create a mock request with optional parameters
         request = SamDeployRequest(
-            application_name="test-app",
-            project_directory="/tmp/test-project",
-            template_file="template.yaml",
-            s3_bucket="my-bucket",
-            s3_prefix="my-prefix",
-            region="us-west-2",
-            profile="default",
-            parameter_overrides="ParameterKey=Key1,ParameterValue=Value1",
-            capabilities=["CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"],
+            application_name='test-app',
+            project_directory='/tmp/test-project',
+            template_file='template.yaml',
+            s3_bucket='my-bucket',
+            s3_prefix='my-prefix',
+            region='us-west-2',
+            profile='default',
+            parameter_overrides='ParameterKey=Key1,ParameterValue=Value1',
+            capabilities=['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
             no_confirm_changeset=True,
-            config_file="samconfig.toml",
-            config_env="dev",
+            config_file='samconfig.toml',
+            config_env='dev',
             no_execute_changeset=True,
             fail_on_empty_changeset=True,
             force_upload=True,
             use_json=True,
-            metadata={"key1": "value1", "key2": "value2"},
-            notification_arns=["arn:aws:sns:us-west-2:123456789012:my-topic"],
-            tags={"tag1": "value1", "tag2": "value2"},
+            metadata={'key1': 'value1', 'key2': 'value2'},
+            notification_arns=['arn:aws:sns:us-west-2:123456789012:my-topic'],
+            tags={'tag1': 'value1', 'tag2': 'value2'},
             resolve_s3=True,
             disable_rollback=True,
-            debug=True
+            debug=True,
         )
 
         # Mock the subprocess.run function
         mock_result = MagicMock()
-        mock_result.stdout = b"Successfully deployed SAM project"
-        mock_result.stderr = b""
+        mock_result.stdout = b'Successfully deployed SAM project'
+        mock_result.stderr = b''
 
-        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command', return_value=(mock_result.stdout, mock_result.stderr)) as mock_run:
+        with patch(
+            'awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command',
+            return_value=(mock_result.stdout, mock_result.stderr),
+        ) as mock_run:
             # Call the function
             result = await sam_deploy(request)
 
             # Verify the result
-            assert result["success"] is True
+            assert result['success'] is True
 
             # Verify run_command was called with the correct arguments
             mock_run.assert_called_once()
             args, kwargs = mock_run.call_args
             cmd = args[0]
-            
+
             # Check optional parameters
-            assert "--template-file" in cmd
-            assert "template.yaml" in cmd
-            assert "--s3-bucket" in cmd
-            assert "my-bucket" in cmd
-            assert "--s3-prefix" in cmd
-            assert "my-prefix" in cmd
-            assert "--region" in cmd
-            assert "us-west-2" in cmd
-            assert "--profile" in cmd
-            assert "default" in cmd
-            assert "--parameter-overrides" in cmd
-            assert "--capabilities" in cmd
-            assert "CAPABILITY_IAM" in cmd
-            assert "CAPABILITY_NAMED_IAM" in cmd
-            assert "--no-confirm-changeset" in cmd
-            assert "--config-file" in cmd
-            assert "samconfig.toml" in cmd
-            assert "--config-env" in cmd
-            assert "dev" in cmd
-            assert "--metadata" in cmd
-            assert "--tags" in cmd
-            assert "--resolve-s3" in cmd
-            assert "--debug" in cmd
+            assert '--template-file' in cmd
+            assert 'template.yaml' in cmd
+            assert '--s3-bucket' in cmd
+            assert 'my-bucket' in cmd
+            assert '--s3-prefix' in cmd
+            assert 'my-prefix' in cmd
+            assert '--region' in cmd
+            assert 'us-west-2' in cmd
+            assert '--profile' in cmd
+            assert 'default' in cmd
+            assert '--parameter-overrides' in cmd
+            assert '--capabilities' in cmd
+            assert 'CAPABILITY_IAM' in cmd
+            assert 'CAPABILITY_NAMED_IAM' in cmd
+            assert '--no-confirm-changeset' in cmd
+            assert '--config-file' in cmd
+            assert 'samconfig.toml' in cmd
+            assert '--config-env' in cmd
+            assert 'dev' in cmd
+            assert '--metadata' in cmd
+            assert '--tags' in cmd
+            assert '--resolve-s3' in cmd
+            assert '--debug' in cmd
 
     @pytest.mark.asyncio
     async def test_sam_deploy_failure(self):
         """Test SAM deployment failure."""
         # Create a mock request
         request = SamDeployRequest(
-            application_name="test-app",
-            project_directory="/tmp/test-project"
+            application_name='test-app', project_directory='/tmp/test-project'
         )
 
         # Mock the subprocess.run function to raise an exception
-        error_message = b"Command failed with exit code 1"
-        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command', side_effect=subprocess.CalledProcessError(1, "sam deploy", stderr=error_message)) as mock_run:
+        error_message = b'Command failed with exit code 1'
+        with patch(
+            'awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command',
+            side_effect=subprocess.CalledProcessError(1, 'sam deploy', stderr=error_message),
+        ):
             # Call the function
             result = await sam_deploy(request)
 
             # Verify the result
-            assert result["success"] is False
-            assert "Failed to deploy SAM project" in result["message"]
-            assert "Command failed with exit code 1" in result["message"]
+            assert result['success'] is False
+            assert 'Failed to deploy SAM project' in result['message']
+            assert 'Command failed with exit code 1' in result['message']
 
     @pytest.mark.asyncio
     async def test_sam_deploy_general_exception(self):
         """Test SAM deployment with a general exception."""
         # Create a mock request
         request = SamDeployRequest(
-            application_name="test-app",
-            project_directory="/tmp/test-project"
+            application_name='test-app', project_directory='/tmp/test-project'
         )
 
         # Mock the subprocess.run function to raise a general exception
-        error_message = "Some unexpected error"
-        with patch('awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command', side_effect=Exception(error_message)) as mock_run:
+        error_message = 'Some unexpected error'
+        with patch(
+            'awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy.run_command',
+            side_effect=Exception(error_message),
+        ):
             # Call the function
             result = await sam_deploy(request)
 
             # Verify the result
-            assert result["success"] is False
-            assert "Failed to deploy SAM project" in result["message"]
-            assert error_message in result["message"]
+            assert result['success'] is False
+            assert 'Failed to deploy SAM project' in result['message']
+            assert error_message in result['message']

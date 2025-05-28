@@ -11,99 +11,98 @@
 # and limitations under the License.
 #
 
-from typing import Dict, Any
 from awslabs.aws_serverless_mcp_server.models import SamInitRequest
-from awslabs.aws_serverless_mcp_server.utils.process import run_command
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.process import run_command
+from typing import Any, Dict
+
 
 async def sam_init(request: SamInitRequest) -> Dict[str, Any]:
-    """
-    Initialize a serverless application with an AWS SAM template
+    """Initialize a serverless application with an AWS SAM template.
+
     This tool creates a new SAM project that consists of:
     - An AWS SAM template to define your infrastructure code
     - A folder structure that organizes your application
     - Configuration for your AWS Lambda functions
-    
-    Parameters
-    ----------
-    request : SamInitRequest
-        Object containing init parameters
-        
-    Returns
+
+    Args:
+        request (SamInitRequest): Object containing init parameters
+
+    Returns:
     -------
     Dict[str, Any]
         Result of the initialization
     """
     try:
         # Initialize command list
-        cmd = ["sam", "init"]
-        
+        cmd = ['sam', 'init']
+
         # Add required parameters
-        cmd.extend(["--name", request.project_name])
-        cmd.extend(["--runtime", request.runtime])
-        cmd.extend(["--dependency-manager", request.dependency_manager])
+        cmd.extend(['--name', request.project_name])
+        cmd.extend(['--runtime', request.runtime])
+        cmd.extend(['--dependency-manager', request.dependency_manager])
         # Set output directory
-        cmd.extend(["--output-dir", request.project_directory])
+        cmd.extend(['--output-dir', request.project_directory])
         # Add --no-interactive to avoid prompts
-        cmd.append("--no-interactive")
+        cmd.append('--no-interactive')
 
         # Add optional parameters if provided
         if request.application_insights:
-            cmd.append("--application-insights")
-             
+            cmd.append('--application-insights')
+
         if request.no_application_insights:
-            cmd.append("--no-application-insights")
-            
+            cmd.append('--no-application-insights')
+
         if request.application_template:
-            cmd.extend(["--app-template", request.application_template])
-            
+            cmd.extend(['--app-template', request.application_template])
+
         if request.architecture:
-            cmd.extend(["--architecture", request.architecture])
-            
+            cmd.extend(['--architecture', request.architecture])
+
         if request.base_image:
-            cmd.extend(["--base-image", request.base_image])
-            
+            cmd.extend(['--base-image', request.base_image])
+
         if request.config_env:
-            cmd.extend(["--config-env", request.config_env])
-            
+            cmd.extend(['--config-env', request.config_env])
+
         if request.config_file:
-            cmd.extend(["--config-file", request.config_file])
-            
+            cmd.extend(['--config-file', request.config_file])
+
         if request.debug:
-            cmd.append("--debug")
-            
+            cmd.append('--debug')
+
         if request.extra_content:
-            cmd.extend(["--extra-context", request.extra_content])
-            
+            cmd.extend(['--extra-context', request.extra_content])
+
         if request.location:
-            cmd.extend(["--location", request.location])
-            
-        if request.no_tracing:
-            cmd.append("--no-tracing")
-            
-        if request.package_type:
-            cmd.extend(["--package-type", request.package_type])
-            
-        if request.save_params:
-            cmd.append("--save-params")
-            
-        if request.tracing:
-            cmd.append("--tracing")
+            cmd.extend(['--location', request.location])
 
         if request.no_tracing:
-            cmd.append("--no-tracing")
+            cmd.append('--no-tracing')
+
+        if request.package_type:
+            cmd.extend(['--package-type', request.package_type])
+
+        if request.save_params:
+            cmd.append('--save-params')
+
+        if request.tracing:
+            cmd.append('--tracing')
+
+        if request.no_tracing:
+            cmd.append('--no-tracing')
 
         stdout, stderr = await run_command(cmd, cwd=request.project_directory)
         return {
-            "success": True,
-            "message": f"Successfully initialized SAM project '{request.project_name}' in {request.project_directory}",
-            "output": stdout.decode()
-        } 
+            'success': True,
+            'message': f"Successfully initialized SAM project '{request.project_name}' in {request.project_directory}",
+            'output': stdout.decode(),
+        }
     except Exception as e:
         error_msg = getattr(e, 'stderr', str(e))
-        logger.error(f"SAM init failed with error: {error_msg}")
+        logger.error(f'SAM init failed with error: {error_msg}')
         return {
-            "success": False,
-            "message": f"Failed to initialize SAM project: {error_msg}",
-            "error": str(e)
+            'success': False,
+            'message': f'Failed to initialize SAM project: {error_msg}',
+            'error': str(e),
         }

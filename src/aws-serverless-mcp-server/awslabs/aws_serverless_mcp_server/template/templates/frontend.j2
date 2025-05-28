@@ -101,15 +101,15 @@ Resources:
         function handler(event) {
           var request = event.request;
           var uri = request.uri;
-          
+
           // Standard SPA routing
           if (uri.includes('.')) {
             return request;
           }
-          
+
           // Rewrite to index.html for SPA routing
           request.uri = '/{% if frontend_configuration.index_document is exists %}{{ frontend_configuration.index_document }}{% else %}index.html{% endif %}';
-          
+
           return request;
         }
       FunctionConfig:
@@ -120,15 +120,15 @@ Outputs:
   WebsiteBucket:
     Description: S3 bucket for website content
     Value: !Ref WebsiteBucket
-  
+
   CloudFrontURL:
     Description: CloudFront distribution URL
     Value: !Sub "https://${WebsiteDistribution.DomainName}"
-  
+
   CloudFrontDistributionId:
     Description: CloudFront distribution ID
     Value: !Ref WebsiteDistribution
-  
+
   {% if frontend_configuration.custom_domain is exists %}
   CustomDomainURL:
     Description: Custom domain URL

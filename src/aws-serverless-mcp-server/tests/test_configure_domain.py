@@ -11,9 +11,9 @@
 """Tests for the configure_domain module."""
 
 import pytest
-from unittest.mock import patch, MagicMock
 from awslabs.aws_serverless_mcp_server.models import ConfigureDomainRequest
 from awslabs.aws_serverless_mcp_server.tools.webapps.configure_domain import configure_domain
+from unittest.mock import MagicMock, patch
 
 
 class TestConfigureDomain:
@@ -24,11 +24,11 @@ class TestConfigureDomain:
         """Test configuring a domain with existing certificate and Route53 record creation."""
         # Create a mock request
         request = ConfigureDomainRequest(
-            project_name="test-project",
-            domain_name="test.example.com",
+            project_name='test-project',
+            domain_name='test.example.com',
             create_certificate=False,
             create_route53_record=True,
-            region="us-east-1"
+            region='us-east-1',
         )
 
         # Mock boto3 session and clients
@@ -36,30 +36,30 @@ class TestConfigureDomain:
         mock_acm_client = MagicMock()
         mock_cloudfront_client = MagicMock()
         mock_route53_client = MagicMock()
-        
+
         mock_session.client.side_effect = lambda service: {
             'acm': mock_acm_client,
             'cloudfront': mock_cloudfront_client,
-            'route53': mock_route53_client
+            'route53': mock_route53_client,
         }[service]
-        
+
         # Mock ACM list_certificates response
         mock_acm_client.list_certificates.return_value = {
             'CertificateSummaryList': [
                 {
                     'CertificateArn': 'arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890',
                     'DomainName': 'test.example.com',
-                    'Status': 'ISSUED'
+                    'Status': 'ISSUED',
                 }
             ]
         }
-        
+
         # Mock CloudFront list_distributions response
         mock_cloudfront_client.list_distributions.return_value = {
             'DistributionList': {
                 'Items': [
                     {
-                        'Id': 'ABCDEF12345',
+                        'Id': 'ABCDEF12345',  # pragma: allowlist secret
                         'ARN': 'arn:aws:cloudfront::123456789012:distribution/ABCDEF12345',
                         'Status': 'Deployed',
                         'DomainName': 'd1234abcdef.cloudfront.net',
@@ -69,18 +69,16 @@ class TestConfigureDomain:
                                 {
                                     'Id': 'S3Origin',
                                     'DomainName': 'test-project-bucket.s3.amazonaws.com',
-                                    'S3OriginConfig': {
-                                        'OriginAccessIdentity': ''
-                                    }
+                                    'S3OriginConfig': {'OriginAccessIdentity': ''},
                                 }
-                            ]
-                        }
+                            ],
+                        },
                     }
                 ],
-                'Quantity': 1
+                'Quantity': 1,
             }
         }
-        
+
         # Mock CloudFront get_distribution_config response
         mock_cloudfront_client.get_distribution_config.return_value = {
             'ETag': 'ETAGVALUE',
@@ -92,69 +90,59 @@ class TestConfigureDomain:
                         {
                             'Id': 'S3Origin',
                             'DomainName': 'test-project-bucket.s3.amazonaws.com',
-                            'S3OriginConfig': {
-                                'OriginAccessIdentity': ''
-                            }
+                            'S3OriginConfig': {'OriginAccessIdentity': ''},
                         }
-                    ]
+                    ],
                 },
                 'DefaultCacheBehavior': {
                     'TargetOriginId': 'S3Origin',
                     'ViewerProtocolPolicy': 'redirect-to-https',
-                    'AllowedMethods': {
-                        'Quantity': 2,
-                        'Items': ['GET', 'HEAD']
-                    }
+                    'AllowedMethods': {'Quantity': 2, 'Items': ['GET', 'HEAD']},
                 },
                 'Comment': 'Test distribution',
-                'Enabled': True
-            }
+                'Enabled': True,
+            },
         }
-        
+
         # Mock CloudFront update_distribution response
         mock_cloudfront_client.update_distribution.return_value = {
             'Distribution': {
-                'Id': 'ABCDEF12345',
+                'Id': 'ABCDEF12345',  # pragma: allowlist secret
                 'ARN': 'arn:aws:cloudfront::123456789012:distribution/ABCDEF12345',
                 'Status': 'InProgress',
                 'LastModifiedTime': '2023-05-21T12:00:00Z',
                 'DomainName': 'd1234abcdef.cloudfront.net',
                 'DistributionConfig': {
                     'CallerReference': 'test-reference',
-                    'Aliases': {
-                        'Quantity': 1,
-                        'Items': ['test.example.com']
-                    },
+                    'Aliases': {'Quantity': 1, 'Items': ['test.example.com']},
                     'ViewerCertificate': {
                         'ACMCertificateArn': 'arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890',
                         'SSLSupportMethod': 'sni-only',
-                        'MinimumProtocolVersion': 'TLSv1.2_2021'
-                    }
-                }
+                        'MinimumProtocolVersion': 'TLSv1.2_2021',
+                    },
+                },
             }
         }
-        
+
         # Mock Route53 list_hosted_zones response
         mock_route53_client.list_hosted_zones.return_value = {
             'HostedZones': [
                 {
-                    'Id': '/hostedzone/Z1234567890ABCDEFGHIJ',
+                    'Id': '/hostedzone/Z1234567890ABCDEFGHIJ',  # pragma: allowlist secret
                     'Name': 'example.com.',
                     'CallerReference': '1234567890',
-                    'Config': {
-                        'PrivateZone': False
-                    },
-                    'ResourceRecordSetCount': 10
+                    'Config': {'PrivateZone': False},
+                    'ResourceRecordSetCount': 10,
                 }
             ]
         }
-        
+
         # Mock Route53 change_resource_record_sets response
         mock_route53_client.change_resource_record_sets.return_value = {
             'ChangeInfo': {
-                'Id': '/change/C1234567890ABCDEFGHIJ',
+                'Id': '/change/C1234567890ABCDEFGHIJ',  # pragma: allowlist secret
                 'Status': 'PENDING',
-                'SubmittedAt': '2023-05-21T12:00:00Z'
+                'SubmittedAt': '2023-05-21T12:00:00Z',
             }
         }
 
@@ -163,56 +151,73 @@ class TestConfigureDomain:
             result = await configure_domain(request)
 
             # Verify the result
-            assert result["success"] is True
-            assert result["status"] == "configured"
-            assert result["project_name"] == "test-project"
-            assert result["domain_name"] == "test.example.com"
-            assert result["certificate"]["arn"] == "arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890"
-            assert result["certificate"]["status"] == "ISSUED"
-            assert result["cloudfront_distribution"]["id"] == "ABCDEF12345"
-            assert result["cloudfront_distribution"]["domain"] == "ABCDEF12345.cloudfront.net"
-            assert result["route53_records"] is not None
-            assert len(result["route53_records"]) == 1
-            assert result["route53_records"][0]["name"] == "test.example.com"
-            assert result["route53_records"][0]["type"] == "A"
-            assert result["route53_records"][0]["alias"] is True
-            assert result["route53_records"][0]["target"] == "ABCDEF12345.cloudfront.net"
+            assert result['success'] is True
+            assert result['status'] == 'configured'
+            assert result['project_name'] == 'test-project'
+            assert result['domain_name'] == 'test.example.com'
+            assert (
+                result['certificate']['arn']
+                == 'arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890'
+            )
+            assert result['certificate']['status'] == 'ISSUED'
+            assert (
+                result['cloudfront_distribution']['id']
+                == 'ABCDEF12345'  # pragma: allowlist secret
+            )
+            assert result['cloudfront_distribution']['domain'] == 'ABCDEF12345.cloudfront.net'
+            assert result['route53_records'] is not None
+            assert len(result['route53_records']) == 1
+            assert result['route53_records'][0]['name'] == 'test.example.com'
+            assert result['route53_records'][0]['type'] == 'A'
+            assert result['route53_records'][0]['alias'] is True
+            assert result['route53_records'][0]['target'] == 'ABCDEF12345.cloudfront.net'
 
             # Verify ACM client was called with the correct parameters
             mock_acm_client.list_certificates.assert_called_once()
-            
+
             # Verify CloudFront client was called with the correct parameters
             mock_cloudfront_client.list_distributions.assert_called_once()
-            mock_cloudfront_client.get_distribution_config.assert_called_once_with(Id="ABCDEF12345")
-            
+            mock_cloudfront_client.get_distribution_config.assert_called_once_with(
+                Id='ABCDEF12345'  # pragma: allowlist secret
+            )
+
             mock_cloudfront_client.update_distribution.assert_called_once()
             args, kwargs = mock_cloudfront_client.update_distribution.call_args
-            assert kwargs["Id"] == "ABCDEF12345"
-            assert kwargs["IfMatch"] == "ETAGVALUE"
-            assert kwargs["DistributionConfig"]["Aliases"]["Quantity"] == 1
-            assert kwargs["DistributionConfig"]["Aliases"]["Items"] == ["test.example.com"]
-            assert kwargs["DistributionConfig"]["ViewerCertificate"]["ACMCertificateArn"] == "arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890"
-            
+            assert kwargs['Id'] == 'ABCDEF12345'  # pragma: allowlist secret
+            assert kwargs['IfMatch'] == 'ETAGVALUE'
+            assert kwargs['DistributionConfig']['Aliases']['Quantity'] == 1
+            assert kwargs['DistributionConfig']['Aliases']['Items'] == ['test.example.com']
+            assert (
+                kwargs['DistributionConfig']['ViewerCertificate']['ACMCertificateArn']
+                == 'arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890'
+            )
+
             # Verify Route53 client was called with the correct parameters
             mock_route53_client.list_hosted_zones.assert_called_once()
             mock_route53_client.change_resource_record_sets.assert_called_once()
             args, kwargs = mock_route53_client.change_resource_record_sets.call_args
-            assert kwargs["HostedZoneId"] == "Z1234567890ABCDEFGHIJ"
-            assert kwargs["ChangeBatch"]["Changes"][0]["Action"] == "UPSERT"
-            assert kwargs["ChangeBatch"]["Changes"][0]["ResourceRecordSet"]["Name"] == "test.example.com"
-            assert kwargs["ChangeBatch"]["Changes"][0]["ResourceRecordSet"]["Type"] == "A"
-            assert kwargs["ChangeBatch"]["Changes"][0]["ResourceRecordSet"]["AliasTarget"]["DNSName"] == "ABCDEF12345.cloudfront.net"
+            assert kwargs['HostedZoneId'] == 'Z1234567890ABCDEFGHIJ'
+            assert kwargs['ChangeBatch']['Changes'][0]['Action'] == 'UPSERT'
+            assert (
+                kwargs['ChangeBatch']['Changes'][0]['ResourceRecordSet']['Name']
+                == 'test.example.com'
+            )
+            assert kwargs['ChangeBatch']['Changes'][0]['ResourceRecordSet']['Type'] == 'A'
+            assert (
+                kwargs['ChangeBatch']['Changes'][0]['ResourceRecordSet']['AliasTarget']['DNSName']
+                == 'ABCDEF12345.cloudfront.net'  # pragma: allowlist secret
+            )
 
     @pytest.mark.asyncio
     async def test_configure_domain_with_new_certificate(self):
         """Test configuring a domain with new certificate creation."""
         # Create a mock request
         request = ConfigureDomainRequest(
-            project_name="test-project",
-            domain_name="test.example.com",
+            project_name='test-project',
+            domain_name='test.example.com',
             create_certificate=True,
             create_route53_record=False,
-            region="us-east-1"
+            region='us-east-1',
         )
 
         # Mock boto3 session and clients
@@ -220,28 +225,28 @@ class TestConfigureDomain:
         mock_acm_client = MagicMock()
         mock_cloudfront_client = MagicMock()
         mock_route53_client = MagicMock()
-        
+
         mock_session.client.side_effect = lambda service: {
             'acm': mock_acm_client,
             'cloudfront': mock_cloudfront_client,
-            'route53': mock_route53_client
+            'route53': mock_route53_client,
         }[service]
-        
+
         # Mock ACM request_certificate response
         mock_acm_client.request_certificate.return_value = {
             'CertificateArn': 'arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890'
         }
-        
+
         # Mock ACM waiter
         mock_waiter = MagicMock()
         mock_acm_client.get_waiter.return_value = mock_waiter
-        
+
         # Mock CloudFront list_distributions response
         mock_cloudfront_client.list_distributions.return_value = {
             'DistributionList': {
                 'Items': [
                     {
-                        'Id': 'ABCDEF12345',
+                        'Id': 'ABCDEF12345',  # pragma: allowlist secret
                         'ARN': 'arn:aws:cloudfront::123456789012:distribution/ABCDEF12345',
                         'Status': 'Deployed',
                         'DomainName': 'd1234abcdef.cloudfront.net',
@@ -251,18 +256,16 @@ class TestConfigureDomain:
                                 {
                                     'Id': 'S3Origin',
                                     'DomainName': 'test-project-bucket.s3.amazonaws.com',
-                                    'S3OriginConfig': {
-                                        'OriginAccessIdentity': ''
-                                    }
+                                    'S3OriginConfig': {'OriginAccessIdentity': ''},
                                 }
-                            ]
-                        }
+                            ],
+                        },
                     }
                 ],
-                'Quantity': 1
+                'Quantity': 1,
             }
         }
-        
+
         # Mock CloudFront get_distribution_config response
         mock_cloudfront_client.get_distribution_config.return_value = {
             'ETag': 'ETAGVALUE',
@@ -274,45 +277,37 @@ class TestConfigureDomain:
                         {
                             'Id': 'S3Origin',
                             'DomainName': 'test-project-bucket.s3.amazonaws.com',
-                            'S3OriginConfig': {
-                                'OriginAccessIdentity': ''
-                            }
+                            'S3OriginConfig': {'OriginAccessIdentity': ''},
                         }
-                    ]
+                    ],
                 },
                 'DefaultCacheBehavior': {
                     'TargetOriginId': 'S3Origin',
                     'ViewerProtocolPolicy': 'redirect-to-https',
-                    'AllowedMethods': {
-                        'Quantity': 2,
-                        'Items': ['GET', 'HEAD']
-                    }
+                    'AllowedMethods': {'Quantity': 2, 'Items': ['GET', 'HEAD']},
                 },
                 'Comment': 'Test distribution',
-                'Enabled': True
-            }
+                'Enabled': True,
+            },
         }
-        
+
         # Mock CloudFront update_distribution response
         mock_cloudfront_client.update_distribution.return_value = {
             'Distribution': {
-                'Id': 'ABCDEF12345',
+                'Id': 'ABCDEF12345',  # pragma: allowlist secret
                 'ARN': 'arn:aws:cloudfront::123456789012:distribution/ABCDEF12345',
                 'Status': 'InProgress',
                 'LastModifiedTime': '2023-05-21T12:00:00Z',
                 'DomainName': 'd1234abcdef.cloudfront.net',
                 'DistributionConfig': {
                     'CallerReference': 'test-reference',
-                    'Aliases': {
-                        'Quantity': 1,
-                        'Items': ['test.example.com']
-                    },
+                    'Aliases': {'Quantity': 1, 'Items': ['test.example.com']},
                     'ViewerCertificate': {
                         'ACMCertificateArn': 'arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890',
                         'SSLSupportMethod': 'sni-only',
-                        'MinimumProtocolVersion': 'TLSv1.2_2021'
-                    }
-                }
+                        'MinimumProtocolVersion': 'TLSv1.2_2021',
+                    },
+                },
             }
         }
 
@@ -321,36 +316,46 @@ class TestConfigureDomain:
             result = await configure_domain(request)
 
             # Verify the result
-            assert result["success"] is True
-            assert result["status"] == "configured"
-            assert result["project_name"] == "test-project"
-            assert result["domain_name"] == "test.example.com"
-            assert result["certificate"]["arn"] == "arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890"
-            assert result["certificate"]["status"] == "ISSUED"
-            assert result["cloudfront_distribution"]["id"] == "ABCDEF12345"
-            assert result["cloudfront_distribution"]["domain"] == "ABCDEF12345.cloudfront.net"
-            assert result["route53_records"] is None
+            assert result['success'] is True
+            assert result['status'] == 'configured'
+            assert result['project_name'] == 'test-project'
+            assert result['domain_name'] == 'test.example.com'
+            assert (
+                result['certificate']['arn']
+                == 'arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890'
+            )
+            assert result['certificate']['status'] == 'ISSUED'
+            assert (
+                result['cloudfront_distribution']['id']
+                == 'ABCDEF12345'  # pragma: allowlist secret
+            )  # pragma: allowlist secret
+            assert result['cloudfront_distribution']['domain'] == 'ABCDEF12345.cloudfront.net'
+            assert result['route53_records'] is None
 
             # Verify ACM client was called with the correct parameters
             mock_acm_client.request_certificate.assert_called_once_with(
-                DomainName="test.example.com",
-                ValidationMethod='DNS'
+                DomainName='test.example.com', ValidationMethod='DNS'
             )
             mock_acm_client.get_waiter.assert_called_once_with('certificate_validated')
             mock_waiter.wait.assert_called_once()
-            
+
             # Verify CloudFront client was called with the correct parameters
             mock_cloudfront_client.list_distributions.assert_called_once()
-            mock_cloudfront_client.get_distribution_config.assert_called_once_with(Id="ABCDEF12345")
-            
+            mock_cloudfront_client.get_distribution_config.assert_called_once_with(
+                Id='ABCDEF12345'  # pragma: allowlist secret
+            )
+
             mock_cloudfront_client.update_distribution.assert_called_once()
             args, kwargs = mock_cloudfront_client.update_distribution.call_args
-            assert kwargs["Id"] == "ABCDEF12345"
-            assert kwargs["IfMatch"] == "ETAGVALUE"
-            assert kwargs["DistributionConfig"]["Aliases"]["Quantity"] == 1
-            assert kwargs["DistributionConfig"]["Aliases"]["Items"] == ["test.example.com"]
-            assert kwargs["DistributionConfig"]["ViewerCertificate"]["ACMCertificateArn"] == "arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890"
-            
+            assert kwargs['Id'] == 'ABCDEF12345'  # pragma: allowlist secret
+            assert kwargs['IfMatch'] == 'ETAGVALUE'
+            assert kwargs['DistributionConfig']['Aliases']['Quantity'] == 1
+            assert kwargs['DistributionConfig']['Aliases']['Items'] == ['test.example.com']
+            assert (
+                kwargs['DistributionConfig']['ViewerCertificate']['ACMCertificateArn']
+                == 'arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890'
+            )
+
             # Verify Route53 client was not called
             mock_route53_client.change_resource_record_sets.assert_not_called()
 
@@ -359,37 +364,37 @@ class TestConfigureDomain:
         """Test configuring a domain with CloudFront error."""
         # Create a mock request
         request = ConfigureDomainRequest(
-            project_name="test-project",
-            domain_name="test.example.com",
+            project_name='test-project',
+            domain_name='test.example.com',
             create_certificate=False,
             create_route53_record=False,
-            region="us-east-1"
+            region='us-east-1',
         )
 
         # Mock boto3 session and clients
         mock_session = MagicMock()
         mock_acm_client = MagicMock()
         mock_cloudfront_client = MagicMock()
-        
+
         mock_session.client.side_effect = lambda service: {
             'acm': mock_acm_client,
             'cloudfront': mock_cloudfront_client,
-            'route53': MagicMock()
+            'route53': MagicMock(),
         }[service]
-        
+
         # Mock ACM list_certificates response
         mock_acm_client.list_certificates.return_value = {
             'CertificateSummaryList': [
                 {
                     'CertificateArn': 'arn:aws:acm:us-east-1:123456789012:certificate/abcdef12-3456-7890-abcd-ef1234567890',
                     'DomainName': 'test.example.com',
-                    'Status': 'ISSUED'
+                    'Status': 'ISSUED',
                 }
             ]
         }
-        
+
         # Mock CloudFront list_distributions to raise an exception
-        error_message = "The specified distribution does not exist"
+        error_message = 'The specified distribution does not exist'
         mock_cloudfront_client.list_distributions.side_effect = Exception(error_message)
 
         with patch('boto3.Session', return_value=mock_session):
@@ -397,5 +402,5 @@ class TestConfigureDomain:
             result = await configure_domain(request)
 
             # Verify the result
-            assert result["success"] is False
-            assert error_message in result["error"]
+            assert result['success'] is False
+            assert error_message in result['error']

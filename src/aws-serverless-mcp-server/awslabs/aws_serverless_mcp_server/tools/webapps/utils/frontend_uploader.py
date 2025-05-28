@@ -16,75 +16,77 @@
 Handles uploading frontend assets to S3 buckets.
 """
 
-import os
-from typing import Dict, Any
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
-from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
 import boto3
+import os
+from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
+from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from botocore.exceptions import BotoCoreError, ClientError
+from typing import Any, Dict
 
-async def upload_frontend_assets(configuration: DeployWebAppRequest, deploy_result: Dict[str, Any]) -> None:
-    """
-    Upload frontend assets to S3.
-    
+
+async def upload_frontend_assets(
+    configuration: DeployWebAppRequest, deploy_result: Dict[str, Any]
+) -> None:
+    """Upload frontend assets to S3.
+
     Args:
         configuration: Deployment configuration
         deploy_result: Result of the deployment
-    
+
     Raises:
         Exception: If upload fails
     """
     try:
         project_name = configuration.project_name
         frontend_configuration = configuration.frontend_configuration
-        
+
         if not frontend_configuration or not frontend_configuration.built_assets_path:
-            logger.info(f"No frontend configuration found for {project_name}, skipping upload")
+            logger.info(f'No frontend configuration found for {project_name}, skipping upload')
             return
-        
+
         # Get S3 bucket name from deployment result
         bucket_name = deploy_result.get('outputs', {}).get('WebsiteBucket')
         if not bucket_name:
             raise Exception('S3 bucket name not found in deployment outputs')
-        
-        logger.info(f"Uploading frontend assets for {project_name} to bucket {bucket_name}")
-        
+
+        logger.info(f'Uploading frontend assets for {project_name} to bucket {bucket_name}')
+
         # Verify that the built assets path exists
         built_assets_path = frontend_configuration.built_assets_path
         if not os.path.exists(built_assets_path):
-            raise Exception(f"Built assets path not found: {built_assets_path}")
-        
+            raise Exception(f'Built assets path not found: {built_assets_path}')
+
         # Upload to S3
         region = configuration.region
         await upload_to_s3(built_assets_path, bucket_name, region)
-        
-        logger.info(f"Frontend assets uploaded successfully for {project_name}")
+
+        logger.info(f'Frontend assets uploaded successfully for {project_name}')
     except Exception as e:
-        logger.error(f"Failed to upload frontend assets: {str(e)}")
+        logger.error(f'Failed to upload frontend assets: {str(e)}')
         raise
 
+
 async def upload_to_s3(source_path: str, bucket_name: str, region: str) -> None:
-    """
-    Upload directory contents to S3 bucket using boto3.
-    
+    """Upload directory contents to S3 bucket using boto3.
+
     Args:
         source_path: Path to the directory to upload
         bucket_name: Name of the S3 bucket
         region: AWS region
-    
+
     Raises:
         Exception: If upload fails
     """
-    logger.info(f"Starting S3 upload from {source_path} to bucket {bucket_name} using boto3")
+    logger.info(f'Starting S3 upload from {source_path} to bucket {bucket_name} using boto3')
     session = boto3.Session(region_name=region) if region else boto3.Session()
     s3_client = session.client('s3')
 
     def upload_file(file_path, s3_key):
         try:
             s3_client.upload_file(file_path, bucket_name, s3_key)
-            logger.info(f"Uploaded {file_path} to s3://{bucket_name}/{s3_key}")
+            logger.info(f'Uploaded {file_path} to s3://{bucket_name}/{s3_key}')
         except (BotoCoreError, ClientError) as e:
-            logger.error(f"Failed to upload {file_path} to S3: {str(e)}")
+            logger.error(f'Failed to upload {file_path} to S3: {str(e)}')
             raise
 
     # Walk through the directory and upload files
@@ -94,4 +96,4 @@ async def upload_to_s3(source_path: str, bucket_name: str, region: str) -> None:
             s3_key = os.path.relpath(file_path, source_path)
             upload_file(file_path, s3_key)
 
-    logger.info(f"S3 upload completed successfully to bucket {bucket_name}")
+    logger.info(f'S3 upload completed successfully to bucket {bucket_name}')

@@ -13,22 +13,22 @@
 
 """SAM logs tool for AWS Serverless MCP Server."""
 
-from typing import Dict, Any
-from awslabs.aws_serverless_mcp_server.utils.process import run_command
 from awslabs.aws_serverless_mcp_server.models import SamLogsRequest
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.process import run_command
+from typing import Any, Dict
+
 
 async def sam_logs(request: SamLogsRequest) -> Dict[str, Any]:
-    """
-    Fetch logs for AWS Lambda functions deployed through AWS SAM.
-    
+    """Fetch logs for AWS Lambda functions deployed through AWS SAM.
+
     Args:
         request: SamLogsRequest object containing log retrieval parameters
-    
+
     Returns:
         Dict: Log retrieval result
     """
-    try:       
+    try:
         # Build the command arguments
         cmd = ['sam', 'logs']
 
@@ -36,11 +36,11 @@ async def sam_logs(request: SamLogsRequest) -> Dict[str, Any]:
             cmd.extend(['--name', request.resource_name])
 
         if request.config_env:
-            cmd.extend(["--config-env", request.config_env])
-            
+            cmd.extend(['--config-env', request.config_env])
+
         if request.config_file:
-            cmd.extend(["--config-file", request.config_file])
-        
+            cmd.extend(['--config-file', request.config_file])
+
         if request.cw_log_group:
             cmd.extend(['--cw-log-group'])
             for group in request.cw_log_group:
@@ -48,10 +48,10 @@ async def sam_logs(request: SamLogsRequest) -> Dict[str, Any]:
 
         if request.start_time:
             cmd.extend(['--start-time', request.start_time])
-        
+
         if request.end_time:
             cmd.extend(['--end-time', request.end_time])
-        
+
         if request.save_params:
             cmd.extend(['--save-params'])
 
@@ -60,23 +60,23 @@ async def sam_logs(request: SamLogsRequest) -> Dict[str, Any]:
 
         if request.profile:
             cmd.extend(['--profile', request.profile])
-        
+
         if request.region:
             cmd.extend(['--region', request.region])
- 
+
         # Execute the command
-        logger.info(f"Executing command: {' '.join(cmd)}")
+        logger.info(f'Executing command: {" ".join(cmd)}')
         stdout, stderr = await run_command(cmd)
         return {
-            "success": True,
+            'success': True,
             'message': f"Successfully fetched logs for resource '{request.resource_name}'",
-            "output": stdout.decode()
-        } 
+            'output': stdout.decode(),
+        }
     except Exception as e:
         error_message = getattr(e, 'stderr', str(e))
-        logger.error(f"Error fetching logs for resource: {error_message}")
+        logger.error(f'Error fetching logs for resource: {error_message}')
         return {
             'success': False,
-            'message': f"Failed to fetch logs for resource: {error_message}",
-            'error': str(e)
+            'message': f'Failed to fetch logs for resource: {error_message}',
+            'error': str(e),
         }

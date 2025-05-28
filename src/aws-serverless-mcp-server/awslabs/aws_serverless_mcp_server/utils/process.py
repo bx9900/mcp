@@ -14,30 +14,28 @@
 import asyncio
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
 
+
 async def run_command(cmd_list, cwd=None):
-    """
-    Run a terminal command with arguments asynchronously.
+    """Run a terminal command with arguments asynchronously.
+
     Args:
         cmd_list (str): The command and arguments to run in a list
         cwd (str, optional): Working directory to run the command in
     Returns:
         tuple: (stdout, stderr)
+
     Raises:
         Exception: If the command fails
     """
-
     process = await asyncio.create_subprocess_exec(
-        *cmd_list,
-        cwd=cwd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
+        *cmd_list, cwd=cwd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
     stdout, stderr = await process.communicate()
 
     if process.returncode != 0:
-        logger.error(f"Command failed with exit code {process.returncode}")
-        logger.error(f"STDOUT: {stdout.decode()}")
-        logger.error(f"STDERR: {stderr.decode()}")
-        raise Exception(f"Command failed: {stderr.decode()}")
+        logger.error(f'Command failed with exit code {process.returncode}')
+        logger.error(f'STDOUT: {stdout.decode()}')
+        logger.error(f'STDERR: {stderr.decode()}')
+        raise Exception(f'Command failed: {stderr.decode()}')
 
     return stdout, stderr

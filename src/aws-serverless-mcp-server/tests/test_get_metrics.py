@@ -10,11 +10,14 @@
 # and limitations under the License.
 """Tests for the get_metrics module."""
 
-import pytest
 import datetime
-from unittest.mock import patch, MagicMock
+import pytest
 from awslabs.aws_serverless_mcp_server.models import GetMetricsRequest
-from awslabs.aws_serverless_mcp_server.tools.webapps.get_metrics import get_metrics, get_unit_for_metric
+from awslabs.aws_serverless_mcp_server.tools.webapps.get_metrics import (
+    get_metrics,
+    get_unit_for_metric,
+)
+from unittest.mock import MagicMock, patch
 
 
 class TestGetMetrics:
@@ -22,19 +25,18 @@ class TestGetMetrics:
 
     def test_get_unit_for_metric(self):
         """Test the get_unit_for_metric helper function."""
-        assert get_unit_for_metric("Lambda Duration") == "Milliseconds"
-        assert get_unit_for_metric("API Gateway Latency") == "Milliseconds"
-        assert get_unit_for_metric("CloudFront Bytes Downloaded") == "Bytes"
-        assert get_unit_for_metric("CloudFront Error Rate") == "Percent"
-        assert get_unit_for_metric("Lambda Invocations") == "Count"
+        assert get_unit_for_metric('Lambda Duration') == 'Milliseconds'
+        assert get_unit_for_metric('API Gateway Latency') == 'Milliseconds'
+        assert get_unit_for_metric('CloudFront Bytes Downloaded') == 'Bytes'
+        assert get_unit_for_metric('CloudFront Error Rate') == 'Percent'
+        assert get_unit_for_metric('Lambda Invocations') == 'Count'
 
     @pytest.mark.asyncio
     async def test_get_metrics_success(self):
         """Test successful metrics retrieval."""
         # Create a mock request
         request = GetMetricsRequest(
-            project_name="test-project",
-            metric_names=["Invocations", "Duration"]
+            project_name='test-project', metric_names=['Invocations', 'Duration']
         )
 
         # Mock the boto3 session and CloudWatch client
@@ -50,19 +52,19 @@ class TestGetMetrics:
                     'Label': 'Lambda Invocations',
                     'Timestamps': [
                         datetime.datetime(2023, 5, 21, 12, 0, 0),
-                        datetime.datetime(2023, 5, 21, 12, 5, 0)
+                        datetime.datetime(2023, 5, 21, 12, 5, 0),
                     ],
-                    'Values': [10, 15]
+                    'Values': [10, 15],
                 },
                 {
                     'Id': 'q1',
                     'Label': 'Lambda Duration (Average)',
                     'Timestamps': [
                         datetime.datetime(2023, 5, 21, 12, 0, 0),
-                        datetime.datetime(2023, 5, 21, 12, 5, 0)
+                        datetime.datetime(2023, 5, 21, 12, 5, 0),
                     ],
-                    'Values': [120.5, 130.2]
-                }
+                    'Values': [120.5, 130.2],
+                },
             ]
         }
 
@@ -71,26 +73,26 @@ class TestGetMetrics:
             result = await get_metrics(request)
 
             # Verify the result
-            assert result["success"] is True
-            assert "metrics" in result
-            assert "lambda" in result["metrics"]
-            assert "invocations" in result["metrics"]["lambda"]
-            assert "duration (average)" in result["metrics"]["lambda"]
-            
+            assert result['success'] is True
+            assert 'metrics' in result
+            assert 'lambda' in result['metrics']
+            assert 'invocations' in result['metrics']['lambda']
+            assert 'duration (average)' in result['metrics']['lambda']
+
             # Check the data points
-            invocations = result["metrics"]["lambda"]["invocations"]
+            invocations = result['metrics']['lambda']['invocations']
             assert len(invocations) == 2
-            assert invocations[0]["value"] == 10
-            assert invocations[0]["unit"] == "Count"
-            
-            duration = result["metrics"]["lambda"]["duration (average)"]
+            assert invocations[0]['value'] == 10
+            assert invocations[0]['unit'] == 'Count'
+
+            duration = result['metrics']['lambda']['duration (average)']
             assert len(duration) == 2
-            assert duration[0]["value"] == 120.5
-            assert duration[0]["unit"] == "Milliseconds"
+            assert duration[0]['value'] == 120.5
+            assert duration[0]['unit'] == 'Milliseconds'
 
             # Verify boto3 session was created with the correct parameters
             mock_session.client.assert_called_once_with('cloudwatch')
-            
+
             # Verify get_metric_data was called with the correct parameters
             mock_cloudwatch.get_metric_data.assert_called_once()
             args, kwargs = mock_cloudwatch.get_metric_data.call_args
@@ -105,13 +107,13 @@ class TestGetMetrics:
         """Test metrics retrieval with optional parameters."""
         # Create a mock request with optional parameters
         request = GetMetricsRequest(
-            project_name="test-project",
-            metric_names=["Invocations", "Duration"],
-            start_time="2023-05-20T00:00:00Z",
-            end_time="2023-05-21T23:59:59Z",
+            project_name='test-project',
+            metric_names=['Invocations', 'Duration'],
+            start_time='2023-05-20T00:00:00Z',
+            end_time='2023-05-21T23:59:59Z',
             period=60,
-            statistics=["Average", "Maximum"],
-            region="us-west-2"
+            statistics=['Average', 'Maximum'],
+            region='us-west-2',
         )
 
         # Mock the boto3 session and CloudWatch client
@@ -120,31 +122,29 @@ class TestGetMetrics:
         mock_session.client.return_value = mock_cloudwatch
 
         # Mock the CloudWatch get_metric_data response
-        mock_cloudwatch.get_metric_data.return_value = {
-            'MetricDataResults': []
-        }
+        mock_cloudwatch.get_metric_data.return_value = {'MetricDataResults': []}
 
         with patch('boto3.Session', return_value=mock_session):
             # Call the function
             result = await get_metrics(request)
 
             # Verify the result
-            assert result["success"] is True
+            assert result['success'] is True
 
             # Verify boto3 session was created with the correct parameters
             mock_session.client.assert_called_once_with('cloudwatch')
-            
+
             # Verify get_metric_data was called with the correct parameters
             mock_cloudwatch.get_metric_data.assert_called_once()
             args, kwargs = mock_cloudwatch.get_metric_data.call_args
-            
+
             # Check that start_time and end_time were parsed correctly
             assert 'StartTime' in kwargs
             assert isinstance(kwargs['StartTime'], datetime.datetime)
             assert kwargs['StartTime'].year == 2023
             assert kwargs['StartTime'].month == 5
             assert kwargs['StartTime'].day == 20
-            
+
             assert 'EndTime' in kwargs
             assert isinstance(kwargs['EndTime'], datetime.datetime)
             assert kwargs['EndTime'].year == 2023
@@ -156,9 +156,9 @@ class TestGetMetrics:
         """Test metrics retrieval with no valid metrics."""
         # Create a mock request with resources that don't exist
         request = GetMetricsRequest(
-            project_name="test-project",
-            metric_names=["Invocations", "Duration"],
-            resources=[]  # Empty resources list
+            project_name='test-project',
+            metric_names=['Invocations', 'Duration'],
+            resources=[],  # Empty resources list
         )
 
         # Mock the boto3 session
@@ -169,16 +169,15 @@ class TestGetMetrics:
             result = await get_metrics(request)
 
             # Verify the result
-            assert result["success"] is False
-            assert "No valid metrics found" in result["message"]
+            assert result['success'] is False
+            assert 'No valid metrics found' in result['message']
 
     @pytest.mark.asyncio
     async def test_get_metrics_boto3_exception(self):
         """Test metrics retrieval with boto3 exception."""
         # Create a mock request
         request = GetMetricsRequest(
-            project_name="test-project",
-            metric_names=["Invocations", "Duration"]
+            project_name='test-project', metric_names=['Invocations', 'Duration']
         )
 
         # Mock the boto3 session and CloudWatch client
@@ -187,7 +186,7 @@ class TestGetMetrics:
         mock_session.client.return_value = mock_cloudwatch
 
         # Mock the CloudWatch get_metric_data to raise an exception
-        error_message = "An error occurred (AccessDenied) when calling the GetMetricData operation"
+        error_message = 'An error occurred (AccessDenied) when calling the GetMetricData operation'
         mock_cloudwatch.get_metric_data.side_effect = Exception(error_message)
 
         with patch('boto3.Session', return_value=mock_session):
@@ -195,19 +194,19 @@ class TestGetMetrics:
             result = await get_metrics(request)
 
             # Verify the result
-            assert result["success"] is False
-            assert "Failed to retrieve metrics" in result["message"]
-            assert error_message in result["error"]
+            assert result['success'] is False
+            assert 'Failed to retrieve metrics' in result['message']
+            assert error_message in result['error']
 
     @pytest.mark.asyncio
     async def test_get_metrics_invalid_time_format(self):
         """Test metrics retrieval with invalid time format."""
         # Create a mock request with invalid time formats
         request = GetMetricsRequest(
-            project_name="test-project",
-            metric_names=["Invocations", "Duration"],
-            start_time="invalid-start-time",
-            end_time="invalid-end-time"
+            project_name='test-project',
+            metric_names=['Invocations', 'Duration'],
+            start_time='invalid-start-time',
+            end_time='invalid-end-time',
         )
 
         # Mock the boto3 session and CloudWatch client
@@ -216,18 +215,18 @@ class TestGetMetrics:
         mock_session.client.return_value = mock_cloudwatch
 
         # Mock the CloudWatch get_metric_data response
-        mock_cloudwatch.get_metric_data.return_value = {
-            'MetricDataResults': []
-        }
+        mock_cloudwatch.get_metric_data.return_value = {'MetricDataResults': []}
 
-        with patch('boto3.Session', return_value=mock_session), \
-             patch('awslabs.aws_serverless_mcp_server.utils.logger.logger.warning') as mock_logger:
+        with (
+            patch('boto3.Session', return_value=mock_session),
+            patch('awslabs.aws_serverless_mcp_server.utils.logger.logger.warning') as mock_logger,
+        ):
             # Call the function
             result = await get_metrics(request)
 
             # Verify the result
-            assert result["success"] is True
-            
+            assert result['success'] is True
+
             # Verify that warnings were logged for invalid time formats
-            mock_logger.assert_any_call("Invalid start_time format: invalid-start-time")
-            mock_logger.assert_any_call("Invalid end_time format: invalid-end-time")
+            mock_logger.assert_any_call('Invalid start_time format: invalid-start-time')
+            mock_logger.assert_any_call('Invalid end_time format: invalid-end-time')

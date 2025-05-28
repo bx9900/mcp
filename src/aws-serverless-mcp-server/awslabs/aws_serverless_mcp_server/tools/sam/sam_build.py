@@ -11,62 +11,61 @@
 # and limitations under the License.
 #
 
-from awslabs.aws_serverless_mcp_server.utils.process import run_command
 from awslabs.aws_serverless_mcp_server.models import SamBuildRequest
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.process import run_command
+
 
 async def sam_build(request: SamBuildRequest):
-    """
-    Execute the AWS SAM build command with the provided parameters.
-    
+    """Execute the AWS SAM build command with the provided parameters.
+
     Args:
         request: SamBuildRequest object containing all build parameters
     """
-    cmd = ["sam", "build"]
-    
+    cmd = ['sam', 'build']
+
     if request.base_dir:
-        cmd.extend(["--base-dir", request.base_dir])
+        cmd.extend(['--base-dir', request.base_dir])
     if request.build_dir:
-        cmd.extend(["--build-dir", request.build_dir])
+        cmd.extend(['--build-dir', request.build_dir])
     if request.build_image:
-        cmd.extend(["--build-image", request.build_image])
+        cmd.extend(['--build-image', request.build_image])
     if request.container_env_var_file:
-        cmd.extend(["--container-env-var-file", request.container_env_var_file])
+        cmd.extend(['--container-env-var-file', request.container_env_var_file])
     if request.container_env_vars:
         for key, value in request.container_env_vars.items():
-            cmd.extend(["--container-env-var", f"{key}={value}"])
+            cmd.extend(['--container-env-var', f'{key}={value}'])
     if request.debug:
-        cmd.append("--debug")
+        cmd.append('--debug')
     if request.manifest:
-        cmd.extend(["--manifest", request.manifest])
+        cmd.extend(['--manifest', request.manifest])
     if request.no_use_container:
-        cmd.append("--no-use-container")
+        cmd.append('--no-use-container')
     if request.use_container:
-        cmd.append("--use-container")
+        cmd.append('--use-container')
     if request.parameter_overrides:
-        cmd.extend(["--parameter-overrides", request.parameter_overrides])
+        cmd.extend(['--parameter-overrides', request.parameter_overrides])
     if request.region:
-        cmd.extend(["--region", request.region])
+        cmd.extend(['--region', request.region])
     if request.save_params:
-        cmd.append("--save-params")
+        cmd.append('--save-params')
     if request.template_file:
-        cmd.extend(["--template-file", request.template_file])
+        cmd.extend(['--template-file', request.template_file])
     if request.profile:
-        cmd.extend(["--profile", request.profile])
+        cmd.extend(['--profile', request.profile])
 
     try:
         stdout, stderr = await run_command(cmd, cwd=request.project_directory)
         return {
-            "success": True,
-            "message": "SAM project built successfully",
-            "output": stdout.decode()
-        } 
+            'success': True,
+            'message': 'SAM project built successfully',
+            'output': stdout.decode(),
+        }
     except Exception as e:
         error_msg = getattr(e, 'stderr', str(e))
-        logger.error(f"SAM build failed with error: {error_msg}")
+        logger.error(f'SAM build failed with error: {error_msg}')
         return {
-            "success": False,
-            "message": f"Failed to build SAM project: {error_msg}",
-            "error": str(e)
+            'success': False,
+            'message': f'Failed to build SAM project: {error_msg}',
+            'error': str(e),
         }
-
