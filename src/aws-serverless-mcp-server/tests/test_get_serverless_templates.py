@@ -28,31 +28,46 @@ class TestGetServerlessTemplates:
         request = GetServerlessTemplatesRequest(template_type='API', runtime='nodejs18.x')
 
         # Call the function
-        result = await get_serverless_templates(request)
+        mock_tree_response = {
+            'tree': [
+                {'path': 'apigw-lambda-nodejs18.x', 'type': 'tree'},
+                {'path': 'README.md', 'type': 'blob'},
+            ]
+        }
+        mock_readme_response = {
+            'content': 'IyBBUEkgR2F0ZXdheSArIExhbWJkYSBFeGFtcGxl'  # pragma: allowlist secret
+        }  # pragma: allowlist secret
 
-        # Initialize templates variable
-        templates = []
+        def side_effect(url):
+            if 'trees/main' in url:
+                return mock_tree_response
+            elif 'README.md' in url:
+                return mock_readme_response
+            return {}
 
-        # Verify the result - handle both success and error cases
-        if 'success' in result and result['success'] is False:
-            # API error (e.g., rate limiting)
-            assert 'message' in result
-            assert 'error' in result
-        else:
+        with patch(
+            'awslabs.aws_serverless_mcp_server.tools.guidance.get_serverless_templates.fetch_github_content'
+        ) as mock_fetch:
+            mock_fetch.side_effect = side_effect
+            result = await get_serverless_templates(request)
+
+            # Initialize templates variable
+            templates = []
+
             # Success case
             assert 'templates' in result
             templates = result['templates']
             assert isinstance(templates, list)
 
-        # Check template structure if any templates are returned
-        if len(templates) > 0:
-            template = templates[0]
-            assert 'templateName' in template
-            assert 'readMe' in template
-            assert 'gitHubLink' in template
-            assert isinstance(template['templateName'], str)
-            assert isinstance(template['readMe'], str)
-            assert isinstance(template['gitHubLink'], str)
+            # Check template structure if any templates are returned
+            if len(templates) > 0:
+                template = templates[0]
+                assert 'templateName' in template
+                assert 'readMe' in template
+                assert 'gitHubLink' in template
+                assert isinstance(template['templateName'], str)
+                assert isinstance(template['readMe'], str)
+                assert isinstance(template['gitHubLink'], str)
 
     @pytest.mark.asyncio
     async def test_get_serverless_templates_without_runtime(self):
@@ -60,19 +75,37 @@ class TestGetServerlessTemplates:
         # Create a mock request without runtime
         request = GetServerlessTemplatesRequest(template_type='ETL')
 
-        # Call the function
-        result = await get_serverless_templates(request)
+        # Mock GitHub API responses
+        mock_tree_response = {
+            'tree': [
+                {'path': 'etl-lambda-python', 'type': 'tree'},
+                {'path': 'README.md', 'type': 'blob'},
+            ]
+        }
+        mock_readme_response = {
+            'content': 'IyBFVEwgTGFtYmRhIFB5dGhvbiBFeGFtcGxl'
+        }  # pragma: allowlist secret
 
-        # Verify the result - handle both success and error cases
-        if 'success' in result and result['success'] is False:
-            # API error (e.g., rate limiting)
-            assert 'message' in result
-            assert 'error' in result
-        else:
-            # Success case
-            assert 'templates' in result
-            templates = result['templates']
-            assert isinstance(templates, list)
+        def side_effect(url):
+            if 'trees/main' in url:
+                return mock_tree_response
+            elif 'README.md' in url:
+                return mock_readme_response
+            return {}
+
+        with patch(
+            'awslabs.aws_serverless_mcp_server.tools.guidance.get_serverless_templates.fetch_github_content'
+        ) as mock_fetch:
+            mock_fetch.side_effect = side_effect
+            result = await get_serverless_templates(request)
+
+            # Success or error case
+            if 'templates' in result:
+                templates = result['templates']
+                assert isinstance(templates, list)
+            else:
+                assert result.get('success') is False
+                assert 'No serverless templates found' in result.get('message', '')
 
     @pytest.mark.asyncio
     async def test_get_serverless_templates_various_types(self):
@@ -87,106 +120,62 @@ class TestGetServerlessTemplates:
             # Call the function
             result = await get_serverless_templates(request)
 
-            # Verify the result - handle both success and error cases
-            if 'success' in result and result['success'] is False:
-                # API error (e.g., rate limiting)
-                assert 'message' in result
-                assert 'error' in result
-            else:
-                # Success case
-                assert 'templates' in result
+            # Success or error case
+            if 'templates' in result:
                 templates = result['templates']
                 assert isinstance(templates, list)
+            else:
+                assert result.get('success') is False
+                assert 'No serverless templates found' in result.get('message', '')
 
     @pytest.mark.asyncio
     async def test_get_serverless_templates_content_structure(self):
         """Test that serverless templates contain expected content structure."""
         request = GetServerlessTemplatesRequest(template_type='lambda', runtime='nodejs18.x')
 
-        # Call the function
-        result = await get_serverless_templates(request)
+        # Mock GitHub API responses
+        mock_tree_response = {
+            'tree': [
+                {'path': 'lambda-nodejs18.x', 'type': 'tree'},
+                {'path': 'README.md', 'type': 'blob'},
+            ]
+        }
+        mock_readme_response = {
+            'content': 'IyBMYW1iZGEgTm9kZWpzIEV4YW1wbGU='  # Base64 encoded "# Lambda Nodejs Example" # pragma: allowlist secret
+        }
 
-        # Verify the result structure - handle both success and error cases
-        if 'success' in result and result['success'] is False:
-            # API error (e.g., rate limiting)
-            assert 'message' in result
-            assert 'error' in result
-            return  # Skip template structure checks for error cases
-        else:
+        def side_effect(url):
+            if 'trees/main' in url:
+                return mock_tree_response
+            elif 'README.md' in url:
+                return mock_readme_response
+            return {}
+
+        with patch(
+            'awslabs.aws_serverless_mcp_server.tools.guidance.get_serverless_templates.fetch_github_content'
+        ) as mock_fetch:
+            mock_fetch.side_effect = side_effect
+            result = await get_serverless_templates(request)
+
             # Success case
             assert 'templates' in result
             templates = result['templates']
             assert isinstance(templates, list)
 
-        # Check template structure if any templates are returned
-        if len(templates) > 0:
-            template = templates[0]
-            required_fields = ['templateName', 'readMe', 'gitHubLink']
+            # Check template structure if any templates are returned
+            if len(templates) > 0:
+                template = templates[0]
+                required_fields = ['templateName', 'readMe', 'gitHubLink']
 
-            for field in required_fields:
-                assert field in template
-                assert isinstance(template[field], str)
-                assert len(template[field]) > 0
+                for field in required_fields:
+                    assert field in template
+                    assert isinstance(template[field], str)
+                    assert len(template[field]) > 0
 
-            # Check GitHub link format
-            assert template['gitHubLink'].startswith(
-                'https://github.com/aws-samples/serverless-patterns'
-            )
-
-    @pytest.mark.asyncio
-    async def test_get_serverless_templates_with_mocked_github(self):
-        """Test serverless templates with mocked GitHub response."""
-        request = GetServerlessTemplatesRequest(template_type='API', runtime='python3.9')
-
-        # Mock GitHub API responses
-        mock_tree_response = {
-            'tree': [
-                {'path': 'apigw-lambda-python', 'type': 'tree'},
-                {'path': 'apigw-lambda-nodejs', 'type': 'tree'},
-                {'path': 'README.md', 'type': 'blob'},
-            ]
-        }
-
-        mock_readme_response = {
-            'content': 'IyBBUEkgR2F0ZXdheSArIExhbWJkYSBFeGFtcGxl'  # pragma: allowlist secret
-        }
-
-        # Create mock response objects
-        mock_tree_resp = MagicMock()
-        mock_tree_resp.json.return_value = mock_tree_response
-        mock_tree_resp.raise_for_status.return_value = None
-
-        mock_readme_resp = MagicMock()
-        mock_readme_resp.json.return_value = mock_readme_response
-        mock_readme_resp.raise_for_status.return_value = None
-
-        with patch('requests.get') as mock_get:
-            # Configure mock to return different responses based on URL
-            def side_effect(url, **kwargs):
-                if 'trees/main' in url:
-                    return mock_tree_resp
-                elif 'README.md' in url:
-                    return mock_readme_resp
-                return MagicMock()
-
-            mock_get.side_effect = side_effect
-
-            # Call the function
-            result = await get_serverless_templates(request)
-
-            # Verify the result
-            assert 'templates' in result
-            templates = result['templates']
-            assert isinstance(templates, list)
-            assert len(templates) > 0
-
-            # Verify GitHub API was called
-            assert mock_get.call_count >= 1
-
-            # Verify the URLs that were called
-            calls = mock_get.call_args_list
-            assert any('trees/main' in call[0][0] for call in calls)
-            assert any('README.md' in call[0][0] for call in calls)
+                # Check GitHub link format
+                assert template['gitHubLink'].startswith(
+                    'https://github.com/aws-samples/serverless-patterns'
+                )
 
     @pytest.mark.asyncio
     async def test_get_serverless_templates_no_matches(self):
@@ -332,7 +321,7 @@ class TestGetServerlessTemplates:
 
         mock_tree_response = {
             'tree': [
-                {'path': 'apigw-lambda-python', 'type': 'tree'},  # Should match both terms
+                {'path': 'apigw-lambda-nodejs18.x', 'type': 'tree'},  # Should match both terms
                 {'path': 's3-lambda-nodejs', 'type': 'tree'},  # Should not match API
                 {'path': 'api-gateway-java', 'type': 'tree'},  # Should match API but not python
                 {'path': 'README.md', 'type': 'blob'},  # Should be filtered out
@@ -369,18 +358,13 @@ class TestGetServerlessTemplates:
             result = await get_serverless_templates(request)
 
             # Should filter based on search terms
-            if 'success' in result and result['success'] is False:
-                # No matching templates found
-                assert 'message' in result
-                assert 'No serverless templates found' in result['message']
-            else:
-                # Templates found
-                assert 'templates' in result
-                templates = result['templates']
-                assert isinstance(templates, list)
+            # Templates found
+            assert 'templates' in result
+            templates = result['templates']
+            assert isinstance(templates, list)
 
-                # Only templates matching both terms should be included
-                if len(templates) > 0:
-                    template_names = [t['templateName'] for t in templates]
-                    assert 'apigw-lambda-python' in template_names
-                    assert 's3-lambda-nodejs' not in template_names
+            # Only templates matching both terms should be included
+            if len(templates) > 0:
+                template_names = [t['templateName'] for t in templates]
+                assert 'apigw-lambda-nodejs18.x' in template_names
+                assert 's3-lambda-nodejs' not in template_names

@@ -122,6 +122,3 @@ async def handle_sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, A
             'message': f'Failed to invoke resource locally: {str(e)}',
             'error': str(e),
         }
-
-
-handle_sam_local_invoke.run_command = run_command
