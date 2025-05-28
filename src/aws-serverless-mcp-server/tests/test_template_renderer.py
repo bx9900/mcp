@@ -82,14 +82,26 @@ class TestTemplateRenderer:
         """Test render_template with a backend deployment."""
         # Create a mock request
         request = DeployWebAppRequest(
+            region='us-east-1',
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
+            frontend_configuration=None,
             backend_configuration=BackendConfiguration(
                 built_artifacts_path='/dir/build',
                 runtime='nodejs18.x',
                 port=3000,
                 framework='express',
+                startup_script=None,
+                entry_point=None,
+                generate_startup_script=False,
+                architecture=None,
+                memory_size=None,
+                timeout=None,
+                stage=None,
+                cors=None,
+                environment=None,
+                database_configuration=None,
             ),
         )
 
@@ -134,20 +146,24 @@ class TestTemplateRenderer:
                 assert template_vars['deployment_type'] == 'backend'
                 assert template_vars['description'] == 'test-project - backend deployment'
                 assert 'backend_configuration' in template_vars
-                # Skip checking the framework attribute as it might be a dict or an object
-                # depending on how the mock is set up
 
     @pytest.mark.asyncio
     async def test_render_template_frontend(self):
         """Test render_template with a frontend deployment."""
         # Create a mock request
         request = DeployWebAppRequest(
+            region='us-east-1',
             deployment_type='frontend',
             project_name='test-project',
             project_root='/dir/test-project',
+            backend_configuration=None,
             frontend_configuration=FrontendConfiguration(
+                custom_domain=None,
+                certificate_arn=None,
+                index_document='index.html',
                 built_assets_path='/dir/build',
                 framework='react',
+                error_document='error.html',
             ),
         )
 
@@ -200,6 +216,7 @@ class TestTemplateRenderer:
         """Test render_template with a fullstack deployment."""
         # Create a mock request
         request = DeployWebAppRequest(
+            region='us-east-1',
             deployment_type='fullstack',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -208,10 +225,24 @@ class TestTemplateRenderer:
                 runtime='nodejs18.x',
                 port=3000,
                 framework='express',
+                startup_script=None,
+                entry_point=None,
+                generate_startup_script=False,
+                architecture=None,
+                memory_size=None,
+                timeout=None,
+                stage=None,
+                cors=None,
+                environment=None,
+                database_configuration=None,
             ),
             frontend_configuration=FrontendConfiguration(
+                custom_domain=None,
+                certificate_arn=None,
                 built_assets_path='/dir/build-frontend',
                 framework='react',
+                index_document='index.html',
+                error_document='error.html',
             ),
         )
 
@@ -267,14 +298,26 @@ class TestTemplateRenderer:
         """Test render_template without a framework."""
         # Create a mock request
         request = DeployWebAppRequest(
+            region='us-east-1',
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
+            frontend_configuration=None,
             backend_configuration=BackendConfiguration(
                 built_artifacts_path='/dir/build',
                 runtime='nodejs18.x',
                 port=3000,
-                # No framework specified
+                framework=None,  # No framework specified
+                startup_script=None,
+                entry_point=None,
+                generate_startup_script=False,
+                architecture=None,
+                memory_size=None,
+                timeout=None,
+                stage=None,
+                cors=None,
+                environment=None,
+                database_configuration=None,
             ),
         )
 
@@ -321,12 +364,24 @@ class TestTemplateRenderer:
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
+            region='us-east-1',
             backend_configuration=BackendConfiguration(
                 built_artifacts_path='/dir/build',
                 runtime='nodejs18.x',
                 port=3000,
                 framework='express',
+                startup_script=None,
+                entry_point=None,
+                generate_startup_script=False,
+                architecture=None,
+                memory_size=None,
+                timeout=None,
+                stage=None,
+                cors=None,
+                environment=None,
+                database_configuration=None,
             ),
+            frontend_configuration=None,
         )
 
         # Mock the get_template_for_deployment function to raise an exception

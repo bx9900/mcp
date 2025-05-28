@@ -32,6 +32,8 @@ class TestFrontendUploader:
         """Test upload_frontend_assets with no frontend configuration."""
         # Create a mock request without frontend configuration
         request = DeployWebAppRequest(
+            region='us-east-1',
+            backend_configuration=None,
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -49,9 +51,15 @@ class TestFrontendUploader:
         frontend_config = FrontendConfiguration(
             built_assets_path='',
             framework='react',
+            index_document='index.html',
+            error_document='error.html',
+            custom_domain='example.com',
+            certificate_arn='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
         )
 
         request = DeployWebAppRequest(
+            region='us-east-1',
+            backend_configuration=None,
             deployment_type='frontend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -69,9 +77,15 @@ class TestFrontendUploader:
         frontend_config = FrontendConfiguration(
             built_assets_path='/dir/build',
             framework='react',
+            index_document='index.html',
+            error_document='error.html',
+            custom_domain='example.com',
+            certificate_arn='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
         )
 
         request = DeployWebAppRequest(
+            region='us-east-1',
+            backend_configuration=None,
             deployment_type='frontend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -89,6 +103,10 @@ class TestFrontendUploader:
         frontend_config = FrontendConfiguration(
             built_assets_path='/dir/nonexistent',
             framework='react',
+            index_document='index.html',
+            error_document='error.html',
+            custom_domain='example.com',
+            certificate_arn='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
         )
 
         request = DeployWebAppRequest(
@@ -96,6 +114,8 @@ class TestFrontendUploader:
             project_name='test-project',
             project_root='/dir/test-project',
             frontend_configuration=frontend_config,
+            region='us-east-1',
+            backend_configuration=None,
         )
 
         deploy_result = {'outputs': {'WebsiteBucket': 'test-bucket'}}
@@ -110,6 +130,10 @@ class TestFrontendUploader:
         frontend_config = FrontendConfiguration(
             built_assets_path='/dir/build',
             framework='react',
+            index_document='index.html',
+            error_document='error.html',
+            custom_domain='example.com',
+            certificate_arn='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
         )
 
         request = DeployWebAppRequest(
@@ -118,6 +142,7 @@ class TestFrontendUploader:
             project_root='/dir/test-project',
             region='us-east-1',
             frontend_configuration=frontend_config,
+            backend_configuration=None,
         )
 
         deploy_result = {'outputs': {'WebsiteBucket': 'test-bucket'}}
@@ -137,13 +162,19 @@ class TestFrontendUploader:
         frontend_config = FrontendConfiguration(
             built_assets_path='/dir/build',
             framework='react',
+            index_document='index.html',
+            error_document='error.html',
+            certificate_arn='arn:aws:acm:us-east-1:123456789012:certificate/abcd1234',
+            custom_domain='example.com',
         )
 
         request = DeployWebAppRequest(
+            region='us-east-1',
             deployment_type='frontend',
             project_name='test-project',
             project_root='/dir/test-project',
             frontend_configuration=frontend_config,
+            backend_configuration=None,
         )
 
         deploy_result = {'outputs': {'WebsiteBucket': 'test-bucket'}}

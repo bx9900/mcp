@@ -37,13 +37,24 @@ class TestDeployService:
     async def test_deploy_application_backend_success(self):
         """Test successful backend deployment."""
         backend_config = BackendConfiguration(
+            framework='express',
             built_artifacts_path='dist',
             runtime='nodejs18.x',
             port=3000,
             startup_script='bootstrap',
+            entry_point=None,
+            generate_startup_script=False,
+            architecture=None,
+            memory_size=None,
+            timeout=None,
+            stage=None,
+            cors=None,
+            environment=None,
+            database_configuration=None,
         )
 
         request = DeployWebAppRequest(
+            frontend_configuration=None,
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -108,17 +119,32 @@ class TestDeployService:
         """Test successful fullstack deployment."""
         backend_config = BackendConfiguration(
             built_artifacts_path='dist',
+            framework='express',
             runtime='nodejs18.x',
             port=3000,
             startup_script='bootstrap',
+            entry_point=None,
+            generate_startup_script=False,
+            architecture=None,
+            memory_size=None,
+            timeout=None,
+            stage=None,
+            cors=None,
+            environment=None,
+            database_configuration=None,
         )
 
         frontend_config = FrontendConfiguration(
             built_assets_path='build',
             framework='react',
+            index_document='index.html',
+            error_document='error.html',
+            custom_domain=None,
+            certificate_arn=None,
         )
 
         request = DeployWebAppRequest(
+            region='us-east-1',
             deployment_type='fullstack',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -170,9 +196,21 @@ class TestDeployService:
             runtime='nodejs18.x',
             port=3000,
             startup_script='bootstrap',
+            framework='express',
+            entry_point=None,
+            generate_startup_script=False,
+            architecture=None,
+            memory_size=None,
+            timeout=None,
+            stage=None,
+            cors=None,
+            environment=None,
+            database_configuration=None,
         )
 
         request = DeployWebAppRequest(
+            region='us-east-1',
+            frontend_configuration=None,
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -217,9 +255,21 @@ class TestDeployService:
             runtime='nodejs18.x',
             port=3000,
             startup_script='nonexistent',
+            framework=None,
+            entry_point=None,
+            generate_startup_script=False,
+            architecture=None,
+            memory_size=None,
+            timeout=None,
+            stage=None,
+            cors=None,
+            environment=None,
+            database_configuration=None,
         )
 
         request = DeployWebAppRequest(
+            region='us-east-1',
+            frontend_configuration=None,
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -248,11 +298,22 @@ class TestDeployService:
             built_artifacts_path='dist',
             runtime='nodejs18.x',
             port=3000,
-            entry_point='app.js',
-            generate_startup_script=True,
+            framework=None,
+            startup_script=None,
+            entry_point=None,
+            generate_startup_script=False,
+            architecture=None,
+            memory_size=None,
+            timeout=None,
+            stage=None,
+            cors=None,
+            environment=None,
+            database_configuration=None,
         )
 
         request = DeployWebAppRequest(
+            region='us-east-1',
+            frontend_configuration=None,
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -300,6 +361,15 @@ class TestDeployService:
     async def test_deploy_application_generate_startup_script_entry_point_not_found(self):
         """Test deployment with startup script generation failure."""
         backend_config = BackendConfiguration(
+            framework='express',
+            startup_script=None,
+            architecture='x86_64',
+            memory_size=512,
+            timeout=30,
+            stage='dev',
+            cors=None,
+            environment=None,
+            database_configuration=None,
             built_artifacts_path='dist',
             runtime='nodejs18.x',
             port=3000,
@@ -308,6 +378,8 @@ class TestDeployService:
         )
 
         request = DeployWebAppRequest(
+            region='us-east-1',
+            frontend_configuration=None,
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -339,9 +411,22 @@ class TestDeployService:
             built_artifacts_path='dist',
             runtime='nodejs18.x',
             port=3000,
+            framework=None,
+            startup_script=None,
+            entry_point=None,
+            generate_startup_script=False,
+            architecture=None,
+            memory_size=None,
+            timeout=None,
+            stage=None,
+            cors=None,
+            environment=None,
+            database_configuration=None,
         )
 
         request = DeployWebAppRequest(
+            region='us-east-1',
+            frontend_configuration=None,
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -369,10 +454,22 @@ class TestDeployService:
             built_artifacts_path='dist',
             runtime='nodejs18.x',
             port=3000,
+            framework=None,
             startup_script='/absolute/path/bootstrap',
+            entry_point=None,
+            generate_startup_script=False,
+            architecture=None,
+            memory_size=None,
+            timeout=None,
+            stage=None,
+            cors=None,
+            environment=None,
+            database_configuration=None,
         )
 
         request = DeployWebAppRequest(
+            region='us-east-1',
+            frontend_configuration=None,
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -397,6 +494,9 @@ class TestDeployService:
     async def test_generate_sam_template_success(self):
         """Test successful SAM template generation."""
         request = DeployWebAppRequest(
+            region='us-east-1',
+            frontend_configuration=None,
+            backend_configuration=None,
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -423,6 +523,9 @@ class TestDeployService:
     async def test_generate_sam_template_failure(self):
         """Test SAM template generation failure."""
         request = DeployWebAppRequest(
+            region='us-east-1',
+            frontend_configuration=None,
+            backend_configuration=None,
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -441,6 +544,9 @@ class TestDeployService:
     async def test_build_and_deploy_application_failure(self):
         """Test build and deploy application failure."""
         request = DeployWebAppRequest(
+            region='us-east-1',
+            backend_configuration=None,
+            frontend_configuration=None,
             deployment_type='backend',
             project_name='test-project',
             project_root='/dir/test-project',
@@ -547,14 +653,29 @@ class TestDeployService:
             runtime='nodejs18.x',
             port=3000,
             startup_script='bootstrap',
+            framework=None,
+            entry_point=None,
+            generate_startup_script=False,
+            architecture=None,
+            memory_size=None,
+            timeout=None,
+            stage=None,
+            cors=None,
+            environment=None,
+            database_configuration=None,
         )
 
         frontend_config = FrontendConfiguration(
+            index_document='index.html',
+            error_document='error.html',
+            custom_domain=None,
+            certificate_arn=None,
             built_assets_path='build',  # Relative path
             framework='react',
         )
 
         request = DeployWebAppRequest(
+            region='us-east-1',
             deployment_type='fullstack',
             project_name='test-project',
             project_root='/dir/test-project',
