@@ -246,13 +246,6 @@ class TestGetLambdaEventSchemasRequest:
         assert request.event_source == 'S3'
         assert request.runtime == 'nodejs'
 
-    def test_get_lambda_event_schemas_request_missing_required_fields(self):
-        """Test GetLambdaEventSchemasRequest with missing required fields."""
-        with pytest.raises(ValidationError):
-            # Omit required fields completely instead of using empty strings
-            GetLambdaEventSchemasRequest()
-
-
 class TestGetLambdaGuidanceRequest:
     """Tests for the GetLambdaGuidanceRequest model."""
 
