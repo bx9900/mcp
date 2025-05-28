@@ -147,9 +147,6 @@ class SamLocalInvokeRequest(BaseModel):
     environment_variables: Optional[Dict[str, str]] = Field(
         None, description="Environment variables to pass to the function"
     )
-    debug_port: Optional[int] = Field(
-        None, description="Port for debugging"
-    )
     docker_network: Optional[str] = Field(
         None, description="Docker network to run the Lambda function in"
     )
@@ -165,20 +162,8 @@ class SamLocalInvokeRequest(BaseModel):
     layer_cache_basedir: Optional[str] = Field(
         None, description="Directory where the layers will be cached"
     )
-    skip_pull_image: bool = Field(
-        False, description="Skip pulling the latest Docker image for the runtime"
-    )
-    debug_args: Optional[str] = Field(
-        None, description="Additional arguments to pass to the debugger"
-    )
-    debugger_path: Optional[str] = Field(
-        None, description="Absolute path to the debugger to use"
-    )
-    warm_containers: Optional[Literal["EAGER", "LAZY"]] = Field(
-        None, description="Warm containers strategy"
-    )
     region: Optional[str] = Field(
-        None, description="AWS region to use"
+        None, description="AWS region to use (e.g., us-east-1)"
     )
     profile: Optional[str] = Field(
         None, description="AWS profile to use"
@@ -205,7 +190,7 @@ class SamLogsRequest(BaseModel):
         "text", description="Output format"
     )
     region: Optional[str] = Field(
-        None, description="AWS region to use"
+        None, description="AWS region to use (e.g., us-east-1)"
     )
     profile: Optional[str] = Field(
         None, description="AWS profile to use"
@@ -539,7 +524,7 @@ class GetMetricsRequest(BaseModel):
         ["Average"], description="Statistics to retrieve"
     )
     region: Optional[str] = Field(
-        None, description="AWS Region to use (e.g., us-east-1)"
+        None, description="AWS region to use (e.g., us-east-1)"
     )
 
 class UpdateFrontendRequest(BaseModel):
@@ -558,7 +543,7 @@ class UpdateFrontendRequest(BaseModel):
         True, description="Whether to invalidate the CloudFront cache"
     )
     region: Optional[str] = Field(
-        None, description="AWS region to use"
+        None, description="AWS region to use (e.g., us-east-1)"
     )
 
 class ConfigureDomainRequest(BaseModel):
@@ -577,7 +562,7 @@ class ConfigureDomainRequest(BaseModel):
         True, description="Whether to create a Route 53 record"
     )
     region: Optional[str] = Field(
-        None, description="AWS region to use"
+        None, description="AWS region to use (e.g., us-east-1)"
     )
 class WebappDeploymentHelpRequest(BaseModel):
     """Request model for getting deployment help or status."""

@@ -56,16 +56,25 @@ mcp = FastMCP(
     'awslabs.aws-serverless-mcp-server',
     instructions="""AWS Serverless MCP
     
-    Use Serverless MCP server to deploy applications onto AWS Serverless. This server implements
-    a set of tools and resources that can be used to deploy and test serverless applications.
+    This is an Model Context Protocl (MCP) server that guides AI coding assistants through building
+    and deploying serverless applications on AWS by providing comprehensive knowledge of serverless patterns,
+    best practices, and AWS services. This server guides coding assistants through the entire application development
+    lifecycle, from initial design to deployment.
 
     ## Features
-    - Deploy existing web applications (fullstack, frontend, and backend) onto AWS Serverless.
-    - Intialize, build, and deploy serverless applications with Serverless Application Model (SAM) CLI
-    - View and logs and metrics of serverless resources
-    - Get guidance on AWS Lambda use-cases, selecting an IaC framework, and deploying onto AWS Serverless
-    - Get sample SAM templates of serverless applications from Serverless Land
-    - Get event source schema types for Lambda runtimes
+    1. Serverless Application Lifecycle
+    - Intialize, build, and deploy Serverless Application Model (SAM) applications with SAM CLI
+    - Test Lambda functions locally and remotely 
+    2. Web Application Deployment & Management
+    - Deploy fullstack, frontend, and backend web applications onto AWS Serverless using Lambda Web Adapter.
+    - Update frontend assets and optionally invaliate CloudFront caches
+    - Create custom domain names, including certificate and DNS setup.
+    3. Observability
+    - Retrieve and logs and metrics of serverless resources
+    4. Guidance, Templates, and Deployment Help
+    - Provides guidance on AWS Lambda use-cases, selecting an IaC framework, and deployment process onto AWS Serverless
+    - Provides sample SAM templates for different serverless application types from [Serverless Land](https://serverlessland.com/)
+    - Provides schema types for different Lambda event sources and runtimes
 
     ## Prerequisites
     1. Have an AWS account
@@ -78,7 +87,7 @@ mcp = FastMCP(
 
 # Template resources
 @mcp.resource("template://list",
-              description="""List of deployment templates that can be used with the deploy_webapp tool.
+              description="""List of SAM deployment templates that can be used with the deploy_webapp_tool.
                 Includes frontend, backend, and fullstack templates. """)
 def template_list() -> Dict[str, Any]:
     """List of available deployment templates."""
@@ -108,7 +117,7 @@ async def deployment_details(project_name: str) -> Dict[str, Any]:
 # SAM Tools
 @mcp.tool(description="""
     Builds a serverless application using AWS SAM (Serverless Application Model) CLI.
-    This command compiles your Lambda functions, creates deployment artifacts, and prepares your application for deployment.
+    This command compiles your Lambda function code, creates deployment artifacts, and prepares your application for deployment.
     Before running this tool, the application should already be initialized with 'sam_init' tool.
     You should have AWS SAM CLI installed and configured in your environment.
     """)
@@ -260,7 +269,7 @@ async def deploy_webapp_tool(
     return response
 
 @mcp.tool(description="""
-    Get help information about using the deploy_webapp tool to perform web application deployments.
+    Get help information about using the deploy_webapp_tool to perform web application deployments.
     If deployment_type is provided, returns help information for that deployment type.
     Otherwise, returns a list of deployments and general help information.
     """)
@@ -285,7 +294,7 @@ async def get_metrics_tool(
     return response
 
 @mcp.tool(description="""
-    Update the frontend of a deployed web application.
+    Update the frontend assets of a deployed web application.
     This tool uploads new frontend assets to S3 and optionally invalidates the CloudFront cache.
     """)
 async def update_webapp_frontend_tool(
@@ -298,7 +307,7 @@ async def update_webapp_frontend_tool(
 
 @mcp.tool(description="""
     Configures a custom domain for a deployed web application on AWS Serverless.
-    This tool sets up Route 53 DNS records, ACM certificates, and API Gateway custom domain mappings as needed.
+    This tool sets up Route 53 DNS records, ACM certificates, and CloudFront custom domain mappings as needed.
     Use this tool after deploying your web application to associate it with your own domain name.
     """)
 async def configure_domain_tool(

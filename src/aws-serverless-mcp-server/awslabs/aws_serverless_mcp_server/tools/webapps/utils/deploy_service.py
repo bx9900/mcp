@@ -29,21 +29,13 @@ from awslabs.aws_serverless_mcp_server.utils.process import run_command
 from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
 from awslabs.aws_serverless_mcp_server.tools.webapps.utils.startup_script_generator import generate_startup_script, EntryPointNotFoundError
 from awslabs.aws_serverless_mcp_server.tools.webapps.utils.frontend_uploader import upload_frontend_assets
-from awslabs.aws_serverless_mcp_server.utils.deployment_manager import initialize_deployment_status, store_deployment_metadata, store_deployment_error, get_deployment_status
+from awslabs.aws_serverless_mcp_server.utils.deployment_manager import initialize_deployment_status, store_deployment_metadata, store_deployment_error, get_deployment_status, DeploymentStatus
 
 # Define the directory where deployment status files will be stored
 DEPLOYMENT_STATUS_DIR = os.path.join(tempfile.gettempdir(), 'serverless-web-mcp-deployments')
 
 # Ensure the directory exists
 os.makedirs(DEPLOYMENT_STATUS_DIR, exist_ok=True)
-
-class DeploymentStatus:
-    """Deployment status enum."""
-    INITIATED = "INITIATED"
-    IN_PROGRESS = "IN_PROGRESS"
-    DEPLOYED = "DEPLOYED"
-    FAILED = "FAILED"
-    DELETED = "DELETED"
 
 async def deploy_application(request: DeployWebAppRequest) -> Dict[str, Any]:
     """

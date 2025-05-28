@@ -38,16 +38,11 @@ async def sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
         event_file = request.event_file
         event_data = request.event_data
         environment_variables = request.environment_variables
-        debug_port = request.debug_port
         docker_network = request.docker_network
         container_env_vars = request.container_env_vars
         parameter = request.parameter
         log_file = request.log_file
         layer_cache_basedir = request.layer_cache_basedir
-        skip_pull_image = request.skip_pull_image
-        debug_args = request.debug_args
-        debugger_path = request.debugger_path
-        warm_containers = request.warm_containers
         region = request.region
         profile = request.profile
         
@@ -73,9 +68,6 @@ async def sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
                 for key, value in environment_variables.items():
                     cmd.extend(['--env-vars', f"{key}={value}"])
             
-            if debug_port:
-                cmd.extend(['--debug-port', str(debug_port)])
-            
             if docker_network:
                 cmd.extend(['--docker-network', docker_network])
             
@@ -92,19 +84,7 @@ async def sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
             
             if layer_cache_basedir:
                 cmd.extend(['--layer-cache-basedir', layer_cache_basedir])
-            
-            if skip_pull_image:
-                cmd.append('--skip-pull-image')
-            
-            if debug_args:
-                cmd.extend(['--debug-args', debug_args])
-            
-            if debugger_path:
-                cmd.extend(['--debugger-path', debugger_path])
-            
-            if warm_containers:
-                cmd.extend(['--warm-containers', warm_containers])
-            
+
             if region:
                 cmd.extend(['--region', region])
             

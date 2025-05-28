@@ -24,7 +24,13 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from awslabs.aws_serverless_mcp_server.utils.cloudformation import get_stack_info, map_cloudformation_status
-import boto3
+
+class DeploymentStatus:
+    """Deployment status enum."""
+    IN_PROGRESS = "IN_PROGRESS"
+    DEPLOYED = "DEPLOYED"
+    FAILED = "FAILED"
+    NOT_FOUND = "NOT_FOUND"
 
 # Define the directory where deployment metadata files will be stored
 DEPLOYMENT_METADATA_DIR = os.path.join(tempfile.gettempdir(), 'aws-serverless-web-mcp-server-deployments')
@@ -43,18 +49,18 @@ async def initialize_deployment_status(project_name: str, deployment_type: str, 
         framework: Framework used for the deployment
     """
     metadata_file = os.path.join(DEPLOYMENT_METADATA_DIR, f"{project_name}.json")
-    stack_name = project_name
     
     try:
         # Create the metadata file with minimal information
         metadata = {
             "projectName": project_name,
-            "stackName": stack_name,
             "timestamp": datetime.now().isoformat(),
             "deploymentType": deployment_type,
             "framework": framework,
-            "region": region or os.environ.get("AWS_REGION", "us-east-1")
+            "status": DeploymentStatus.IN_PROGRESS,
         }
+        if region:
+            metadata["region"] = region
         
         with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2)
@@ -110,6 +116,7 @@ async def store_deployment_error(project_name: str, error: Any) -> None:
     """
     error_message = str(error) if not isinstance(error, str) else error
     await store_deployment_metadata(project_name, {
+        "status": DeploymentStatus.FAILED,
         "error": error_message,
         "errorTimestamp": datetime.now().isoformat()
     })
@@ -131,41 +138,24 @@ async def get_deployment_status(project_name: str) -> Dict[str, Any]:
         if not os.path.exists(metadata_file):
             logger.info(f"No deployment metadata found for project: {project_name}")
             return {
-                "status": "not_found",
-                "message": f"No deployment found for project: {project_name}"
+                "status": DeploymentStatus.NOT_FOUND,
+                "message": f"No deployment found for project: {project_name}",
+                "projectName": project_name
             }
         
         # Read metadata file
         with open(metadata_file, 'r', encoding='utf-8') as f:
             metadata = json.load(f)
         
-        # If there's an error stored in metadata and no stack info, return the error
-        if metadata.get("error") and not metadata.get("stackId"):
-            return {
-                "status": "failed",
-                "timestamp": metadata.get("errorTimestamp") or metadata.get("timestamp"),
-                "deploymentType": metadata.get("deploymentType"),
-                "framework": metadata.get("framework"),
-                "message": metadata.get("error"),
-                "projectName": metadata.get("projectName")
-            }
-        
         # Get stack info from CloudFormation
-        stack_name = metadata.get("stackName") or project_name
-        region = metadata.get("region") or os.environ.get("AWS_REGION") or "us-east-1"
+        region = metadata.get("region")
         
         try:
-            stack_info = await get_stack_info(stack_name, region)
+            stack_info = await get_stack_info(project_name, region)
             
-            # If stack not found but we have metadata, deployment is in progress or failed before CF was called
+            # If stack not found but we have metadata, deployment failed before CFN or CFN deployment is in progress.
             if stack_info.get("status") == "NOT_FOUND":
-                return {
-                    "status": "failed" if metadata.get("error") else "in_progress",
-                    "timestamp": metadata.get("timestamp"),
-                    "deploymentType": metadata.get("deploymentType"),
-                    "framework": metadata.get("framework"),
-                    "message": metadata.get("error") or "Deployment initiated, waiting for CloudFormation stack creation"
-                }
+                return metadata
             
             # Map CloudFormation status to our status format
             status = map_cloudformation_status(stack_info.get("status"))
@@ -180,9 +170,10 @@ async def get_deployment_status(project_name: str) -> Dict[str, Any]:
                 "deploymentType": metadata.get("deploymentType"),
                 "framework": metadata.get("framework"),
                 "outputs": stack_info.get("outputs"),
-                "region": region,
                 "projectName": project_name,
             }
+            if region:
+                deployment["region"] = region
         
             if "outputs" in deployment and deployment["outputs"]:
                 formatted_outputs = {}
@@ -201,7 +192,8 @@ async def get_deployment_status(project_name: str) -> Dict[str, Any]:
                 "timestamp": metadata.get("timestamp"),
                 "deploymentType": metadata.get("deploymentType"),
                 "framework": metadata.get("framework"),
-                "message": f"Error querying CloudFormation: {str(e)}"
+                "message": f"Error querying CloudFormation: {str(e)}",
+                "projectName": metadata.get("projectName")
             }
     except Exception as e:
         logger.error(f"Failed to get deployment status for {project_name}: {str(e)}")
@@ -279,67 +271,3 @@ async def list_deployments(
     except Exception as e:
         logger.error(f"Failed to list deployments: {str(e)}")
         raise
-
-async def get_deployment_resources(project_name: str) -> Dict[str, Any]:
-    """
-    Get resources associated with a deployment using CloudFormation APIs.
-    
-    Args:
-        project_name: Name of the project
-    
-    Returns:
-        Dict: Information about deployment resources
-    """
-    try:
-        # Get the deployment status first
-        deployment_status = await get_deployment_status(project_name)
-        
-        # If the deployment is not found or failed before CloudFormation was involved
-        if deployment_status.get("status") in ["not_found", "failed"] and not deployment_status.get("stackStatus"):
-            return {
-                "status": deployment_status.get("status"),
-                "message": deployment_status.get("message", "Deployment not found or failed"),
-                "projectName": project_name,
-                "resources": []
-            }
-        
-        stack_name = deployment_status.get("stackStatus") and (deployment_status.get("stackName") or project_name)
-        region = deployment_status.get("region") or os.environ.get("AWS_REGION", "us-east-1")
-        if not stack_name:
-            return {
-                "status": "error",
-                "message": "Stack name not found in deployment metadata.",
-                "projectName": project_name,
-                "resources": []
-            }
-        
-        # Use boto3 to call CloudFormation's list_stack_resources API
-        cfn = boto3.client("cloudformation", region_name=region)
-        resources = []
-        paginator = cfn.get_paginator("list_stack_resources")
-        for page in paginator.paginate(StackName=stack_name):
-            for res in page.get("StackResourceSummaries", []):
-                resources.append({
-                    "logicalId": res.get("LogicalResourceId"),
-                    "physicalId": res.get("PhysicalResourceId"),
-                    "type": res.get("ResourceType"),
-                    "status": res.get("ResourceStatus"),
-                    "lastUpdated": res.get("LastUpdatedTimestamp").isoformat() if res.get("LastUpdatedTimestamp") else None,
-                    "statusReason": res.get("ResourceStatusReason")
-                })
-        
-        return {
-            "status": "success",
-            "message": f"Resources for deployment {project_name}",
-            "projectName": project_name,
-            "deploymentType": deployment_status.get("deploymentType"),
-            "resources": resources
-        }
-    except Exception as e:
-        logger.error(f"Error getting deployment resources for {project_name}: {str(e)}")
-        return {
-            "status": "error",
-            "message": f"Failed to get deployment resources: {str(e)}",
-            "projectName": project_name,
-            "resources": []
-        }

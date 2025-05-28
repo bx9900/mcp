@@ -2,18 +2,31 @@
 
 ## Overview
 
-This Model Context Protocol (MCP) server enables AI assistants to build and deploy applications onto AWS Serverless using Serverless Application Model (SAM). It implements a set of tools and resources that can be used to interact with serverless services.
+This is an Model Context Protocl (MCP) server that guides AI coding assistants through building and deploying serverless applications on AWS by providing comprehensive knowledge of serverless patterns, best practices, and AWS services. This server guides coding assistants through the entire application development lifecycle, from initial design to deployment.
+
+The MCP server is an intelligent development companion designed to support every stage of building serverless applications.
+* Architecture Guidance: Helps evaluate design choices and select optimal serverless patterns based on application needs. Offers recommendations on event sources, function boundaries, and service integrations.
+* AI-Powered Development: Provides rich context about serverless environments, enabling the generation of structured, best-practice-aligned code. Suggests effective use of AWS services for event processing, data persistence, and service communication.
+* Operational Best Practices: Ensures alignment with AWS architectural principles. Guides implementation of security controls, performance tuning, cost optimization, and monitoring.
+
+With AWS Serverless MCP, developers can build reliable, efficient, and production-ready serverless applications with confidence.
 
 ## Features
-This MCP server acts as a bridge between MCP clients and AWS Serverless services, allowing generative AI models to create, configure, and manage Serverless resources.
+The set of tools provided by the Serverless MCP server can be broken down into four categories:
 
-- Deploy existing web applications (fullstack, frontend, and backend) onto AWS Serverless using Lambda Web Adapter.
+1. Serverless Application Lifecycle
 - Intialize, build, and deploy Serverless Application Model (SAM) applications with SAM CLI
+- Test Lambda functions locally and remotely 
+2. Web Application Deployment & Management
+- Deploy fullstack, frontend, and backend web applications onto AWS Serverless using Lambda Web Adapter.
+- Update frontend assets and optionally invaliate CloudFront caches
+- Create custom domain names, including certificate and DNS setup.
+3. Observability
 - Retrieve and logs and metrics of serverless resources
-- Build CI/CD piplines to automate deployments
-- Get guidance on AWS Lambda use-cases, selecting an IaC framework, and deployment process onto AWS Serverless
-- Get sample SAM templates of serverless applications from [Serverless Land](https://serverlessland.com/)
-- Get schema types for different Lambda event sources and runtimes
+4. Guidance, Templates, and Deployment Help
+- Provides guidance on AWS Lambda use-cases, selecting an IaC framework, and deployment process onto AWS Serverless
+- Provides sample SAM templates for different serverless application types from [Serverless Land](https://serverlessland.com/)
+- Provides schema types for different Lambda event sources and runtimes
 
 ## Prerequisites
 - Have an AWS account with [credentials configured](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-files.html)
@@ -24,7 +37,9 @@ This MCP server acts as a bridge between MCP clients and AWS Serverless services
 
 ## Installation
 
-To use this MCP server with an AWS CLI profile, add the following to your MCP configuration (e.g., for Amazon Q Developer CLI, edit ~/.aws/amazonq/mcp.json):
+You can download the AWS Serverless MCP Server from GitHub. To get started using your favorite code assistant with MCP support, like Q Developer, Cursor or Cline. 
+
+Add the following code to your MCP client configuration. The Serverless MCP server uses the default AWS profile by default. You only need to set the AWS_PROFILE if you want to use a different profile. Adjust the region and log level as necessary. 
 ```json
 {
   "mcpServers": {
@@ -78,7 +93,7 @@ Mutating operations:
 
 
 ### `--allow-sensitive-data-access`
-Enables access to sensitive data such as logs and environment variables. By default, the server restricts access to sensitive data.
+Enables access to sensitive data such as logs. By default, the server restricts access to sensitive data.
 
 Operations returning sensitive data:
 * sam_logs_tool: Returns Lambda function logs and API Gateway logs
@@ -424,140 +439,6 @@ I need to deploy a Node.js backend web application to AWS Lambda. The project is
 ```
 
 This prompt would trigger the AI assistant to use the deploy_webapp_tool to deploy the backend application with the specified configuration.
-
-### Individual SAM Tool Examples
-
-#### SAM Initialize
-
-Example user prompt:
-
-```
-Can you initialize a new SAM project for me? I want to create a Python application called "weather-api" using the "hello-world" template. Please set it up in my "/projects/aws-lambda" directory and use pip as the dependency manager.
-```
-
-#### SAM Build
-
-Example user prompt:
-
-```
-I need to build my SAM application located in "/projects/aws-lambda/weather-api". Can you build it for me? I'd like to use a container for the build process and cache the build artifacts for faster builds in the future.
-```
-
-#### SAM Deploy
-
-Example user prompt:
-
-```
-Please deploy my SAM application called "weather-api" from the "/projects/aws-lambda/weather-api" directory. I need to include IAM capabilities and I don't want to be prompted to confirm the changeset. Also, please use the "us-west-2" region for deployment.
-```
-
-#### SAM Local Invoke
-
-Example user prompt:
-
-```
-I want to test my Lambda function locally before deploying it. Can you invoke the "GetWeatherFunction" from my SAM project in "/projects/aws-lambda/weather-api"? Here's the test event data: {"city": "Seattle", "country": "USA"}
-```
-
-#### SAM Pipeline
-
-Example user prompt:
-
-```
-I need to set up a CI/CD pipeline for my SAM application in "/projects/aws-lambda/weather-api". Can you configure a GitHub Actions pipeline for me? I want to deploy from the "main" branch to the "us-west-2" region. Please create the necessary IAM roles and resources for the pipeline.
-```
-
-#### SAM Logs
-
-Example user prompt:
-
-```
-I need to debug an issue with my Lambda function in the "weather-api" stack. Can you fetch the CloudWatch logs for the "GetWeatherFunction" resource? I only want to see error messages from the last hour, and please format the output as JSON.
-```
-
-#### Retrieving Web Application Logs
-
-Example user prompt:
-
-```
-Can you show me the logs for my "weather-api" application that I deployed? I'm particularly interested in logs from the last 30 minutes, and I only need to see errors related to API requests. Please limit the results to 100 log entries.
-```
-
-This prompt would trigger the AI assistant to use the get_logs_tool to retrieve filtered logs from the deployed application.
-
-### Additional Tool Examples
-
-#### Lambda Guidance
-
-Example user prompt:
-
-```
-I'm building a REST API that needs to process requests with low latency. Would AWS Lambda be a good choice for this? I'm planning to use Python 3.9 and would like to understand the pros and cons of using Lambda for this use case.
-```
-
-#### IaC Guidance
-
-Example user prompt:
-
-```
-I need to deploy a serverless application to AWS that includes Lambda functions, API Gateway, and DynamoDB. Which Infrastructure as Code tool would be best for this? I'm familiar with both Python and JavaScript.
-```
-
-#### Lambda Event Schemas
-
-Example user prompt:
-
-```
-I'm writing a Lambda function in Node.js that will be triggered by S3 events. Can you show me what the event object structure looks like so I know how to parse it in my code?
-```
-
-#### Configure Custom Domain
-
-Example user prompt:
-
-```
-I've deployed my web application "my-portfolio" to AWS and now I want to use my custom domain "example.com" for it. I already have an ACM certificate with ARN "arn:aws:acm:us-east-1:123456789012:certificate/abcd1234" and my Route 53 hosted zone ID is "Z1234ABCD5678EF". Can you help me set this up?
-```
-
-#### Deployment Help
-
-Example user prompt:
-
-```
-I'm trying to deploy a fullstack application to AWS but I'm not sure how to structure it. Can you provide guidance on the best practices for deploying fullstack applications with serverless technologies?
-```
-
-#### Application Metrics
-
-Example user prompt:
-
-```
-Can you show me the performance metrics for my "user-auth-service" application? I'd like to see the error rate, latency, and invocation count for the past 24 hours.
-```
-
-#### Update Frontend
-
-Example user prompt:
-
-```
-I've made changes to the frontend of my "customer-portal" application. The updated files are in "/projects/customer-portal/build". Can you update the deployed frontend and invalidate the CloudFront cache so users see the changes immediately?
-```
-
-#### Serverless App Deployment Help
-
-Example user prompt:
-
-```
-I want to create an event-driven application that processes data from an S3 bucket. Can you guide me through the process of deploying this type of serverless application to AWS?
-```
-
-#### Serverless Templates
-
-Example user prompt:
-
-```
-I need examples of well-architected serverless applications. Can you show me some API templates for Python that I can use as a reference for my project?
-```
 
 ## Security Features
 1. **AWS Authentication**: Uses AWS credentials from the environment for secure authentication
