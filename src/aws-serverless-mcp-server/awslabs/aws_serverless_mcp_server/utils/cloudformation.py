@@ -26,11 +26,11 @@ async def get_stack_info(stack_name: str, region: Optional[str] = None) -> Dict[
     Returns:
         Dict: Stack information including status, outputs, etc.
     """
-    try:
-        # Initialize CloudFormation client
-        session = boto3.Session(region_name=region) if region else boto3.Session()
-        cf_client = session.client('cloudformation')
+    # Initialize CloudFormation client
+    session = boto3.Session(region_name=region) if region else boto3.Session()
+    cf_client = session.client('cloudformation')
 
+    try:
         # Get stack information
         response = cf_client.describe_stacks(StackName=stack_name)
 

@@ -10,10 +10,8 @@
 # and limitations under the License.
 """Tests for the sam_logs module."""
 
-import os
 import pytest
 import subprocess
-import tempfile
 from awslabs.aws_serverless_mcp_server.models import SamLogsRequest
 from awslabs.aws_serverless_mcp_server.tools.sam.sam_logs import handle_sam_logs
 from unittest.mock import MagicMock, patch
@@ -28,7 +26,16 @@ class TestSamLogs:
         # Create a mock request
         request = SamLogsRequest(
             resource_name='test-function',
-            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            stack_name=None,
+            start_time=None,
+            end_time=None,
+            output=None,
+            region=None,
+            profile=None,
+            cw_log_group=None,
+            config_env=None,
+            config_file=None,
+            save_params=False,
         )
 
         # Mock the subprocess.run function
@@ -65,19 +72,16 @@ class TestSamLogs:
         # Create a mock request with optional parameters
         request = SamLogsRequest(
             resource_name='test-function',
-            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             stack_name='test-stack',
-            tail=True,
-            filter='ERROR',
             start_time='2023-05-21 00:00:00',
             end_time='2023-05-21 23:59:59',
             output='json',
             region='us-west-2',
             profile='default',
-            include_triggered_logs=True,
-            cw=True,
-            resources_dir=os.path.join(tempfile.gettempdir(), 'resources'),
-            template_file='template.yaml',
+            cw_log_group=[],
+            config_env=None,
+            config_file=None,
+            save_params=False,
         )
 
         # Mock the subprocess.run function
@@ -120,7 +124,16 @@ class TestSamLogs:
         # Create a mock request
         request = SamLogsRequest(
             resource_name='test-function',
-            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            stack_name=None,
+            start_time=None,
+            end_time=None,
+            output=None,
+            region=None,
+            profile=None,
+            cw_log_group=None,
+            config_env=None,
+            config_file=None,
+            save_params=False,
         )
 
         # Mock the subprocess.run function to raise an exception
@@ -143,7 +156,16 @@ class TestSamLogs:
         # Create a mock request
         request = SamLogsRequest(
             resource_name='test-function',
-            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            stack_name=None,
+            start_time=None,
+            end_time=None,
+            output=None,
+            region=None,
+            profile=None,
+            cw_log_group=None,
+            config_env=None,
+            config_file=None,
+            save_params=False,
         )
 
         # Mock the subprocess.run function to raise a general exception

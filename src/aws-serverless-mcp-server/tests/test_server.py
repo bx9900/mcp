@@ -59,7 +59,21 @@ class TestSamBuildTool:
             result = await sam_build_tool(
                 ctx,
                 SamBuildRequest(
-                    project_directory=os.path.join(tempfile.gettempdir(), 'test-project')
+                    project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+                    template_file='template.yaml',
+                    base_dir=None,
+                    build_dir=None,
+                    use_container=False,
+                    no_use_container=True,
+                    container_env_vars=None,
+                    container_env_var_file=None,
+                    build_image=None,
+                    debug=False,
+                    manifest=None,
+                    parameter_overrides=None,
+                    region=None,
+                    save_params=False,
+                    profile=None,
                 ),
             )
 
@@ -94,6 +108,20 @@ class TestSamInitTool:
                     runtime='nodejs18.x',
                     project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
                     dependency_manager='npm',
+                    architecture='x86_64',
+                    package_type='Zip',
+                    application_template='hello-world',
+                    application_insights=None,
+                    no_application_insights=None,
+                    base_image=None,
+                    config_env=None,
+                    config_file=None,
+                    debug=False,
+                    extra_content=None,
+                    location=None,
+                    save_params=None,
+                    tracing=None,
+                    no_tracing=None,
                 ),
             )
 
@@ -130,6 +158,19 @@ class TestSamDeployTool:
                 SamDeployRequest(
                     application_name='test-app',
                     project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+                    template_file='template.yaml',
+                    s3_bucket='test-bucket',
+                    s3_prefix='test-prefix',
+                    region='us-east-1',
+                    profile='default',
+                    parameter_overrides='{}',
+                    capabilities=[],
+                    config_file=None,
+                    config_env=None,
+                    metadata={},
+                    tags={},
+                    resolve_s3=False,
+                    debug=False,
                 ),
             )
 

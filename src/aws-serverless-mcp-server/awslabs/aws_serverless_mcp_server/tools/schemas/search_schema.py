@@ -30,7 +30,7 @@ async def search_schema_impl(
     try:
         params = {'Keywords': keywords, 'RegistryName': registry_name}
         if limit is not None:
-            params['Limit'] = limit
+            params['Limit'] = str(limit)
         if next_token is not None:
             params['NextToken'] = next_token
 

@@ -80,7 +80,7 @@ class TestGetLambdaGuidance:
     async def test_get_lambda_guidance_default_examples(self):
         """Test getting Lambda guidance with default examples setting."""
         # Create a mock request with default include_examples (should be True)
-        request = GetLambdaGuidanceRequest(use_case='api')
+        request = GetLambdaGuidanceRequest(use_case='api', include_examples=True)
 
         # Call the function
         result = await get_lambda_guidance(request)

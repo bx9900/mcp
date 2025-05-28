@@ -21,7 +21,7 @@ import os
 from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from botocore.exceptions import BotoCoreError, ClientError
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 async def upload_frontend_assets(
@@ -66,7 +66,7 @@ async def upload_frontend_assets(
         raise
 
 
-async def upload_to_s3(source_path: str, bucket_name: str, region: str) -> None:
+async def upload_to_s3(source_path: str, bucket_name: str, region: Optional[str] = None) -> None:
     """Upload directory contents to S3 bucket using boto3.
 
     Args:

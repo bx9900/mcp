@@ -62,9 +62,10 @@ def get_templates_path() -> str:
         str: Path to the templates directory
     """
     # Check environment variable first
-    if os.environ.get('TEMPLATES_PATH'):
-        logger.debug(f'Using templates path from environment: {os.environ.get("TEMPLATES_PATH")}')
-        return os.environ.get('TEMPLATES_PATH')
+    templates_path = os.environ.get('TEMPLATES_PATH')
+    if templates_path:
+        logger.debug(f'Using templates path from environment: {templates_path}')
+        return templates_path
 
     # Try to find templates in standard locations
     # The order is important - we want to prioritize the templates that come with the package
@@ -210,8 +211,8 @@ async def discover_templates() -> List[Template]:
                 continue
 
             # Try to determine the deployment type
+            type_str = parts[0].lower()
             try:
-                type_str = parts[0].lower()
                 type_ = DeploymentTypes(type_str)
             except ValueError:
                 # Skip files that don't start with a valid deployment type

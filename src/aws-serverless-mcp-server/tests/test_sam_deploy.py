@@ -29,6 +29,19 @@ class TestSamDeploy:
         request = SamDeployRequest(
             application_name='test-app',
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            template_file=None,
+            s3_bucket=None,
+            s3_prefix=None,
+            region=None,
+            profile=None,
+            parameter_overrides=None,
+            capabilities=None,
+            config_file=None,
+            config_env=None,
+            metadata=None,
+            tags=None,
+            resolve_s3=False,
+            debug=False,
         )
 
         # Mock the subprocess.run function
@@ -74,18 +87,11 @@ class TestSamDeploy:
             profile='default',
             parameter_overrides='ParameterKey=Key1,ParameterValue=Value1',
             capabilities=['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM'],
-            no_confirm_changeset=True,
             config_file='samconfig.toml',
             config_env='dev',
-            no_execute_changeset=True,
-            fail_on_empty_changeset=True,
-            force_upload=True,
-            use_json=True,
             metadata={'key1': 'value1', 'key2': 'value2'},
-            notification_arns=['arn:aws:sns:us-west-2:123456789012:my-topic'],
             tags={'tag1': 'value1', 'tag2': 'value2'},
             resolve_s3=True,
-            disable_rollback=True,
             debug=True,
         )
 
@@ -141,6 +147,19 @@ class TestSamDeploy:
         request = SamDeployRequest(
             application_name='test-app',
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            template_file=None,
+            s3_bucket=None,
+            s3_prefix=None,
+            region=None,
+            profile=None,
+            parameter_overrides=None,
+            capabilities=None,
+            config_file=None,
+            config_env=None,
+            metadata=None,
+            tags=None,
+            resolve_s3=False,
+            debug=False,
         )
 
         # Mock the subprocess.run function to raise an exception
@@ -164,6 +183,19 @@ class TestSamDeploy:
         request = SamDeployRequest(
             application_name='test-app',
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            template_file=None,
+            s3_bucket=None,
+            s3_prefix=None,
+            region=None,
+            profile=None,
+            parameter_overrides=None,
+            capabilities=None,
+            config_file=None,
+            config_env=None,
+            metadata=None,
+            tags=None,
+            resolve_s3=False,
+            debug=False,
         )
 
         # Mock the subprocess.run function to raise a general exception

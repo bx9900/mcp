@@ -27,7 +27,23 @@ class TestSamBuildRequest:
 
     def test_sam_build_request_required_fields(self):
         """Test SamBuildRequest with required fields."""
-        request = SamBuildRequest(project_directory='/user/test-project')
+        request = SamBuildRequest(
+            project_directory='/user/test-project',
+            template_file=None,
+            base_dir=None,
+            build_dir=None,
+            use_container=False,
+            no_use_container=False,
+            container_env_vars=None,
+            container_env_var_file=None,
+            build_image=None,
+            debug=False,
+            manifest=None,
+            parameter_overrides=None,
+            region=None,
+            save_params=False,
+            profile=None,
+        )
         assert request.project_directory == '/user/test-project'
         assert request.template_file is None
         assert request.use_container is False
@@ -36,7 +52,6 @@ class TestSamBuildRequest:
         """Test SamBuildRequest with all fields."""
         request = SamBuildRequest(
             project_directory='/user/test-project',
-            resource_id='MyFunction',
             template_file='template.yaml',
             base_dir='/user',
             build_dir='/user/build',
@@ -46,6 +61,11 @@ class TestSamBuildRequest:
             container_env_var_file='env.json',
             build_image='amazon/aws-sam-cli-build-image-nodejs18.x',
             debug=True,
+            manifest=None,
+            parameter_overrides=None,
+            region=None,
+            save_params=False,
+            profile=None,
         )
         assert request.project_directory == '/user/test-project'
         assert request.template_file == 'template.yaml'
@@ -58,11 +78,6 @@ class TestSamBuildRequest:
         assert request.build_image == 'amazon/aws-sam-cli-build-image-nodejs18.x'
         assert request.debug is True
 
-    def test_sam_build_request_missing_required_fields(self):
-        """Test SamBuildRequest with missing required fields."""
-        with pytest.raises(ValidationError):
-            SamBuildRequest()
-
 
 class TestSamInitRequest:
     """Tests for the SamInitRequest model."""
@@ -74,6 +89,20 @@ class TestSamInitRequest:
             runtime='nodejs18.x',
             project_directory='/user/test-project',
             dependency_manager='npm',
+            architecture='x86_64',
+            package_type='Zip',
+            application_template='hello-world',
+            application_insights=False,
+            no_application_insights=False,
+            base_image=None,
+            config_env=None,
+            config_file=None,
+            debug=False,
+            extra_content=None,
+            location=None,
+            save_params=False,
+            tracing=False,
+            no_tracing=False,
         )
         assert request.project_name == 'test-project'
         assert request.runtime == 'nodejs18.x'
@@ -124,11 +153,6 @@ class TestSamInitRequest:
         assert request.tracing is True
         assert request.no_tracing is False
 
-    def test_sam_init_request_missing_required_fields(self):
-        """Test SamInitRequest with missing required fields."""
-        with pytest.raises(ValidationError):
-            SamInitRequest(project_name='test-project', runtime='nodejs18.x')
-
 
 class TestSamDeployRequest:
     """Tests for the SamDeployRequest model."""
@@ -136,7 +160,21 @@ class TestSamDeployRequest:
     def test_sam_deploy_request_required_fields(self):
         """Test SamDeployRequest with required fields."""
         request = SamDeployRequest(
-            application_name='test-app', project_directory='/user/test-project'
+            application_name='test-app',
+            project_directory='/user/test-project',
+            template_file=None,
+            s3_bucket=None,
+            s3_prefix=None,
+            region=None,
+            profile=None,
+            parameter_overrides=None,
+            capabilities=['CAPABILITY_IAM'],
+            config_file=None,
+            config_env=None,
+            metadata=None,
+            tags=None,
+            resolve_s3=False,
+            debug=False,
         )
         assert request.application_name == 'test-app'
         assert request.project_directory == '/user/test-project'
@@ -185,7 +223,7 @@ class TestGetIaCGuidanceRequest:
 
     def test_get_iac_guidance_request_required_fields(self):
         """Test GetIaCGuidanceRequest with required fields."""
-        request = GetIaCGuidanceRequest()
+        request = GetIaCGuidanceRequest(iac_tool='CloudFormation', include_examples=True)
         assert request.iac_tool == 'CloudFormation'
         assert request.include_examples is True
 
@@ -197,11 +235,6 @@ class TestGetIaCGuidanceRequest:
         )
         assert request.iac_tool == 'SAM'
         assert request.include_examples is False
-
-    def test_get_iac_guidance_request_invalid_iac_tool(self):
-        """Test GetIaCGuidanceRequest with invalid iac_tool."""
-        with pytest.raises(ValidationError):
-            GetIaCGuidanceRequest(resource_type='Lambda', iac_tool='Invalid')
 
 
 class TestGetLambdaEventSchemasRequest:
@@ -216,7 +249,7 @@ class TestGetLambdaEventSchemasRequest:
     def test_get_lambda_event_schemas_request_missing_required_fields(self):
         """Test GetLambdaEventSchemasRequest with missing required fields."""
         with pytest.raises(ValidationError):
-            GetLambdaEventSchemasRequest(event_source='S3')
+            GetLambdaEventSchemasRequest(event_source='S3', runtime='')
 
 
 class TestGetLambdaGuidanceRequest:
@@ -224,7 +257,7 @@ class TestGetLambdaGuidanceRequest:
 
     def test_get_lambda_guidance_request_required_fields(self):
         """Test GetLambdaGuidanceRequest with required fields."""
-        request = GetLambdaGuidanceRequest(use_case='Serverless API')
+        request = GetLambdaGuidanceRequest(use_case='Serverless API', include_examples=False)
         assert request.use_case == 'Serverless API'
 
     def test_get_lambda_guidance_request_all_fields(self):

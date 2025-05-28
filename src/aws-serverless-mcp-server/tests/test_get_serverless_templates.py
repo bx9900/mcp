@@ -73,7 +73,7 @@ class TestGetServerlessTemplates:
     async def test_get_serverless_templates_without_runtime(self):
         """Test getting serverless templates without specific runtime."""
         # Create a mock request without runtime
-        request = GetServerlessTemplatesRequest(template_type='ETL')
+        request = GetServerlessTemplatesRequest(template_type='ETL', runtime=None)
 
         # Mock GitHub API responses
         mock_tree_response = {
@@ -113,6 +113,7 @@ class TestGetServerlessTemplates:
         template_types = ['API', 'ETL', 'Web', 'Event', 'Lambda']
 
         for template_type in template_types:
+            # Provide a runtime argument for each request
             request = GetServerlessTemplatesRequest(
                 template_type=template_type, runtime='python3.9'
             )
@@ -269,7 +270,8 @@ class TestGetServerlessTemplates:
     async def test_get_serverless_templates_limit(self):
         """Test that template results are limited to avoid excessive API calls."""
         request = GetServerlessTemplatesRequest(
-            template_type='lambda'  # This should match many templates
+            template_type='lambda',  # This should match many templates
+            runtime='python3.9',
         )
 
         # Mock many matching templates

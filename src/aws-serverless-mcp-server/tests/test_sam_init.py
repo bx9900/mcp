@@ -31,6 +31,20 @@ class TestSamInit:
             runtime='nodejs18.x',
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             dependency_manager='npm',
+            architecture='x86_64',
+            package_type='zip',
+            application_template='hello-world',
+            application_insights=None,
+            no_application_insights=None,
+            base_image=None,
+            config_env=None,
+            config_file=None,
+            debug=None,
+            extra_content=None,
+            location=None,
+            save_params=None,
+            tracing=None,
+            no_tracing=None,
         )
 
         # Mock the subprocess.run function
@@ -78,11 +92,19 @@ class TestSamInit:
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             dependency_manager='pip',
             architecture='arm64',
+            package_type='zip',
             application_template='hello-world',
             application_insights=True,
+            no_application_insights=None,
+            base_image=None,
+            config_env=None,
+            config_file=None,
             debug=True,
+            extra_content=None,
+            location=None,
             save_params=True,
             tracing=True,
+            no_tracing=None,
         )
 
         # Mock the subprocess.run function
@@ -124,6 +146,20 @@ class TestSamInit:
             runtime='nodejs18.x',
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             dependency_manager='npm',
+            architecture='x86_64',
+            package_type='zip',
+            application_template='hello-world',
+            application_insights=None,
+            no_application_insights=None,
+            base_image=None,
+            config_env=None,
+            config_file=None,
+            debug=None,
+            extra_content=None,
+            location=None,
+            save_params=None,
+            tracing=None,
+            no_tracing=None,
         )
 
         # Mock the subprocess.run function to raise an exception
@@ -149,6 +185,20 @@ class TestSamInit:
             runtime='nodejs18.x',
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             dependency_manager='npm',
+            architecture='x86_64',
+            package_type='zip',
+            application_template='hello-world',
+            application_insights=None,
+            no_application_insights=None,
+            base_image=None,
+            config_env=None,
+            config_file=None,
+            debug=None,
+            extra_content=None,
+            location=None,
+            save_params=None,
+            tracing=None,
+            no_tracing=None,
         )
 
         # Mock the subprocess.run function to raise a general exception

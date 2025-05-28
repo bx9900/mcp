@@ -40,7 +40,7 @@ from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from awslabs.aws_serverless_mcp_server.utils.process import run_command
 from botocore.exceptions import ClientError
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 # Define the directory where deployment status files will be stored
@@ -189,6 +189,7 @@ async def deploy_application(request: DeployWebAppRequest) -> Dict[str, Any]:
         # Upload frontend assets for frontend or fullstack deployments
         if (
             deployment_type in ['frontend', 'fullstack']
+            and request.frontend_configuration
             and request.frontend_configuration.built_assets_path
         ):
             logger.info('Uploading frontend assets...')
@@ -322,12 +323,12 @@ async def build_and_deploy_application(
         raise Exception(f'Failed to deploy application: {str(e)}')
 
 
-async def get_stack_outputs(stack_name: str, region: str) -> Dict[str, str]:
+async def get_stack_outputs(stack_name: str, region: Optional[str] = None) -> Dict[str, str]:
     """Get CloudFormation stack outputs.
 
     Args:
         stack_name: Stack name
-        region: AWS region
+        region: AWS region (optional)
 
     Returns:
         Dict: Stack outputs

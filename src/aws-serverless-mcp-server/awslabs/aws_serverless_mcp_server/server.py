@@ -201,7 +201,7 @@ async def deployment_details(project_name: str) -> Dict[str, Any]:
     You should have AWS SAM CLI installed and configured in your environment.
     """
 )
-async def sam_build_tool(ctx: Context, request: SamBuildRequest) -> str:
+async def sam_build_tool(ctx: Context, request: SamBuildRequest) -> dict[str, Any]:
     """Asynchronously builds an AWS SAM project using the provided context and build request.
 
     Args:
@@ -225,7 +225,7 @@ async def sam_build_tool(ctx: Context, request: SamBuildRequest) -> str:
     You should have AWS SAM CLI installed and configured in your environment.
     """
 )
-async def sam_init_tool(ctx: Context, request: SamInitRequest) -> str:
+async def sam_init_tool(ctx: Context, request: SamInitRequest) -> dict[str, Any]:
     """Asynchronously initializes a new AWS SAM project with the provided configuration.
 
     Args:
@@ -249,7 +249,7 @@ async def sam_init_tool(ctx: Context, request: SamInitRequest) -> str:
     You should have AWS SAM CLI installed and configured in your environment.
     """
 )
-async def sam_deploy_tool(ctx: Context, request: SamDeployRequest) -> str:
+async def sam_deploy_tool(ctx: Context, request: SamDeployRequest) -> Dict[str, Any]:
     """Asynchronously deploys an AWS SAM project to AWS CloudFormation.
 
     Args:
@@ -763,9 +763,13 @@ def main() -> int:
     allow_write = True if args.allow_write else False
 
     if args.log_level:
-        logger.set_log_level(level=args.log_level)
+        from awslabs.aws_serverless_mcp_server.utils.logger import set_log_level
+
+        set_log_level(level=args.log_level)
     if args.log_output:
-        logger.set_log_directory(directory=args.log_output)
+        from awslabs.aws_serverless_mcp_server.utils.logger import set_log_directory
+
+        set_log_directory(directory=args.log_output)
 
     try:
         mcp.run()

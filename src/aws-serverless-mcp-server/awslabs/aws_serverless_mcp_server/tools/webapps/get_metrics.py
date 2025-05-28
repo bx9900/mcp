@@ -91,8 +91,11 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
         # Prepare metric queries based on requested resources
         metric_queries = []
 
+        # Initialize query_id before any conditional blocks
+        query_id = 0
+
         # Build metric data queries for each resource type
-        if 'lambda' in resources:
+        if resources is not None and 'lambda' in resources:
             # Lambda metrics
             lambda_function_name = project_name
 
@@ -178,7 +181,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                 ]
             )
 
-        if 'apiGateway' in resources:
+        if resources is not None and 'apiGateway' in resources:
             # API Gateway metrics
             api_name = project_name
 
@@ -267,7 +270,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                 ]
             )
 
-        if 'cloudfront' in resources:
+        if resources is not None and 'cloudfront' in resources:
             # CloudFront metrics
             # Note: CloudFront metrics are global, so we use the distribution ID
             distribution_id = getattr(request, 'distribution_id', f'{project_name}-distribution')

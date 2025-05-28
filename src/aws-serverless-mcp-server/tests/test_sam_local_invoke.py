@@ -28,6 +28,17 @@ class TestSamLocalInvoke:
         request = SamLocalInvokeRequest(
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             resource_name='test-function',
+            template_file=None,
+            event_file=None,
+            event_data=None,
+            environment_variables_file=None,
+            docker_network=None,
+            container_env_vars=None,
+            parameter=None,
+            log_file=None,
+            layer_cache_basedir=None,
+            region=None,
+            profile=None,
         )
 
         # Mock the subprocess.run function
@@ -66,7 +77,17 @@ class TestSamLocalInvoke:
         request = SamLocalInvokeRequest(
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             resource_name='test-function',
+            template_file=None,
             event_file=os.path.join(tempfile.gettempdir(), 'event.json'),
+            event_data=None,
+            environment_variables_file=None,
+            docker_network=None,
+            container_env_vars=None,
+            parameter=None,
+            log_file=None,
+            layer_cache_basedir=None,
+            region=None,
+            profile=None,
         )
 
         # Mock the subprocess.run function
@@ -100,7 +121,17 @@ class TestSamLocalInvoke:
         request = SamLocalInvokeRequest(
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             resource_name='test-function',
+            template_file=None,
+            event_file=None,
             event_data='{"key": "value"}',
+            environment_variables_file=None,
+            docker_network=None,
+            container_env_vars=None,
+            parameter=None,
+            log_file=None,
+            layer_cache_basedir=None,
+            region=None,
+            profile=None,
         )
 
         # Mock the subprocess.run function
@@ -157,13 +188,14 @@ class TestSamLocalInvoke:
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             resource_name='test-function',
             template_file='template.yaml',
+            event_file=None,
+            event_data=None,
             environment_variables_file=os.path.join(tempfile.gettempdir(), 'env.json'),
             docker_network='my-network',
             container_env_vars={'CONTAINER_ENV1': 'value1', 'CONTAINER_ENV2': 'value2'},
             parameter={'param1': 'value1', 'param2': 'value2'},
             log_file=os.path.join(tempfile.gettempdir(), 'log.txt'),
             layer_cache_basedir=os.path.join(tempfile.gettempdir(), 'layer-cache'),
-            warm_containers='EAGER',
             region='us-west-2',
             profile='default',
         )
@@ -212,6 +244,17 @@ class TestSamLocalInvoke:
         request = SamLocalInvokeRequest(
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             resource_name='test-function',
+            template_file=None,
+            event_file=None,
+            event_data=None,
+            environment_variables_file=None,
+            docker_network=None,
+            container_env_vars=None,
+            parameter=None,
+            log_file=None,
+            layer_cache_basedir=None,
+            region=None,
+            profile=None,
         )
 
         # Mock the subprocess.run function with non-JSON output
@@ -238,6 +281,17 @@ class TestSamLocalInvoke:
         request = SamLocalInvokeRequest(
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             resource_name='test-function',
+            template_file=None,
+            event_file=None,
+            event_data=None,
+            environment_variables_file=None,
+            docker_network=None,
+            container_env_vars=None,
+            parameter=None,
+            log_file=None,
+            layer_cache_basedir=None,
+            region=None,
+            profile=None,
         )
 
         # Mock the subprocess.run function to raise an exception

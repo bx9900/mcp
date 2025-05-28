@@ -27,7 +27,21 @@ class TestSamBuild:
         """Test successful SAM build."""
         # Create a mock request
         request = SamBuildRequest(
-            project_directory=os.path.join(tempfile.gettempdir(), 'test-project')
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            template_file=None,
+            base_dir=None,
+            build_dir=None,
+            use_container=False,
+            no_use_container=False,
+            container_env_vars=None,
+            container_env_var_file=None,
+            build_image=None,
+            debug=False,
+            manifest=None,
+            parameter_overrides=None,
+            region=None,
+            save_params=False,
+            profile=None,
         )
 
         # Mock the subprocess.run function
@@ -63,26 +77,20 @@ class TestSamBuild:
         # Create a mock request with optional parameters
         request = SamBuildRequest(
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
-            resource_id='MyFunction',
             template_file='template.yaml',
             base_dir=os.path.join(tempfile.gettempdir(), 'base-dir'),
             build_dir=os.path.join(tempfile.gettempdir(), 'build-dir'),
-            cache_dir=os.path.join(tempfile.gettempdir(), 'cache-dir'),
-            cached=True,
             use_container=True,
+            no_use_container=False,
             container_env_vars={'ENV1': 'value1', 'ENV2': 'value2'},
             container_env_var_file='env.json',
-            skip_pull_image=True,
-            build_method='esbuild',
-            build_in_source=True,
+            build_image=None,
             debug=True,
-            docker_network='my-network',
-            exclude=['node_modules', '.git'],
             manifest='package.json',
-            mount_symlinks=True,
-            parallel=True,
             parameter_overrides='ParameterKey=Key1,ParameterValue=Value1',
             region='us-west-2',
+            save_params=False,
+            profile=None,
         )
 
         # Mock the subprocess.run function
@@ -128,7 +136,21 @@ class TestSamBuild:
         """Test SAM build failure."""
         # Create a mock request
         request = SamBuildRequest(
-            project_directory=os.path.join(tempfile.gettempdir(), 'test-project')
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            template_file=None,
+            base_dir=None,
+            build_dir=None,
+            use_container=False,
+            no_use_container=False,
+            container_env_vars=None,
+            container_env_var_file=None,
+            build_image=None,
+            debug=False,
+            manifest=None,
+            parameter_overrides=None,
+            region=None,
+            save_params=False,
+            profile=None,
         )
 
         # Mock the subprocess.run function to raise an exception
@@ -150,7 +172,21 @@ class TestSamBuild:
         """Test SAM build with a general exception."""
         # Create a mock request
         request = SamBuildRequest(
-            project_directory=os.path.join(tempfile.gettempdir(), 'test-project')
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            template_file=None,
+            base_dir=None,
+            build_dir=None,
+            use_container=False,
+            no_use_container=False,
+            container_env_vars=None,
+            container_env_var_file=None,
+            build_image=None,
+            debug=False,
+            manifest=None,
+            parameter_overrides=None,
+            region=None,
+            save_params=False,
+            profile=None,
         )
 
         # Mock the subprocess.run function to raise a general exception

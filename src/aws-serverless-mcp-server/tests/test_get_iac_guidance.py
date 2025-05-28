@@ -94,7 +94,7 @@ class TestGetIaCGuidance:
     @pytest.mark.asyncio
     async def test_get_iac_guidance_basic(self):
         """Test getting basic IaC guidance."""
-        request = GetIaCGuidanceRequest(resource_type='Lambda', use_case='Serverless API')
+        request = GetIaCGuidanceRequest(iac_tool='CloudFormation', include_examples=False)
 
         result = await get_iac_guidance(request)
 
@@ -123,9 +123,7 @@ class TestGetIaCGuidance:
     @pytest.mark.asyncio
     async def test_get_iac_guidance_with_examples(self):
         """Test getting IaC guidance with examples."""
-        request = GetIaCGuidanceRequest(
-            resource_type='Lambda', use_case='Serverless API', include_examples=True
-        )
+        request = GetIaCGuidanceRequest(iac_tool='CloudFormation', include_examples=True)
 
         result = await get_iac_guidance(request)
 
@@ -137,9 +135,7 @@ class TestGetIaCGuidance:
     @pytest.mark.asyncio
     async def test_get_iac_guidance_without_examples(self):
         """Test getting IaC guidance without examples."""
-        request = GetIaCGuidanceRequest(
-            resource_type='Lambda', use_case='Serverless API', include_examples=False
-        )
+        request = GetIaCGuidanceRequest(iac_tool='CloudFormation', include_examples=False)
 
         result = await get_iac_guidance(request)
 
@@ -150,9 +146,7 @@ class TestGetIaCGuidance:
     @pytest.mark.asyncio
     async def test_get_iac_guidance_specific_tool_sam(self):
         """Test getting IaC guidance for SAM."""
-        request = GetIaCGuidanceRequest(
-            resource_type='Lambda', use_case='Serverless API', iac_tool='SAM'
-        )
+        request = GetIaCGuidanceRequest(iac_tool='SAM', include_examples=False)
 
         result = await get_iac_guidance(request)
 
@@ -163,9 +157,7 @@ class TestGetIaCGuidance:
     @pytest.mark.asyncio
     async def test_get_iac_guidance_specific_tool_cdk(self):
         """Test getting IaC guidance for CDK."""
-        request = GetIaCGuidanceRequest(
-            resource_type='Lambda', use_case='Serverless API', iac_tool='CDK'
-        )
+        request = GetIaCGuidanceRequest(iac_tool='CDK', include_examples=False)
 
         result = await get_iac_guidance(request)
 
@@ -176,9 +168,7 @@ class TestGetIaCGuidance:
     @pytest.mark.asyncio
     async def test_get_iac_guidance_specific_tool_cloudformation(self):
         """Test getting IaC guidance for CloudFormation."""
-        request = GetIaCGuidanceRequest(
-            resource_type='Lambda', use_case='Serverless API', iac_tool='CloudFormation'
-        )
+        request = GetIaCGuidanceRequest(iac_tool='CloudFormation', include_examples=True)
 
         result = await get_iac_guidance(request)
 

@@ -165,9 +165,16 @@ class TestDeployWebapp:
             deployment_type='frontend',
             project_name='test-project',
             project_root=os.path.join(tempfile.gettempdir(), 'test-project'),
+            region=None,
             frontend_configuration=FrontendConfiguration(
-                built_assets_path=os.path.join(tempfile.gettempdir(), 'test-project/build')
+                built_assets_path=os.path.join(tempfile.gettempdir(), 'test-project/build'),
+                framework=None,
+                index_document=None,
+                error_document=None,
+                custom_domain=None,
+                certificate_arn=None,
             ),
+            backend_configuration=None,
         )
 
         # Mock check_destructive_deployment_change to return a destructive change
@@ -203,11 +210,24 @@ class TestDeployWebapp:
             deployment_type='backend',
             project_name='test-project',
             project_root=os.path.join(tempfile.gettempdir(), 'test-project'),
+            region=None,
             backend_configuration=BackendConfiguration(
                 built_artifacts_path=os.path.join(tempfile.gettempdir(), 'test-project/dist'),
                 runtime='nodejs18.x',
                 port=3000,
+                framework=None,
+                startup_script=None,
+                entry_point=None,
+                generate_startup_script=None,
+                architecture=None,
+                memory_size=None,
+                timeout=None,
+                stage=None,
+                cors=None,
+                environment=None,
+                database_configuration=None,
             ),
+            frontend_configuration=None,
         )
 
         # Mock check_destructive_deployment_change to return non-destructive
@@ -246,11 +266,24 @@ class TestDeployWebapp:
             deployment_type='backend',
             project_name='test-project',
             project_root=os.path.join(tempfile.gettempdir(), 'test-project'),
+            region=None,
             backend_configuration=BackendConfiguration(
                 built_artifacts_path=os.path.join(tempfile.gettempdir(), 'test-project/dist'),
                 runtime='nodejs18.x',
                 port=3000,
+                framework=None,
+                startup_script=None,
+                entry_point=None,
+                generate_startup_script=None,
+                architecture=None,
+                memory_size=None,
+                timeout=None,
+                stage=None,
+                cors=None,
+                environment=None,
+                database_configuration=None,
             ),
+            frontend_configuration=None,
         )
 
         # Mock check_destructive_deployment_change to return non-destructive
@@ -294,11 +327,24 @@ class TestDeployWebapp:
             deployment_type='backend',
             project_name='test-project',
             project_root=os.path.join(tempfile.gettempdir(), 'test-project'),
+            region=None,
             backend_configuration=BackendConfiguration(
                 built_artifacts_path=os.path.join(tempfile.gettempdir(), 'test-project/dist'),
                 runtime='nodejs18.x',
                 port=3000,
+                framework=None,
+                startup_script=None,
+                entry_point=None,
+                generate_startup_script=None,
+                architecture=None,
+                memory_size=None,
+                timeout=None,
+                stage=None,
+                cors=None,
+                environment=None,
+                database_configuration=None,
             ),
+            frontend_configuration=None,
         )
 
         # Mock check_destructive_deployment_change to raise an exception

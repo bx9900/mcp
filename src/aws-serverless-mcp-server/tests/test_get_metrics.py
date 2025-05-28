@@ -36,7 +36,13 @@ class TestGetMetrics:
         """Test successful metrics retrieval."""
         # Create a mock request
         request = GetMetricsRequest(
-            project_name='test-project', metric_names=['Invocations', 'Duration']
+            project_name='test-project',
+            start_time=None,
+            end_time=None,
+            period=60,
+            resources=['lambda', 'apiGateway'],
+            region=None,
+            stage='prod',
         )
 
         # Mock the boto3 session and CloudWatch client
@@ -108,12 +114,12 @@ class TestGetMetrics:
         # Create a mock request with optional parameters
         request = GetMetricsRequest(
             project_name='test-project',
-            metric_names=['Invocations', 'Duration'],
             start_time='2023-05-20T00:00:00Z',
             end_time='2023-05-21T23:59:59Z',
             period=60,
-            statistics=['Average', 'Maximum'],
+            resources=['lambda', 'apiGateway'],
             region='us-west-2',
+            stage='prod',
         )
 
         # Mock the boto3 session and CloudWatch client
@@ -157,8 +163,12 @@ class TestGetMetrics:
         # Create a mock request with resources that don't exist
         request = GetMetricsRequest(
             project_name='test-project',
-            metric_names=['Invocations', 'Duration'],
+            start_time=None,
+            end_time=None,
+            period=60,
             resources=[],  # Empty resources list
+            region=None,
+            stage='prod',
         )
 
         # Mock the boto3 session
@@ -177,7 +187,13 @@ class TestGetMetrics:
         """Test metrics retrieval with boto3 exception."""
         # Create a mock request
         request = GetMetricsRequest(
-            project_name='test-project', metric_names=['Invocations', 'Duration']
+            project_name='test-project',
+            start_time=None,
+            end_time=None,
+            period=60,
+            resources=['lambda', 'apiGateway'],
+            region=None,
+            stage='prod',
         )
 
         # Mock the boto3 session and CloudWatch client
@@ -204,9 +220,12 @@ class TestGetMetrics:
         # Create a mock request with invalid time formats
         request = GetMetricsRequest(
             project_name='test-project',
-            metric_names=['Invocations', 'Duration'],
             start_time='invalid-start-time',
             end_time='invalid-end-time',
+            period=60,
+            resources=['lambda', 'apiGateway'],
+            region=None,
+            stage='prod',
         )
 
         # Mock the boto3 session and CloudWatch client

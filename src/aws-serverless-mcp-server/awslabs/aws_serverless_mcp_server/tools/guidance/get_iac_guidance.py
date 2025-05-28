@@ -11,6 +11,7 @@
 # and limitations under the License.
 #
 
+import json
 from awslabs.aws_serverless_mcp_server.models import GetIaCGuidanceRequest
 from typing import Any, Dict, List
 
@@ -404,27 +405,29 @@ Resources:
 
     # Add tools information based on format
     if request.include_examples:
-        response['tools'] = [tool.to_dict() for tool in tools_info]
+        response['tools'] = json.dumps([tool.to_dict() for tool in tools_info])
     else:
         # For concise format, include summarized versions
-        response['tools'] = [
-            {
-                'name': tool.name,
-                'description': tool.description,
-                'bestFor': tool.best_for,
-                'pros': tool.pros[:3],
-                'cons': tool.cons[:3],
-                'gettingStarted': tool.getting_started,
-                'exampleCode': '',  # Empty string for concise format
-            }
-            for tool in tools_info
-        ]
+        response['tools'] = json.dumps(
+            [
+                {
+                    'name': tool.name,
+                    'description': tool.description,
+                    'bestFor': tool.best_for,
+                    'pros': tool.pros[:3],
+                    'cons': tool.cons[:3],
+                    'gettingStarted': tool.getting_started,
+                    'exampleCode': '',  # Empty string for concise format
+                }
+                for tool in tools_info
+            ]
+        )
 
     # Add comparison table
-    response['comparisonTable'] = comparison_table.to_dict()
+    response['comparisonTable'] = json.dumps(comparison_table.to_dict())
 
     # Add tool-specific guidance if available
     if tool_specific_guidance:
-        response['toolSpecificGuidance'] = tool_specific_guidance.to_dict()
+        response['toolSpecificGuidance'] = json.dumps(tool_specific_guidance.to_dict())
 
     return response

@@ -67,14 +67,29 @@ async def render_template(request: DeployWebAppRequest) -> str:
 
     # Get the appropriate framework
     framework = None
-    if deployment_type == DeploymentTypes.BACKEND and request.backend_configuration.framework:
+    if (
+        deployment_type == DeploymentTypes.BACKEND
+        and request.backend_configuration
+        and request.backend_configuration.framework
+    ):
         framework = request.backend_configuration.framework
-    elif deployment_type == DeploymentTypes.FRONTEND and request.frontend_configuration.framework:
+    elif (
+        deployment_type == DeploymentTypes.FRONTEND
+        and request.frontend_configuration
+        and request.frontend_configuration.framework
+    ):
         framework = request.frontend_configuration.framework
     elif deployment_type == DeploymentTypes.FULLSTACK:
         # For fullstack, we might use a combined framework name
-        backend_framework = request.backend_configuration.framework
-        frontend_framework = request.frontend_configuration.framework
+        backend_framework = None
+        frontend_framework = None
+
+        if request.backend_configuration:
+            backend_framework = request.backend_configuration.framework
+
+        if request.frontend_configuration:
+            frontend_framework = request.frontend_configuration.framework
+
         if backend_framework and frontend_framework:
             framework = f'{backend_framework}-{frontend_framework}'
 
