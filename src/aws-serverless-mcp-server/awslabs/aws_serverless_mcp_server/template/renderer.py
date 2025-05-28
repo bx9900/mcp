@@ -106,8 +106,8 @@ async def render_template(request: DeployWebAppRequest) -> str:
         env = Environment(
             loader=FileSystemLoader(template_dir),
             autoescape=select_autoescape(['html', 'xml']),
-            trim_blocks=True,
-            lstrip_blocks=True,
+            trim_blocks=False,
+            lstrip_blocks=False,
         )
 
         # Add custom filters and tests
