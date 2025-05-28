@@ -11,13 +11,10 @@
 """Extended tests for the AWS Serverless MCP Server to increase coverage."""
 
 import argparse
+import awslabs.aws_serverless_mcp_server.server
 import os
 import pytest
-import sys
 import tempfile
-from unittest.mock import AsyncMock, MagicMock, patch, call
-
-import awslabs.aws_serverless_mcp_server.server
 from awslabs.aws_serverless_mcp_server.models import (
     ConfigureDomainRequest,
     DeployServerlessAppHelpRequest,
@@ -48,7 +45,10 @@ from awslabs.aws_serverless_mcp_server.server import (
     update_webapp_frontend_tool,
     webapp_deployment_help_tool,
 )
-from awslabs.aws_serverless_mcp_server.tools.guidance.deploy_serverless_app_help import ApplicationType
+from awslabs.aws_serverless_mcp_server.tools.guidance.deploy_serverless_app_help import (
+    ApplicationType,
+)
+from unittest.mock import AsyncMock, MagicMock, patch
 
 
 class MockContext:
@@ -695,13 +695,16 @@ class TestMain:
         )
 
         # Mock the FastMCP.run method
-        with patch('argparse.ArgumentParser', return_value=mock_parser), patch(
-            'awslabs.aws_serverless_mcp_server.server.mcp.run'
-        ) as mock_run, patch(
-            'awslabs.aws_serverless_mcp_server.utils.logger.set_log_level'
-        ) as mock_set_log_level, patch(
-            'awslabs.aws_serverless_mcp_server.utils.logger.set_log_directory'
-        ) as mock_set_log_directory:
+        with (
+            patch('argparse.ArgumentParser', return_value=mock_parser),
+            patch('awslabs.aws_serverless_mcp_server.server.mcp.run') as mock_run,
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.logger.set_log_level'
+            ) as mock_set_log_level,
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.logger.set_log_directory'
+            ) as mock_set_log_directory,
+        ):
             # Call the function
             result = main()
 
@@ -730,9 +733,16 @@ class TestMain:
         )
 
         # Mock the FastMCP.run method to raise an exception
-        with patch('argparse.ArgumentParser', return_value=mock_parser), patch(
-            'awslabs.aws_serverless_mcp_server.server.mcp.run', side_effect=Exception('Test error')
-        ), patch('awslabs.aws_serverless_mcp_server.utils.logger.logger.error') as mock_logger_error:
+        with (
+            patch('argparse.ArgumentParser', return_value=mock_parser),
+            patch(
+                'awslabs.aws_serverless_mcp_server.server.mcp.run',
+                side_effect=Exception('Test error'),
+            ),
+            patch(
+                'awslabs.aws_serverless_mcp_server.utils.logger.logger.error'
+            ) as mock_logger_error,
+        ):
             # Call the function
             result = main()
 
