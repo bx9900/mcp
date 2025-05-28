@@ -1,12 +1,12 @@
 # Deployment Templates
 
-This directory contains Handlebars templates for different types of deployments.
+This directory contains Jinja2 templates for different types of deployments.
 
 ## Available Templates
 
-- `backend.hbs`: Template for backend applications (Express.js, Flask, FastAPI, etc.)
-- `frontend.hbs`: Template for frontend web applications (React, Vue, Angular, static)
-- `fullstack.hbs`: Template for fullstack applications combining backend and frontend
+- `backend.j2`: Template for backend applications (Express.js, Flask, FastAPI, etc.)
+- `frontend.j2`: Template for frontend web applications (React, Vue, Angular, static)
+- `fullstack.j2`: Template for fullstack applications combining backend and frontend
 
 ## Template System
 
