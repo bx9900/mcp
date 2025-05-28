@@ -17,7 +17,7 @@ from awslabs.aws_serverless_mcp_server.utils.process import run_command
 from typing import Any, Dict
 
 
-async def sam_init(request: SamInitRequest) -> Dict[str, Any]:
+async def handle_sam_init(request: SamInitRequest) -> Dict[str, Any]:
     """Initialize a serverless application with an AWS SAM template.
 
     This tool creates a new SAM project that consists of:

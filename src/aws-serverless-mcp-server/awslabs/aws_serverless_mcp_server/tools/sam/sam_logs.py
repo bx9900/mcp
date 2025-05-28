@@ -19,7 +19,7 @@ from awslabs.aws_serverless_mcp_server.utils.process import run_command
 from typing import Any, Dict
 
 
-async def sam_logs(request: SamLogsRequest) -> Dict[str, Any]:
+async def handle_sam_logs(request: SamLogsRequest) -> Dict[str, Any]:
     """Fetch logs for AWS Lambda functions deployed through AWS SAM.
 
     Args:

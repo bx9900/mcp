@@ -22,7 +22,7 @@ from awslabs.aws_serverless_mcp_server.utils.process import run_command
 from typing import Any, Dict
 
 
-async def sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
+async def handle_sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
     """Locally invokes a Lambda function using AWS SAM CLI.
 
     Args:
@@ -122,3 +122,6 @@ async def sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
             'message': f'Failed to invoke resource locally: {str(e)}',
             'error': str(e),
         }
+
+
+handle_sam_local_invoke.run_command = run_command

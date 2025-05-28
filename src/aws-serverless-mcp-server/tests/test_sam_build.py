@@ -15,7 +15,7 @@ import pytest
 import subprocess
 import tempfile
 from awslabs.aws_serverless_mcp_server.models import SamBuildRequest
-from awslabs.aws_serverless_mcp_server.tools.sam.sam_build import sam_build
+from awslabs.aws_serverless_mcp_server.tools.sam.sam_build import handle_sam_build
 from unittest.mock import MagicMock, patch
 
 
@@ -40,7 +40,7 @@ class TestSamBuild:
             return_value=(mock_result.stdout, mock_result.stderr),
         ) as mock_run:
             # Call the function
-            result = await sam_build(request)
+            result = await handle_sam_build(request)
 
             # Verify the result
             assert result['success'] is True
@@ -95,7 +95,7 @@ class TestSamBuild:
             return_value=(mock_result.stdout, mock_result.stderr),
         ) as mock_run:
             # Call the function
-            result = await sam_build(request)
+            result = await handle_sam_build(request)
 
             # Verify the result
             assert result['success'] is True
@@ -138,7 +138,7 @@ class TestSamBuild:
             side_effect=subprocess.CalledProcessError(1, 'sam build', stderr=error_message),
         ):
             # Call the function
-            result = await sam_build(request)
+            result = await handle_sam_build(request)
 
             # Verify the result
             assert result['success'] is False
@@ -160,7 +160,7 @@ class TestSamBuild:
             side_effect=Exception(error_message),
         ):
             # Call the function
-            result = await sam_build(request)
+            result = await handle_sam_build(request)
 
             # Verify the result
             assert result['success'] is False

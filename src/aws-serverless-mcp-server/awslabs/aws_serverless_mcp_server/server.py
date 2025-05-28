@@ -57,11 +57,11 @@ from awslabs.aws_serverless_mcp_server.tools.guidance.get_serverless_templates i
 
 # Import all implementation modules
 from awslabs.aws_serverless_mcp_server.tools.sam import (
-    sam_build,
-    sam_deploy,
-    sam_init,
-    sam_local_invoke,
-    sam_logs,
+    handle_sam_build,
+    handle_sam_deploy,
+    handle_sam_init,
+    handle_sam_local_invoke,
+    handle_sam_logs,
 )
 from awslabs.aws_serverless_mcp_server.tools.webapps.configure_domain import configure_domain
 from awslabs.aws_serverless_mcp_server.tools.webapps.deploy_webapp import deploy_webapp
@@ -196,7 +196,7 @@ async def sam_build_tool(ctx: Context, request: SamBuildRequest) -> str:
         str: The output or result of the SAM build process.
     """
     await ctx.info(f'Building SAM project in {request.project_directory}')
-    return await sam_build(request)
+    return await handle_sam_build(request)
 
 
 @mcp.tool(
@@ -222,7 +222,7 @@ async def sam_init_tool(ctx: Context, request: SamInitRequest) -> str:
     await ctx.info(
         f"Initializing SAM project '{request.project_name}' in {request.project_directory}"
     )
-    return await sam_init(request)
+    return await handle_sam_init(request)
 
 
 @mcp.tool(
@@ -251,7 +251,7 @@ async def sam_deploy_tool(ctx: Context, request: SamDeployRequest) -> str:
     await ctx.info(
         f"Deploying SAM application '{request.application_name}' from {request.project_directory}"
     )
-    return await sam_deploy(request)
+    return await handle_sam_deploy(request)
 
 
 @mcp.tool(
@@ -275,7 +275,7 @@ async def sam_logs_tool(ctx: Context, request: SamLogsRequest) -> Dict[str, Any]
             'error': 'Sensitive data access is not allowed. Set --allow-sensitive-data flag to true to access logs.',
         }
     await ctx.info(f"Fetching logs for resource '{request.resource_name}'")
-    response = await sam_logs(request)
+    response = await handle_sam_logs(request)
     return response
 
 
@@ -299,7 +299,7 @@ async def sam_local_invoke_tool(ctx: Context, request: SamLocalInvokeRequest) ->
     await ctx.info(
         f"Locally invoking resource '{request.resource_name}' in {request.project_directory}"
     )
-    response = await sam_local_invoke(request)
+    response = await handle_sam_local_invoke(request)
     return response
 
 

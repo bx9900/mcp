@@ -16,7 +16,7 @@ from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from awslabs.aws_serverless_mcp_server.utils.process import run_command
 
 
-async def sam_build(request: SamBuildRequest):
+async def handle_sam_build(request: SamBuildRequest):
     """Execute the AWS SAM build command with the provided parameters.
 
     Args:

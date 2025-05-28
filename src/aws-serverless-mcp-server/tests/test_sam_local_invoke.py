@@ -14,7 +14,7 @@ import os
 import pytest
 import tempfile
 from awslabs.aws_serverless_mcp_server.models import SamLocalInvokeRequest
-from awslabs.aws_serverless_mcp_server.tools.sam.sam_local_invoke import sam_local_invoke
+from awslabs.aws_serverless_mcp_server.tools.sam.sam_local_invoke import handle_sam_local_invoke
 from unittest.mock import MagicMock, mock_open, patch
 
 
@@ -40,7 +40,7 @@ class TestSamLocalInvoke:
             return_value=(mock_result.stdout, mock_result.stderr),
         ) as mock_run:
             # Call the function
-            result = await sam_local_invoke(request)
+            result = await handle_sam_local_invoke(request)
 
             # Verify the result
             assert result['success'] is True
@@ -79,7 +79,7 @@ class TestSamLocalInvoke:
             return_value=(mock_result.stdout, mock_result.stderr),
         ) as mock_run:
             # Call the function
-            result = await sam_local_invoke(request)
+            result = await handle_sam_local_invoke(request)
 
             # Verify the result
             assert result['success'] is True
@@ -123,7 +123,7 @@ class TestSamLocalInvoke:
             ) as mock_run,
         ):
             # Call the function
-            result = await sam_local_invoke(request)
+            result = await handle_sam_local_invoke(request)
 
             # Verify the result
             assert result['success'] is True
@@ -178,7 +178,7 @@ class TestSamLocalInvoke:
             return_value=(mock_result.stdout, mock_result.stderr),
         ) as mock_run:
             # Call the function
-            result = await sam_local_invoke(request)
+            result = await handle_sam_local_invoke(request)
 
             # Verify the result
             assert result['success'] is True
@@ -224,7 +224,7 @@ class TestSamLocalInvoke:
             return_value=(mock_result.stdout, mock_result.stderr),
         ):
             # Call the function
-            result = await sam_local_invoke(request)
+            result = await handle_sam_local_invoke(request)
 
             # Verify the result
             assert result['success'] is True
@@ -247,7 +247,7 @@ class TestSamLocalInvoke:
             side_effect=Exception(error_message),
         ):
             # Call the function
-            result = await sam_local_invoke(request)
+            result = await handle_sam_local_invoke(request)
 
             # Verify the result
             assert result['success'] is False

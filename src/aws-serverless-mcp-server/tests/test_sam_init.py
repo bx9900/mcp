@@ -15,7 +15,7 @@ import pytest
 import subprocess
 import tempfile
 from awslabs.aws_serverless_mcp_server.models import SamInitRequest
-from awslabs.aws_serverless_mcp_server.tools.sam.sam_init import sam_init
+from awslabs.aws_serverless_mcp_server.tools.sam.sam_init import handle_sam_init
 from unittest.mock import MagicMock, patch
 
 
@@ -43,7 +43,7 @@ class TestSamInit:
             return_value=(mock_result.stdout, mock_result.stderr),
         ) as mock_run:
             # Call the function
-            result = await sam_init(request)
+            result = await handle_sam_init(request)
             print(result)
             # Verify the result
             assert result['success'] is True
@@ -95,7 +95,7 @@ class TestSamInit:
             return_value=(mock_result.stdout, mock_result.stderr),
         ) as mock_run:
             # Call the function
-            result = await sam_init(request)
+            result = await handle_sam_init(request)
 
             # Verify the result
             assert result['success'] is True
@@ -133,7 +133,7 @@ class TestSamInit:
             side_effect=subprocess.CalledProcessError(1, 'sam init', stderr=error_message),
         ):
             # Call the function
-            result = await sam_init(request)
+            result = await handle_sam_init(request)
 
             # Verify the result
             assert result['success'] is False
@@ -158,7 +158,7 @@ class TestSamInit:
             side_effect=Exception(error_message),
         ):
             # Call the function
-            result = await sam_init(request)
+            result = await handle_sam_init(request)
 
             # Verify the result
             assert result['success'] is False

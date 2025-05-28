@@ -15,7 +15,7 @@ import pytest
 import subprocess
 import tempfile
 from awslabs.aws_serverless_mcp_server.models import SamDeployRequest
-from awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy import sam_deploy
+from awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy import handle_sam_deploy
 from unittest.mock import MagicMock, patch
 
 
@@ -41,7 +41,7 @@ class TestSamDeploy:
             return_value=(mock_result.stdout, mock_result.stderr),
         ) as mock_run:
             # Call the function
-            result = await sam_deploy(request)
+            result = await handle_sam_deploy(request)
 
             # Verify the result
             assert result['success'] is True
@@ -99,7 +99,7 @@ class TestSamDeploy:
             return_value=(mock_result.stdout, mock_result.stderr),
         ) as mock_run:
             # Call the function
-            result = await sam_deploy(request)
+            result = await handle_sam_deploy(request)
 
             # Verify the result
             assert result['success'] is True
@@ -150,7 +150,7 @@ class TestSamDeploy:
             side_effect=subprocess.CalledProcessError(1, 'sam deploy', stderr=error_message),
         ):
             # Call the function
-            result = await sam_deploy(request)
+            result = await handle_sam_deploy(request)
 
             # Verify the result
             assert result['success'] is False
@@ -173,7 +173,7 @@ class TestSamDeploy:
             side_effect=Exception(error_message),
         ):
             # Call the function
-            result = await sam_deploy(request)
+            result = await handle_sam_deploy(request)
 
             # Verify the result
             assert result['success'] is False

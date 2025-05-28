@@ -16,7 +16,7 @@ from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from awslabs.aws_serverless_mcp_server.utils.process import run_command
 
 
-async def sam_deploy(request: SamDeployRequest):
+async def handle_sam_deploy(request: SamDeployRequest):
     """Execute the AWS SAM deploy command with the provided parameters.
 
     Args:

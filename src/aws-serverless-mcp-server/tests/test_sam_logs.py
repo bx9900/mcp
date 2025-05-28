@@ -15,7 +15,7 @@ import pytest
 import subprocess
 import tempfile
 from awslabs.aws_serverless_mcp_server.models import SamLogsRequest
-from awslabs.aws_serverless_mcp_server.tools.sam.sam_logs import sam_logs
+from awslabs.aws_serverless_mcp_server.tools.sam.sam_logs import handle_sam_logs
 from unittest.mock import MagicMock, patch
 
 
@@ -41,7 +41,7 @@ class TestSamLogs:
             return_value=(mock_result.stdout, mock_result.stderr),
         ) as mock_run:
             # Call the function
-            result = await sam_logs(request)
+            result = await handle_sam_logs(request)
 
             # Verify the result
             assert result['success'] is True
@@ -92,7 +92,7 @@ class TestSamLogs:
             return_value=(mock_result.stdout, mock_result.stderr),
         ) as mock_run:
             # Call the function
-            result = await sam_logs(request)
+            result = await handle_sam_logs(request)
 
             # Verify the result
             assert result['success'] is True
@@ -119,7 +119,7 @@ class TestSamLogs:
         """Test SAM logs retrieval failure."""
         # Create a mock request
         request = SamLogsRequest(
-            function_name='test-function',
+            resource_name='test-function',
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
         )
 
@@ -130,7 +130,7 @@ class TestSamLogs:
             side_effect=subprocess.CalledProcessError(1, 'sam logs', stderr=error_message),
         ):
             # Call the function
-            result = await sam_logs(request)
+            result = await handle_sam_logs(request)
 
             # Verify the result
             assert result['success'] is False
@@ -142,7 +142,7 @@ class TestSamLogs:
         """Test SAM logs retrieval with a general exception."""
         # Create a mock request
         request = SamLogsRequest(
-            function_name='test-function',
+            resource_name='test-function',
             project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
         )
 
@@ -153,7 +153,7 @@ class TestSamLogs:
             side_effect=Exception(error_message),
         ):
             # Call the function
-            result = await sam_logs(request)
+            result = await handle_sam_logs(request)
 
             # Verify the result
             assert result['success'] is False

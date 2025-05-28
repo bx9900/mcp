@@ -51,7 +51,7 @@ class TestSamBuildTool:
 
         # Mock the sam_build function
         with patch(
-            'awslabs.aws_serverless_mcp_server.server.sam_build', new_callable=AsyncMock
+            'awslabs.aws_serverless_mcp_server.server.handle_sam_build', new_callable=AsyncMock
         ) as mock_sam_build:
             mock_sam_build.return_value = {'success': True, 'message': 'Build successful'}
 
@@ -82,7 +82,7 @@ class TestSamInitTool:
 
         # Mock the sam_init function
         with patch(
-            'awslabs.aws_serverless_mcp_server.server.sam_init', new_callable=AsyncMock
+            'awslabs.aws_serverless_mcp_server.server.handle_sam_init', new_callable=AsyncMock
         ) as mock_sam_init:
             mock_sam_init.return_value = {'success': True, 'message': 'Initialization successful'}
 
@@ -119,7 +119,7 @@ class TestSamDeployTool:
 
         # Mock the sam_deploy function
         with patch(
-            'awslabs.aws_serverless_mcp_server.server.sam_deploy', new_callable=AsyncMock
+            'awslabs.aws_serverless_mcp_server.server.handle_sam_deploy', new_callable=AsyncMock
         ) as mock_sam_deploy:
             mock_sam_deploy.return_value = {'success': True, 'message': 'Deployment successful'}
             # Set a global variable for test
