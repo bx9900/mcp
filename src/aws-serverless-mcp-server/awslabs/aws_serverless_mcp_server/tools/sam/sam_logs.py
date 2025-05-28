@@ -28,10 +28,12 @@ async def sam_logs(request: SamLogsRequest) -> Dict[str, Any]:
     Returns:
         Dict: Log retrieval result
     """
-    try:
+    try:       
         # Build the command arguments
         cmd = ['sam', 'logs']
-        cmd.extend(['--name', request.resource_name])
+
+        if request.resource_name:
+            cmd.extend(['--name', request.resource_name])
 
         if request.config_env:
             cmd.extend(["--config-env", request.config_env])
@@ -40,8 +42,9 @@ async def sam_logs(request: SamLogsRequest) -> Dict[str, Any]:
             cmd.extend(["--config-file", request.config_file])
         
         if request.cw_log_group:
+            cmd.extend(['--cw-log-group'])
             for group in request.cw_log_group:
-                cmd.extend(['--cw-log-group', group])
+                cmd.extend([group])
 
         if request.start_time:
             cmd.extend(['--start-time', request.start_time])
@@ -63,7 +66,7 @@ async def sam_logs(request: SamLogsRequest) -> Dict[str, Any]:
  
         # Execute the command
         logger.info(f"Executing command: {' '.join(cmd)}")
-        stdout, stderr = await run_command(cmd, cwd=request.project_directory)
+        stdout, stderr = await run_command(cmd)
         return {
             "success": True,
             'message': f"Successfully fetched logs for resource '{request.resource_name}'",

@@ -15,18 +15,18 @@ With AWS Serverless MCP, developers can build reliable, efficient, and productio
 The set of tools provided by the Serverless MCP server can be broken down into four categories:
 
 1. Serverless Application Lifecycle
-- Intialize, build, and deploy Serverless Application Model (SAM) applications with SAM CLI
-- Test Lambda functions locally and remotely 
+  - Intialize, build, and deploy Serverless Application Model (SAM) applications with SAM CLI
+  - Test Lambda functions locally and remotely 
 2. Web Application Deployment & Management
-- Deploy fullstack, frontend, and backend web applications onto AWS Serverless using Lambda Web Adapter.
-- Update frontend assets and optionally invaliate CloudFront caches
-- Create custom domain names, including certificate and DNS setup.
+  - Deploy fullstack, frontend, and backend web applications onto AWS Serverless using Lambda Web Adapter.
+  - Update frontend assets and optionally invaliate CloudFront caches
+  - Create custom domain names, including certificate and DNS setup.
 3. Observability
-- Retrieve and logs and metrics of serverless resources
+  - Retrieve and logs and metrics of serverless resources
 4. Guidance, Templates, and Deployment Help
-- Provides guidance on AWS Lambda use-cases, selecting an IaC framework, and deployment process onto AWS Serverless
-- Provides sample SAM templates for different serverless application types from [Serverless Land](https://serverlessland.com/)
-- Provides schema types for different Lambda event sources and runtimes
+  - Provides guidance on AWS Lambda use-cases, selecting an IaC framework, and deployment process onto AWS Serverless
+  - Provides sample SAM templates for different serverless application types from [Serverless Land](https://serverlessland.com/)
+  - Provides schema types for different Lambda event sources and runtimes
 
 ## Prerequisites
 - Have an AWS account with [credentials configured](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-files.html)

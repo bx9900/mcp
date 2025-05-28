@@ -24,11 +24,6 @@ def handle_template_list() -> Dict[str, Any]:
             "name": "fullstack",
             "description": "Combined backend and frontend deployment",
             "frameworks": ["express+react", "flask+vue", "fastapi+react", "nextjs"]
-        },
-        {
-            "name": "database",
-            "description": "DynamoDB database",
-            "type": "dynamodb"
         }
     ]
 

@@ -177,7 +177,7 @@ async def sam_logs_tool(
             "success": False,
             "error": "Sensitive data access is not allowed. Set --allow-sensitive-data flag to true to access logs."
         }
-    await ctx.info(f"Fetching logs for Lambda function '{request.function_name}' in {request.project_directory}")
+    await ctx.info(f"Fetching logs for resource '{request.resource_name}'")
     response = await sam_logs(request)
     return response
 
@@ -190,7 +190,7 @@ async def sam_local_invoke_tool(
     ctx: Context,
     request: SamLocalInvokeRequest
 ) -> Dict[str, Any]:
-    await ctx.info(f"Locally invoking Lambda function '{request.function_name}' in {request.project_directory}")
+    await ctx.info(f"Locally invoking resource '{request.resource_name}' in {request.project_directory}")
     response = await sam_local_invoke(request)
     return response
 

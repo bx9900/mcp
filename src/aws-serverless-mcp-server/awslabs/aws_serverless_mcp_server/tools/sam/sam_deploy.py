@@ -48,11 +48,13 @@ async def sam_deploy(request: SamDeployRequest):
     if request.config_env:
         cmd.extend(["--config-env", request.config_env])
     if request.metadata:
+        cmd.extend(["--metadata"])
         for key, value in request.metadata.items():
-            cmd.extend(["--metadata", f"{key}={value}"])
+            cmd.extend(f" {key}={value}")
     if request.tags:
+        cmd.extend(["--tags"])
         for key, value in request.tags.items():
-            cmd.extend(["--tags", f"{key}={value}"])
+            cmd.extend(f" {key}={value}")
     if request.resolve_s3:
         cmd.append("--resolve-s3")
     if request.debug:

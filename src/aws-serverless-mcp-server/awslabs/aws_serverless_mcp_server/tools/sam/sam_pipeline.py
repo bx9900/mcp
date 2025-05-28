@@ -46,7 +46,6 @@ async def sam_pipeline(request: SamPipelineRequest) -> Dict[str, Any]:
         gitlab_project = request.gitlab_project
         git_provider = request.git_provider
         image_repository = request.image_repository
-        interactive = request.interactive
         oidc_client_id = request.oidc_client_id
         oidc_provider = request.oidc_provider
         oidc_provider_url = request.oidc_provider_url
@@ -61,7 +60,7 @@ async def sam_pipeline(request: SamPipelineRequest) -> Dict[str, Any]:
         stage = request.stage
         
         # Build the command arguments for bootstrap
-        cmd = ['sam', 'pipeline', 'bootstrap']
+        cmd = ['sam', 'pipeline', 'bootstrap', '--no-interactive']
         cmd.extend(['--cicd-provider', cicd_provider])
         
         if bucket:
@@ -112,11 +111,6 @@ async def sam_pipeline(request: SamPipelineRequest) -> Dict[str, Any]:
         
         if image_repository:
             cmd.extend(['--image-repository', image_repository])
-        
-        if interactive is True:
-            cmd.append('--interactive')
-        elif interactive is False:
-            cmd.append('--no-interactive')
         
         if oidc_client_id:
             cmd.extend(['--oidc-client-id', oidc_client_id])

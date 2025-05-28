@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: {{description}}
+Description: {{ description }}
 
 Resources:
   # S3 bucket for website content
@@ -51,7 +51,7 @@ Resources:
     Properties:
       DistributionConfig:
         Enabled: true
-        DefaultRootObject: {{#if_exists frontend_configuration.index_document}}{{frontend_configuration.index_document}}{{else}}index.html{{/if_exists}}
+        DefaultRootObject: {% if frontend_configuration.index_document is exists %}{{ frontend_configuration.index_document }}{% else %}index.html{% endif %}
         Origins:
           - DomainName: !GetAtt WebsiteBucket.RegionalDomainName
             Id: S3Origin
@@ -75,21 +75,21 @@ Resources:
         CustomErrorResponses:
           - ErrorCode: 404
             ResponseCode: 200
-            ResponsePagePath: /{{#if_exists frontend_configuration.index_document}}{{frontend_configuration.index_document}}{{else}}index.html{{/if_exists}}
+            ResponsePagePath: /{% if frontend_configuration.index_document is exists %}{{ frontend_configuration.index_document }}{% else %}index.html{% endif %}
           - ErrorCode: 403
             ResponseCode: 200
-            ResponsePagePath: /{{#if_exists frontend_configuration.index_document}}{{frontend_configuration.index_document}}{{else}}index.html{{/if_exists}}
-        {{#if_exists frontend_configuration.custom_domain}}
+            ResponsePagePath: /{% if frontend_configuration.index_document is exists %}{{ frontend_configuration.index_document }}{% else %}index.html{% endif %}
+        {% if frontend_configuration.custom_domain is exists %}
         Aliases:
-          - {{frontend_configuration.custom_domain}}
+          - {{ frontend_configuration.custom_domain }}
         ViewerCertificate:
-          AcmCertificateArn: {{frontend_configuration.certificate_arn}}
+          AcmCertificateArn: {{ frontend_configuration.certificate_arn }}
           SslSupportMethod: sni-only
           MinimumProtocolVersion: TLSv1.2_2021
-        {{else}}
+        {% else %}
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
-        {{/if_exists}}
+        {% endif %}
 
   # CloudFront Function for routing
   RouterFunction:
@@ -108,7 +108,7 @@ Resources:
           }
           
           // Rewrite to index.html for SPA routing
-          request.uri = '/{{#if_exists frontend_configuration.index_document}}{{frontend_configuration.index_document}}{{else}}index.html{{/if_exists}}';
+          request.uri = '/{% if frontend_configuration.index_document is exists %}{{ frontend_configuration.index_document }}{% else %}index.html{% endif %}';
           
           return request;
         }
@@ -129,8 +129,8 @@ Outputs:
     Description: CloudFront distribution ID
     Value: !Ref WebsiteDistribution
   
-  {{#if_exists frontend_configuration.custom_domain}}
+  {% if frontend_configuration.custom_domain is exists %}
   CustomDomainURL:
     Description: Custom domain URL
-    Value: !Sub "https://{{frontend_configuration.custom_domain}}"
-  {{/if_exists}}
+    Value: !Sub "https://{{ frontend_configuration.custom_domain }}"
+  {% endif %}

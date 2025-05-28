@@ -132,7 +132,7 @@ class SamLocalInvokeRequest(BaseModel):
     project_directory: str = Field(
         ..., description="Absolute path to directory containing the SAM project"
     )
-    function_name: str = Field(
+    resource_name: str = Field(
         ..., description="Name of the Lambda function to invoke locally"
     )
     template_file: Optional[str] = Field(
@@ -144,8 +144,8 @@ class SamLocalInvokeRequest(BaseModel):
     event_data: Optional[str] = Field(
         None, description="JSON string containing event data (alternative to event_file)"
     )
-    environment_variables: Optional[Dict[str, str]] = Field(
-        None, description="Environment variables to pass to the function"
+    environment_variables_file: Optional[str] = Field(
+        None, description="Absolute path to a JSON file containing environment variables to pass to the function"
     )
     docker_network: Optional[str] = Field(
         None, description="Docker network to run the Lambda function in"
@@ -173,9 +173,10 @@ class SamLogsRequest(BaseModel):
     """Request model for AWS SAM logs command."""
     
     resource_name: Optional[str] = Field(None, description="""Name of the resource to fetch logs for.
-            This can be the logical ID of the function resource in the AWS CloudFormation/AWS SAM template.
+            This is be the logical ID of the function resource in the AWS CloudFormation/AWS SAM template.
             Multiple names can be provided by repeating the parameter again. If you don't specify this option,
-            AWS SAM fetches logs for all resources in the stack that you specify."""
+            AWS SAM fetches logs for all resources in the stack that you specify. You must specify stack_name when
+            specifying resource_name."""
     )
     stack_name: Optional[str] = Field(
         None, description="Name of the CloudFormation stack"
@@ -262,9 +263,6 @@ class SamPipelineRequest(BaseModel):
     )
     image_repository: Optional[str] = Field(
         None, description="The ARN of an Amazon ECR image repository that holds the container images of Lambda functions or layers"
-    )
-    interactive: Optional[bool] = Field(
-        False, description="Enable/disable interactive prompting for bootstrap parameters"
     )
     oidc_client_id: Optional[str] = Field(
         None, description="The client ID configured for use with your OIDC provider"
@@ -508,9 +506,6 @@ class GetMetricsRequest(BaseModel):
     project_name: str = Field(
         ..., description="Project name"
     )
-    metric_names: List[str] = Field(
-        ..., description="List of metric names to retrieve"
-    )
     start_time: Optional[str] = Field(
         None, description="Start time for metrics (ISO format)"
     )
@@ -520,11 +515,14 @@ class GetMetricsRequest(BaseModel):
     period: Optional[int] = Field(
         60, description="Period for metrics in seconds"
     )
-    statistics: Optional[List[str]] = Field(
-        ["Average"], description="Statistics to retrieve"
+    resources: Optional[List[Literal["lambda", "apiGateway", "cloudfront"]]] = Field(
+        ["lambda", "apiGateway"], description="Resources to get metrics for"
     )
     region: Optional[str] = Field(
         None, description="AWS region to use (e.g., us-east-1)"
+    )
+    stage: Optional[str] = Field(
+        'prod', description="API Gateway stage"
     )
 
 class UpdateFrontendRequest(BaseModel):

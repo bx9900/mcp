@@ -64,7 +64,7 @@ def get_templates_path() -> str:
             path = Path(possible_path)
             if path.exists() and path.is_dir():
                 # Check if the directory actually contains template files
-                files = list(path.glob("*.yaml")) + list(path.glob("*.yml")) + list(path.glob("*.hbs"))
+                files = list(path.glob("*.yaml")) + list(path.glob("*.yml")) + list(path.glob("*.j2"))
                 if files:
                     logger.debug(f"Found templates at: {possible_path}")
                     return possible_path
@@ -102,17 +102,17 @@ async def get_template_for_deployment(deployment_type: DeploymentTypes, framewor
     
     # 1. Specific template for this deployment type and framework
     if framework:
-        search_paths.append(os.path.join(templates_path, f"{deployment_type.value}-{framework}.hbs"))
+        search_paths.append(os.path.join(templates_path, f"{deployment_type.value}-{framework}.j2"))
         search_paths.append(os.path.join(templates_path, f"{deployment_type.value}-{framework}.yaml"))
         search_paths.append(os.path.join(templates_path, f"{deployment_type.value}-{framework}.yml"))
 
     # 2. Default template for this deployment type
-    search_paths.append(os.path.join(templates_path, f"{deployment_type.value}-default.hbs"))
+    search_paths.append(os.path.join(templates_path, f"{deployment_type.value}-default.j2"))
     search_paths.append(os.path.join(templates_path, f"{deployment_type.value}-default.yaml"))
     search_paths.append(os.path.join(templates_path, f"{deployment_type.value}-default.yml"))
 
     # 3. Generic template for this deployment type
-    search_paths.append(os.path.join(templates_path, f"{deployment_type.value}.hbs"))
+    search_paths.append(os.path.join(templates_path, f"{deployment_type.value}.j2"))
     search_paths.append(os.path.join(templates_path, f"{deployment_type.value}.yaml"))
     search_paths.append(os.path.join(templates_path, f"{deployment_type.value}.yml"))
 
@@ -156,7 +156,7 @@ async def discover_templates() -> List[Template]:
             logger.error(f"Templates directory does not exist: {templates_path}")
             return []
             
-        files = list(path.glob("*.hbs")) + list(path.glob("*.yaml")) + list(path.glob("*.yml"))
+        files = list(path.glob("*.j2")) + list(path.glob("*.yaml")) + list(path.glob("*.yml"))
         logger.debug(f"Found {len(files)} files in templates directory")
 
         for file in files:

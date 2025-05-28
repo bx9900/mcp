@@ -42,7 +42,7 @@ async def sam_init(request: SamInitRequest) -> Dict[str, Any]:
         cmd.extend(["--name", request.project_name])
         cmd.extend(["--runtime", request.runtime])
         cmd.extend(["--dependency-manager", request.dependency_manager])
-                # Set output directory
+        # Set output directory
         cmd.extend(["--output-dir", request.project_directory])
         # Add --no-interactive to avoid prompts
         cmd.append("--no-interactive")

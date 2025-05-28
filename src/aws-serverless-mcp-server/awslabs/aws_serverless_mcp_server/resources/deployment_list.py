@@ -27,6 +27,7 @@ async def handle_deployments_list() -> Dict[str, Any]:
                     "projectName": deployment.get('projectName'),
                     "type": deployment.get('deploymentType', 'unknown'),
                     "status": deployment.get('status', 'unknown'),
+                    "timestamp": deployment.get('timestamp', ''),
                     "lastUpdated": deployment.get('lastUpdated', '')
                 })
             }

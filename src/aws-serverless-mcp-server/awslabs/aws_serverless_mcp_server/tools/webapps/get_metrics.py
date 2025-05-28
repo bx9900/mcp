@@ -13,16 +13,11 @@
 
 """Get metrics tool for AWS Serverless MCP Server."""
 
-import os
 import boto3
 import datetime
 from typing import Dict, Any
 from awslabs.aws_serverless_mcp_server.models import GetMetricsRequest
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
-import tempfile
-
-# Define the directory where deployment status files will be stored
-DEPLOYMENT_STATUS_DIR = os.path.join(tempfile.gettempdir(), 'serverless-web-mcp-deployments')
 
 def get_unit_for_metric(label: str) -> str:
     """
@@ -55,12 +50,12 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
     """
     try:
         project_name = request.project_name
-        resources = getattr(request, 'resources', ['lambda', 'apiGateway'])
+        resources = request.resources
         start_time = request.start_time
         end_time = request.end_time
-        period = request.period or 300
+        period = request.period
         region = request.region
-        stage = getattr(request, 'stage', 'prod')
+        stage = request.stage
         
         logger.info(f"Getting metrics for project {project_name} in region {region}")
         
@@ -93,15 +88,17 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
         
         # Prepare metric queries based on requested resources
         metric_queries = []
-        
+
         # Build metric data queries for each resource type
         if 'lambda' in resources:
             # Lambda metrics
             lambda_function_name = project_name
             
+            # Assign unique incremental IDs for each metric query
+            query_id = 0
             metric_queries.extend([
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/Lambda',
@@ -114,7 +111,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                     'Label': 'Lambda Invocations'
                 },
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/Lambda',
@@ -127,7 +124,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                     'Label': 'Lambda Duration (Average)'
                 },
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/Lambda',
@@ -140,7 +137,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                     'Label': 'Lambda Duration (p99)'
                 },
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/Lambda',
@@ -153,7 +150,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                     'Label': 'Lambda Errors'
                 },
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/Lambda',
@@ -173,7 +170,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
             
             metric_queries.extend([
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/ApiGateway',
@@ -189,7 +186,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                     'Label': 'API Gateway Requests'
                 },
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/ApiGateway',
@@ -205,7 +202,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                     'Label': 'API Gateway Latency (Average)'
                 },
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/ApiGateway',
@@ -221,7 +218,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                     'Label': 'API Gateway Latency (p95)'
                 },
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/ApiGateway',
@@ -237,7 +234,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                     'Label': 'API Gateway 4XX Errors'
                 },
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/ApiGateway',
@@ -261,7 +258,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
             
             metric_queries.extend([
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/CloudFront',
@@ -274,7 +271,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                     'Label': 'CloudFront Requests'
                 },
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/CloudFront',
@@ -287,7 +284,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                     'Label': 'CloudFront Bytes Downloaded'
                 },
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/CloudFront',
@@ -300,7 +297,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
                     'Label': 'CloudFront Error Rate'
                 },
                 {
-                    'Id': f'q{len(metric_queries)}',
+                    'Id': f'q{(query_id := query_id + 1)}',
                     'MetricStat': {
                         'Metric': {
                             'Namespace': 'AWS/CloudFront',

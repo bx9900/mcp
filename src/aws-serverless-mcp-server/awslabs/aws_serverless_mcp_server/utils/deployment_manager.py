@@ -153,12 +153,12 @@ async def get_deployment_status(project_name: str) -> Dict[str, Any]:
         try:
             stack_info = await get_stack_info(project_name, region)
             
+            # Map CloudFormation status to our status format
+            status = map_cloudformation_status(stack_info.get("status"))
+
             # If stack not found but we have metadata, deployment failed before CFN or CFN deployment is in progress.
             if stack_info.get("status") == "NOT_FOUND":
                 return metadata
-            
-            # Map CloudFormation status to our status format
-            status = map_cloudformation_status(stack_info.get("status"))
             
             # Return combined information
             deployment = {

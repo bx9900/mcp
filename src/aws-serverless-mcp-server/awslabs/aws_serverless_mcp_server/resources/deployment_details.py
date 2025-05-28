@@ -5,7 +5,7 @@ Provides information about a specific deployment.
 """
 from typing import Dict, Any
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
-from awslabs.aws_serverless_mcp_server.utils.deployment_manager import get_deployment_status
+from awslabs.aws_serverless_mcp_server.utils.deployment_manager import get_deployment_status, DeploymentStatus
 
 async def handle_deployment_details(project_name: str) -> Dict[str, Any]:
     """
@@ -21,7 +21,7 @@ async def handle_deployment_details(project_name: str) -> Dict[str, Any]:
         # Use deployment_metadata.py to get detailed stack information
         deployment_details = await get_deployment_status(project_name)
         
-        if deployment_details.get("status") == "not_found":
+        if deployment_details.get("status") == DeploymentStatus.NOT_FOUND:
             return {
                 'success': False,
                 'message': f"No deployment found for project '{project_name}'",
@@ -37,9 +37,9 @@ async def handle_deployment_details(project_name: str) -> Dict[str, Any]:
             'startedAt': deployment_details.get('timestamp'),
             'updatedAt': deployment_details.get('lastUpdated'),
             'outputs': deployment_details.get('outputs', {}),
-            'error': deployment_details.get('message'),
-            'cloudFormationStatus': deployment_details.get('stackStatus'),
-            'cloudFormationReason': deployment_details.get('stackStatusReason')
+            'error': deployment_details.get('error'),
+            'stackStatus': deployment_details.get('stackStatus'),
+            'stackStatusReason': deployment_details.get('stackStatusReason')
         }
     except Exception as e:
         logger.error(f"Error getting deployment status: {str(e)}")

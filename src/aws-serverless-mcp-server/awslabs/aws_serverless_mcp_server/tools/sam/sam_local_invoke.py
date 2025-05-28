@@ -33,11 +33,11 @@ async def sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
     """
     try:
         project_directory = request.project_directory
-        function_name = request.function_name
+        resource_name = request.resource_name
         template_file = request.template_file
         event_file = request.event_file
         event_data = request.event_data
-        environment_variables = request.environment_variables
+        environment_variables_file = request.environment_variables_file
         docker_network = request.docker_network
         container_env_vars = request.container_env_vars
         parameter = request.parameter
@@ -56,7 +56,7 @@ async def sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
         
         try:
             # Build the command arguments
-            cmd = ['sam', 'local', 'invoke', function_name]
+            cmd = ['sam', 'local', 'invoke', resource_name]
             
             if template_file:
                 cmd.extend(['--template', template_file])
@@ -64,20 +64,21 @@ async def sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
             if event_file:
                 cmd.extend(['--event', event_file])
             
-            if environment_variables:
-                for key, value in environment_variables.items():
-                    cmd.extend(['--env-vars', f"{key}={value}"])
+            if environment_variables_file:
+                cmd.extend(['--env-vars', environment_variables_file])
             
             if docker_network:
                 cmd.extend(['--docker-network', docker_network])
             
             if container_env_vars:
+                cmd.extend(['--container-env'])
                 for key, value in container_env_vars.items():
-                    cmd.extend(['--container-env-var', f"{key}={value}"])
+                    cmd.extend(f" {key}={value}")
             
             if parameter:
+                cmd.extend(['--parameter-overrides'])
                 for key, value in parameter.items():
-                    cmd.extend(['--parameter-overrides', f"{key}={value}"])
+                    cmd.extend(f" ParameterKey={key},ParameterValue={value}")
             
             if log_file:
                 cmd.extend(['--log-file', log_file])
@@ -105,7 +106,7 @@ async def sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
             
             return {
                 "success": True,
-                'message': f"Successfully invoked Lambda function '{function_name}' locally.",
+                'message': f"Successfully invoked resource '{resource_name}' locally.",
                 'function_output': function_output,
             }
         finally:
@@ -116,6 +117,6 @@ async def sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, Any]:
         logger.error(f"Error in sam_local_invoke: {str(e)}")
         return {
             'success': False,
-            'message': f"Failed to invoke Lambda function locally: {str(e)}",
+            'message': f"Failed to invoke resource locally: {str(e)}",
             'error': str(e)
         }

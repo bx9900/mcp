@@ -5,56 +5,56 @@ Handles rendering of templates for CloudFormation/SAM deployments.
 """
 
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
-import pybars
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+import os
 from .registry import DeploymentTypes, get_template_for_deployment
 from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
 
-def get_helpers():
+
+def get_jinja_filters():
     """
-    Get Handlebars helpers
+    Get Jinja2 custom filters
 
     Returns:
-        dict: Dictionary of helper functions
+        dict: Dictionary of filter functions
     """
-    # Helper to check if two values are equal
-    def if_equals(this, options, arg1, arg2):
-        if arg1 == arg2:
-            return options['fn'](this)
-        else:
-            return options['inverse'](this)
-
-    # Helper to check if a value exists
-    def if_exists(this, options, value):
-        if value is not None and value != '':
-            return options['fn'](this)
-        else:
-            return options['inverse'](this)
-
-    # Helper to iterate over object properties
-    def each_in_object(this, options, obj):
-        result = ''
-        if obj is not None:  # Check if obj is None before calling items()
-            for key, value in obj.items():
-                result += options['fn']({'key': key, 'value': value})
-        return result
-
-    # Helper for CloudFormation intrinsic functions
-    def cf(this, options, fn_name, *args):
-        if fn_name == 'Ref':
-            return f'{{ "Ref": "{args[0]}" }}'
-        elif fn_name == 'GetAtt':
-            return f'{{ "Fn::GetAtt": ["{args[0]}", "{args[1]}"] }}'
-        elif fn_name == 'Sub':
-            return f'{{ "Fn::Sub": "{args[0]}" }}'
-        else:
-            return f'{{ "Fn::{fn_name}": {args} }}'
-
-    # Return the helpers as a dictionary
+    def cf_ref(value):
+        """CloudFormation Ref function"""
+        return f'{{ "Ref": "{value}" }}'
+    
+    def cf_get_att(resource, attribute):
+        """CloudFormation GetAtt function"""
+        return f'{{ "Fn::GetAtt": ["{resource}", "{attribute}"] }}'
+    
+    def cf_sub(value):
+        """CloudFormation Sub function"""
+        return f'{{ "Fn::Sub": "{value}" }}'
+    
     return {
-        'ifEquals': if_equals,
-        'ifExists': if_exists,
-        'eachInObject': each_in_object,
-        'cf': cf
+        'cf_ref': cf_ref,
+        'cf_get_att': cf_get_att,
+        'cf_sub': cf_sub
+    }
+
+
+def get_jinja_tests():
+    """
+    Get Jinja2 custom tests
+
+    Returns:
+        dict: Dictionary of test functions
+    """
+    def equals(value, other):
+        """Test if two values are equal"""
+        return value == other
+    
+    def exists(value):
+        """Test if a value exists (not None and not empty string)"""
+        return value is not None and value != ''
+    
+    return {
+        'equals': equals,
+        'exists': exists
     }
 
 
@@ -63,7 +63,7 @@ async def render_template(request: DeployWebAppRequest) -> str:
     Render a template with the given parameters
 
     Args:
-        params: Deployment parameters
+        request: Deployment request parameters
 
     Returns:
         str: Rendered template as a string
@@ -71,12 +71,6 @@ async def render_template(request: DeployWebAppRequest) -> str:
     Raises:
         Exception: If template rendering fails
     """
-    # Create a Handlebars compiler
-    compiler = pybars.Compiler()
-
-    # Get Handlebars helpers
-    helpers = get_helpers()
-
     # Determine the deployment type
     deployment_type = DeploymentTypes(request.deployment_type.lower())
 
@@ -98,23 +92,35 @@ async def render_template(request: DeployWebAppRequest) -> str:
     logger.debug(f"Using template: {template.name} at {template.path}")
 
     try:
-        # Read the template file
-        with open(template.path, 'r') as f:
-            template_content = f.read()
+        # Get the template directory
+        template_dir = os.path.dirname(template.path)
+        template_name = os.path.basename(template.path)
+        
+        # Create Jinja2 environment
+        env = Environment(
+            loader=FileSystemLoader(template_dir),
+            autoescape=select_autoescape(['html', 'xml']),
+            trim_blocks=True,
+            lstrip_blocks=True
+        )
+        
+        # Add custom filters and tests
+        env.filters.update(get_jinja_filters())
+        env.tests.update(get_jinja_tests())
+        
+        # Load the template
+        jinja_template = env.get_template(template_name)
 
         # Create a description for the template
         description = f"{request.project_name} - {deployment_type.value} deployment"
 
-        # Compile the template
-        compiled_template = compiler.compile(template_content)
-
-        # Add description to params
+        # Prepare template variables
         params_dict = request.dict() if hasattr(request, "dict") else vars(request)
-        params_with_description = {**params_dict, 'description': description}
-        logger.info(f"params: {params_with_description}")
+        template_vars = {**params_dict, 'description': description}
+        logger.info(f"Template variables: {template_vars}")
 
-        # Render the template with parameters and helpers
-        rendered_template = compiled_template(params_with_description, helpers=helpers)
+        # Render the template
+        rendered_template = jinja_template.render(**template_vars)
 
         logger.debug('Template rendered successfully')
         return rendered_template

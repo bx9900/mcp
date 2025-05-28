@@ -150,35 +150,6 @@ def handle_template_details(template_name: str) -> Dict[str, Any]:
                 }
             }
         }
-    elif template_name == "database":
-        template_details = {
-            "name": "database",
-            "description": "DynamoDB database",
-            "type": "dynamodb",
-            "parameters": {
-                "tableName": {
-                    "type": "string",
-                    "description": "DynamoDB table name",
-                    "required": True
-                },
-                "billingMode": {
-                    "type": "string",
-                    "description": "DynamoDB billing mode",
-                    "default": "PAY_PER_REQUEST",
-                    "options": ["PROVISIONED", "PAY_PER_REQUEST"]
-                }
-            },
-            "example": {
-                "tableName": "my-table",
-                "billingMode": "PAY_PER_REQUEST",
-                "attributeDefinitions": [
-                    {"name": "id", "type": "S"}
-                ],
-                "keySchema": [
-                    {"name": "id", "type": "HASH"}
-                ]
-            }
-        }
     else:
         return {
             "contents": [{
