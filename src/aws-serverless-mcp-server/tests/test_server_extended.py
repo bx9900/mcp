@@ -689,7 +689,7 @@ class TestMain:
         mock_parser = MagicMock()
         mock_parser.parse_args.return_value = argparse.Namespace(
             log_level='debug',
-            log_output='/tmp/logs',
+            log_output='/dir/logs',
             allow_write=True,
             allow_sensitive_data_access=True,
         )
@@ -715,7 +715,7 @@ class TestMain:
             mock_parser.parse_args.assert_called_once()
             mock_run.assert_called_once()
             mock_set_log_level.assert_called_once_with(level='debug')
-            mock_set_log_directory.assert_called_once_with(directory='/tmp/logs')
+            mock_set_log_directory.assert_called_once_with(directory='/dir/logs')
 
             # Verify the global variables were set correctly
             assert awslabs.aws_serverless_mcp_server.server.allow_sensitive_data_access is True
