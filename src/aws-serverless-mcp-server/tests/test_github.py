@@ -8,73 +8,101 @@
 # or in the 'license' file accompanying this file. This file is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES
 # OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
-"""Tests for the github module."""
+"""Tests for the github utility module."""
 
+import json
 import pytest
 import requests
 from awslabs.aws_serverless_mcp_server.utils.github import fetch_github_content
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 
-class TestGithubUtils:
-    """Tests for the github utility functions."""
+class TestGithub:
+    """Tests for the github utility module."""
 
-    @pytest.mark.asyncio
-    async def test_fetch_github_content_success(self):
-        """Test successful GitHub content fetch."""
-        # Mock response data
-        mock_content = {
-            'content': 'SGVsbG8sIHdvcmxkIQ==',  # Base64 encoded "Hello, world!"
-            'encoding': 'base64',
-        }
-
-        # Create a mock response
+    def test_fetch_github_content_success(self):
+        """Test fetch_github_content with a successful response."""
+        # Mock the response
         mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = mock_content
+        mock_response.json.return_value = {'name': 'test-repo', 'description': 'Test repository'}
+        mock_response.raise_for_status = MagicMock()
 
-        # Mock the httpx.AsyncClient.get method
-        with patch('requests.get', new_callable=Mock) as mock_get:
-            mock_get.return_value = mock_response
-
+        # Patch requests.get to return our mock response
+        with patch('requests.get', return_value=mock_response) as mock_get:
             # Call the function
-            result = fetch_github_content(
-                'https://api.github.com/repos/owner/repo/contents/path/to/file.txt'
-            )
+            url = 'https://api.github.com/repos/aws/aws-sam-cli-app-templates'
+            result = fetch_github_content(url)
 
             # Verify the result
-            assert 'content' in result
+            assert result == {'name': 'test-repo', 'description': 'Test repository'}
 
-            # Verify the API call
-            mock_get.assert_called_once()
+            # Verify requests.get was called correctly
+            mock_get.assert_called_once_with(
+                url, headers={'Accept': 'application/vnd.github+json'}, timeout=30
+            )
+            mock_response.raise_for_status.assert_called_once()
+            mock_response.json.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_fetch_github_content_not_found(self):
-        """Test GitHub content fetch with 404 response."""
-        # Create a mock response for 404
+    def test_fetch_github_content_with_headers(self):
+        """Test fetch_github_content with custom headers."""
+        # Mock the response
         mock_response = MagicMock()
-        mock_response.status_code = 404
-        mock_response.raise_for_status.side_effect = requests.HTTPError('404 Client Error')
+        mock_response.json.return_value = {'name': 'test-repo', 'description': 'Test repository'}
+        mock_response.raise_for_status = MagicMock()
 
-        # Mock the httpx.AsyncClient.get method
-        with patch('requests.get', new_callable=Mock) as mock_get:
-            mock_get.return_value = mock_response
+        # Patch requests.get to return our mock response
+        with patch('requests.get', return_value=mock_response) as mock_get:
+            # Call the function with custom headers
+            url = 'https://api.github.com/repos/aws/aws-sam-cli-app-templates'
+            headers = {'Authorization': 'token ghp_123456789'}
+            result = fetch_github_content(url, headers=headers)
 
-            # Call the function and assert that any exception is raised
-            with pytest.raises(ValueError):
-                fetch_github_content(
-                    'https://api.github.com/repos/owner/repo/contents/path/to/non-existent-file.txt'
-                )
+            # Verify the result
+            assert result == {'name': 'test-repo', 'description': 'Test repository'}
 
-    @pytest.mark.asyncio
-    async def test_fetch_github_content_error(self):
-        """Test GitHub content fetch with error."""
-        # Mock the httpx.AsyncClient.get method to raise an exception
-        with patch('requests.get', new_callable=Mock) as mock_get:
-            mock_get.side_effect = requests.ConnectionError('Connection error')
+            # Verify requests.get was called with merged headers
+            expected_headers = {
+                'Accept': 'application/vnd.github+json',
+                'Authorization': 'token ghp_123456789',
+            }
+            mock_get.assert_called_once_with(url, headers=expected_headers, timeout=30)
 
-            # Call the function and assert that a ValueError is raised
-            with pytest.raises(ValueError):
-                fetch_github_content(
-                    'https://api.github.com/repos/owner/repo/contents/path/to/file.txt'
-                )
+    def test_fetch_github_content_request_exception(self):
+        """Test fetch_github_content when a request exception occurs."""
+        # Patch requests.get to raise an exception
+        with patch('requests.get', side_effect=requests.RequestException('Connection error')):
+            # Call the function and expect an exception
+            url = 'https://api.github.com/repos/aws/aws-sam-cli-app-templates'
+            with pytest.raises(
+                ValueError, match='Failed to fetch or decode GitHub content: Connection error'
+            ):
+                fetch_github_content(url)
+
+    def test_fetch_github_content_json_decode_error(self):
+        """Test fetch_github_content when a JSON decode error occurs."""
+        # Mock the response
+        mock_response = MagicMock()
+        mock_response.json.side_effect = json.JSONDecodeError('Invalid JSON', '', 0)
+        mock_response.raise_for_status = MagicMock()
+
+        # Patch requests.get to return our mock response
+        with patch('requests.get', return_value=mock_response):
+            # Call the function and expect an exception
+            url = 'https://api.github.com/repos/aws/aws-sam-cli-app-templates'
+            with pytest.raises(ValueError, match='Failed to fetch or decode GitHub content'):
+                fetch_github_content(url)
+
+    def test_fetch_github_content_http_error(self):
+        """Test fetch_github_content when an HTTP error occurs."""
+        # Mock the response
+        mock_response = MagicMock()
+        mock_response.raise_for_status.side_effect = requests.HTTPError(
+            '404 Client Error: Not Found'
+        )
+
+        # Patch requests.get to return our mock response
+        with patch('requests.get', return_value=mock_response):
+            # Call the function and expect an exception
+            url = 'https://api.github.com/repos/nonexistent/repo'
+            with pytest.raises(ValueError, match='Failed to fetch or decode GitHub content'):
+                fetch_github_content(url)

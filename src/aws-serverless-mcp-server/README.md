@@ -87,7 +87,7 @@ Add the following code to your MCP client configuration. The Serverless MCP serv
 
 ## Server Configuration Options
 ### `--allow-write`
-Enables write access mode, which allows mutating operations. By default, the server runs in read-only mode, which restricts operations to only perform read actions, preventing any changes to AWS resources.
+Enables write access mode, which allows mutating operations and creation of public resources. By default, the server runs in read-only mode, which restricts operations to only perform read actions, preventing any changes to AWS resources.
 
 Mutating operations:
 * sam_deploy_tool: Deploys a SAM application into AWS Cloud using CloudFormation
@@ -446,6 +446,7 @@ This prompt would trigger the AI assistant to:
 The AWS Serverless MCP Server can be used for production environments with proper security controls in place. For production use cases, consider the following:
 
 * **Read-Only Mode by Default**: The server runs in read-only mode by default, which is safer for production environments. Only explicitly enable write access when necessary.
+* **Disable auto-approve**: Require the user to approve each time the AI assitant executes a tool
 
 ### Role Scoping Recommendations
 To follow security best practices:
