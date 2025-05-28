@@ -10,7 +10,6 @@
 # and limitations under the License.
 """Tests for the models module."""
 
-import pytest
 from awslabs.aws_serverless_mcp_server.models import (
     GetIaCGuidanceRequest,
     GetLambdaEventSchemasRequest,
@@ -19,7 +18,6 @@ from awslabs.aws_serverless_mcp_server.models import (
     SamDeployRequest,
     SamInitRequest,
 )
-from pydantic import ValidationError
 
 
 class TestSamBuildRequest:
@@ -245,6 +243,7 @@ class TestGetLambdaEventSchemasRequest:
         request = GetLambdaEventSchemasRequest(event_source='S3', runtime='nodejs')
         assert request.event_source == 'S3'
         assert request.runtime == 'nodejs'
+
 
 class TestGetLambdaGuidanceRequest:
     """Tests for the GetLambdaGuidanceRequest model."""
