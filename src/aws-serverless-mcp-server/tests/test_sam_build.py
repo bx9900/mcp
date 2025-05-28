@@ -10,8 +10,10 @@
 # and limitations under the License.
 """Tests for the sam_build module."""
 
+import os
 import pytest
 import subprocess
+import tempfile
 from awslabs.aws_serverless_mcp_server.models import SamBuildRequest
 from awslabs.aws_serverless_mcp_server.tools.sam.sam_build import sam_build
 from unittest.mock import MagicMock, patch
@@ -24,7 +26,9 @@ class TestSamBuild:
     async def test_sam_build_success(self):
         """Test successful SAM build."""
         # Create a mock request
-        request = SamBuildRequest(project_directory='/tmp/test-project')
+        request = SamBuildRequest(
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project')
+        )
 
         # Mock the subprocess.run function
         mock_result = MagicMock()
@@ -51,19 +55,19 @@ class TestSamBuild:
             # Check required parameters
             assert 'sam' in cmd
             assert 'build' in cmd
-            assert kwargs['cwd'] == '/tmp/test-project'
+            assert kwargs['cwd'] == os.path.join(tempfile.gettempdir(), 'test-project')
 
     @pytest.mark.asyncio
     async def test_sam_build_with_optional_params(self):
         """Test SAM build with optional parameters."""
         # Create a mock request with optional parameters
         request = SamBuildRequest(
-            project_directory='/tmp/test-project',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             resource_id='MyFunction',
             template_file='template.yaml',
-            base_dir='/tmp/base-dir',
-            build_dir='/tmp/build-dir',
-            cache_dir='/tmp/cache-dir',
+            base_dir=os.path.join(tempfile.gettempdir(), 'base-dir'),
+            build_dir=os.path.join(tempfile.gettempdir(), 'build-dir'),
+            cache_dir=os.path.join(tempfile.gettempdir(), 'cache-dir'),
             cached=True,
             use_container=True,
             container_env_vars={'ENV1': 'value1', 'ENV2': 'value2'},
@@ -105,9 +109,9 @@ class TestSamBuild:
             assert '--template-file' in cmd
             assert 'template.yaml' in cmd
             assert '--base-dir' in cmd
-            assert '/tmp/base-dir' in cmd
+            assert os.path.join(tempfile.gettempdir(), 'base-dir') in cmd
             assert '--build-dir' in cmd
-            assert '/tmp/build-dir' in cmd
+            assert os.path.join(tempfile.gettempdir(), 'build-dir') in cmd
             assert '--use-container' in cmd
             assert '--container-env-var' in cmd
             assert '--container-env-var-file' in cmd
@@ -123,7 +127,9 @@ class TestSamBuild:
     async def test_sam_build_failure(self):
         """Test SAM build failure."""
         # Create a mock request
-        request = SamBuildRequest(project_directory='/tmp/test-project')
+        request = SamBuildRequest(
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project')
+        )
 
         # Mock the subprocess.run function to raise an exception
         error_message = b'Command failed with exit code 1'
@@ -143,7 +149,9 @@ class TestSamBuild:
     async def test_sam_build_general_exception(self):
         """Test SAM build with a general exception."""
         # Create a mock request
-        request = SamBuildRequest(project_directory='/tmp/test-project')
+        request = SamBuildRequest(
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project')
+        )
 
         # Mock the subprocess.run function to raise a general exception
         error_message = 'Some unexpected error'

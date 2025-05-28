@@ -10,7 +10,9 @@
 # and limitations under the License.
 """Tests for the sam_local_invoke module."""
 
+import os
 import pytest
+import tempfile
 from awslabs.aws_serverless_mcp_server.models import SamLocalInvokeRequest
 from awslabs.aws_serverless_mcp_server.tools.sam.sam_local_invoke import sam_local_invoke
 from unittest.mock import MagicMock, mock_open, patch
@@ -24,7 +26,8 @@ class TestSamLocalInvoke:
         """Test successful SAM local invoke."""
         # Create a mock request
         request = SamLocalInvokeRequest(
-            project_directory='/tmp/test-project', resource_name='test-function'
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            resource_name='test-function',
         )
 
         # Mock the subprocess.run function
@@ -54,16 +57,16 @@ class TestSamLocalInvoke:
             assert 'local' in cmd
             assert 'invoke' in cmd
             assert 'test-function' in cmd
-            assert kwargs['cwd'] == '/tmp/test-project'
+            assert kwargs['cwd'] == os.path.join(tempfile.gettempdir(), 'test-project')
 
     @pytest.mark.asyncio
     async def test_sam_local_invoke_with_event_file(self):
         """Test SAM local invoke with event file."""
         # Create a mock request with event file
         request = SamLocalInvokeRequest(
-            project_directory='/tmp/test-project',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             resource_name='test-function',
-            event_file='/tmp/event.json',
+            event_file=os.path.join(tempfile.gettempdir(), 'event.json'),
         )
 
         # Mock the subprocess.run function
@@ -88,14 +91,14 @@ class TestSamLocalInvoke:
 
             # Check event file parameter
             assert '--event' in cmd
-            assert '/tmp/event.json' in cmd
+            assert os.path.join(tempfile.gettempdir(), 'event.json') in cmd
 
     @pytest.mark.asyncio
     async def test_sam_local_invoke_with_event_data(self):
         """Test SAM local invoke with event data."""
         # Create a mock request with event data
         request = SamLocalInvokeRequest(
-            project_directory='/tmp/test-project',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             resource_name='test-function',
             event_data='{"key": "value"}',
         )
@@ -107,7 +110,7 @@ class TestSamLocalInvoke:
 
         # Mock tempfile and os functions
         mock_fd = 123
-        mock_temp_file = '/tmp/test-project/.temp-event-12345.json'
+        mock_temp_file = os.path.join(tempfile.gettempdir(), 'test-project/.temp-event-12345.json')
 
         with (
             patch('tempfile.mkstemp', return_value=(mock_fd, mock_temp_file)) as mock_mkstemp,
@@ -151,15 +154,15 @@ class TestSamLocalInvoke:
         """Test SAM local invoke with optional parameters."""
         # Create a mock request with optional parameters
         request = SamLocalInvokeRequest(
-            project_directory='/tmp/test-project',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             resource_name='test-function',
             template_file='template.yaml',
-            environment_variables_file='/tmp/env.json',
+            environment_variables_file=os.path.join(tempfile.gettempdir(), 'env.json'),
             docker_network='my-network',
             container_env_vars={'CONTAINER_ENV1': 'value1', 'CONTAINER_ENV2': 'value2'},
             parameter={'param1': 'value1', 'param2': 'value2'},
-            log_file='/tmp/log.txt',
-            layer_cache_basedir='/tmp/layer-cache',
+            log_file=os.path.join(tempfile.gettempdir(), 'log.txt'),
+            layer_cache_basedir=os.path.join(tempfile.gettempdir(), 'layer-cache'),
             warm_containers='EAGER',
             region='us-west-2',
             profile='default',
@@ -194,9 +197,9 @@ class TestSamLocalInvoke:
             assert '--container-env-vars' in cmd
             assert '--parameter-overrides' in cmd
             assert '--log-file' in cmd
-            assert '/tmp/log.txt' in cmd
+            assert os.path.join(tempfile.gettempdir(), 'log.txt') in cmd
             assert '--layer-cache-basedir' in cmd
-            assert '/tmp/layer-cache' in cmd
+            assert os.path.join(tempfile.gettempdir(), 'layer-cache') in cmd
             assert '--region' in cmd
             assert 'us-west-2' in cmd
             assert '--profile' in cmd
@@ -207,7 +210,8 @@ class TestSamLocalInvoke:
         """Test SAM local invoke with non-JSON output."""
         # Create a mock request
         request = SamLocalInvokeRequest(
-            project_directory='/tmp/test-project', resource_name='test-function'
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            resource_name='test-function',
         )
 
         # Mock the subprocess.run function with non-JSON output
@@ -232,7 +236,8 @@ class TestSamLocalInvoke:
         """Test SAM local invoke failure."""
         # Create a mock request
         request = SamLocalInvokeRequest(
-            project_directory='/tmp/test-project', resource_name='test-function'
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
+            resource_name='test-function',
         )
 
         # Mock the subprocess.run function to raise an exception

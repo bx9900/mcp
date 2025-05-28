@@ -10,8 +10,10 @@
 # and limitations under the License.
 """Tests for the sam_deploy module."""
 
+import os
 import pytest
 import subprocess
+import tempfile
 from awslabs.aws_serverless_mcp_server.models import SamDeployRequest
 from awslabs.aws_serverless_mcp_server.tools.sam.sam_deploy import sam_deploy
 from unittest.mock import MagicMock, patch
@@ -25,7 +27,8 @@ class TestSamDeploy:
         """Test successful SAM deployment."""
         # Create a mock request
         request = SamDeployRequest(
-            application_name='test-app', project_directory='/tmp/test-project'
+            application_name='test-app',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
         )
 
         # Mock the subprocess.run function
@@ -55,7 +58,7 @@ class TestSamDeploy:
             assert 'deploy' in cmd
             assert '--stack-name' in cmd
             assert 'test-app' in cmd
-            assert kwargs['cwd'] == '/tmp/test-project'
+            assert kwargs['cwd'] == os.path.join(tempfile.gettempdir(), 'test-project')
 
     @pytest.mark.asyncio
     async def test_sam_deploy_with_optional_params(self):
@@ -63,7 +66,7 @@ class TestSamDeploy:
         # Create a mock request with optional parameters
         request = SamDeployRequest(
             application_name='test-app',
-            project_directory='/tmp/test-project',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             template_file='template.yaml',
             s3_bucket='my-bucket',
             s3_prefix='my-prefix',
@@ -136,7 +139,8 @@ class TestSamDeploy:
         """Test SAM deployment failure."""
         # Create a mock request
         request = SamDeployRequest(
-            application_name='test-app', project_directory='/tmp/test-project'
+            application_name='test-app',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
         )
 
         # Mock the subprocess.run function to raise an exception
@@ -158,7 +162,8 @@ class TestSamDeploy:
         """Test SAM deployment with a general exception."""
         # Create a mock request
         request = SamDeployRequest(
-            application_name='test-app', project_directory='/tmp/test-project'
+            application_name='test-app',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
         )
 
         # Mock the subprocess.run function to raise a general exception

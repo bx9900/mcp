@@ -140,7 +140,8 @@ async def deploy_application(request: DeployWebAppRequest) -> Dict[str, Any]:
                         logger.warning(
                             f'Startup script {script_path} is not executable. Making it executable...'
                         )
-                        os.chmod(script_path, 0o755)
+                        #  Ignore Bandit error as startup scripts should be executable and does not container sensitive data
+                        os.chmod(script_path, 0o755)  # nosec
                 except Exception as e:
                     raise Exception(f'Failed to check permissions on startup script: {str(e)}')
 

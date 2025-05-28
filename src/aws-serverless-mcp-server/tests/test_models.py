@@ -27,19 +27,19 @@ class TestSamBuildRequest:
 
     def test_sam_build_request_required_fields(self):
         """Test SamBuildRequest with required fields."""
-        request = SamBuildRequest(project_directory='/tmp/test-project')
-        assert request.project_directory == '/tmp/test-project'
+        request = SamBuildRequest(project_directory='/user/test-project')
+        assert request.project_directory == '/user/test-project'
         assert request.template_file is None
         assert request.use_container is False
 
     def test_sam_build_request_all_fields(self):
         """Test SamBuildRequest with all fields."""
         request = SamBuildRequest(
-            project_directory='/tmp/test-project',
+            project_directory='/user/test-project',
             resource_id='MyFunction',
             template_file='template.yaml',
-            base_dir='/tmp',
-            build_dir='/tmp/build',
+            base_dir='/user',
+            build_dir='/user/build',
             use_container=True,
             no_use_container=False,
             container_env_vars={'NODE_ENV': 'production'},
@@ -47,10 +47,10 @@ class TestSamBuildRequest:
             build_image='amazon/aws-sam-cli-build-image-nodejs18.x',
             debug=True,
         )
-        assert request.project_directory == '/tmp/test-project'
+        assert request.project_directory == '/user/test-project'
         assert request.template_file == 'template.yaml'
-        assert request.base_dir == '/tmp'
-        assert request.build_dir == '/tmp/build'
+        assert request.base_dir == '/user'
+        assert request.build_dir == '/user/build'
         assert request.use_container is True
         assert request.no_use_container is False
         assert request.container_env_vars == {'NODE_ENV': 'production'}
@@ -72,12 +72,12 @@ class TestSamInitRequest:
         request = SamInitRequest(
             project_name='test-project',
             runtime='nodejs18.x',
-            project_directory='/tmp/test-project',
+            project_directory='/user/test-project',
             dependency_manager='npm',
         )
         assert request.project_name == 'test-project'
         assert request.runtime == 'nodejs18.x'
-        assert request.project_directory == '/tmp/test-project'
+        assert request.project_directory == '/user/test-project'
         assert request.dependency_manager == 'npm'
         assert request.architecture == 'x86_64'
         assert request.package_type == 'Zip'
@@ -88,7 +88,7 @@ class TestSamInitRequest:
         request = SamInitRequest(
             project_name='test-project',
             runtime='nodejs18.x',
-            project_directory='/tmp/test-project',
+            project_directory='/user/test-project',
             dependency_manager='npm',
             architecture='arm64',
             package_type='Image',
@@ -107,7 +107,7 @@ class TestSamInitRequest:
         )
         assert request.project_name == 'test-project'
         assert request.runtime == 'nodejs18.x'
-        assert request.project_directory == '/tmp/test-project'
+        assert request.project_directory == '/user/test-project'
         assert request.dependency_manager == 'npm'
         assert request.architecture == 'arm64'
         assert request.package_type == 'Image'
@@ -136,10 +136,10 @@ class TestSamDeployRequest:
     def test_sam_deploy_request_required_fields(self):
         """Test SamDeployRequest with required fields."""
         request = SamDeployRequest(
-            application_name='test-app', project_directory='/tmp/test-project'
+            application_name='test-app', project_directory='/user/test-project'
         )
         assert request.application_name == 'test-app'
-        assert request.project_directory == '/tmp/test-project'
+        assert request.project_directory == '/user/test-project'
         assert request.template_file is None
         assert request.s3_bucket is None
         assert request.capabilities == ['CAPABILITY_IAM']
@@ -148,7 +148,7 @@ class TestSamDeployRequest:
         """Test SamDeployRequest with all fields."""
         request = SamDeployRequest(
             application_name='test-app',
-            project_directory='/tmp/test-project',
+            project_directory='/user/test-project',
             template_file='template.yaml',
             s3_bucket='my-bucket',
             s3_prefix='my-prefix',
@@ -164,7 +164,7 @@ class TestSamDeployRequest:
             debug=True,
         )
         assert request.application_name == 'test-app'
-        assert request.project_directory == '/tmp/test-project'
+        assert request.project_directory == '/user/test-project'
         assert request.template_file == 'template.yaml'
         assert request.s3_bucket == 'my-bucket'
         assert request.s3_prefix == 'my-prefix'

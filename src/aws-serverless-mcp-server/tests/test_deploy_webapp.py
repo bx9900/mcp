@@ -11,7 +11,9 @@
 """Tests for the deploy_webapp module."""
 
 import json
+import os
 import pytest
+import tempfile
 from awslabs.aws_serverless_mcp_server.models import (
     BackendConfiguration,
     DeployWebAppRequest,
@@ -32,19 +34,25 @@ class TestDeployWebapp:
         """Test checking for Node.js dependencies."""
         with patch('os.path.exists', return_value=True):
             # Test with Node.js runtime
-            result = check_dependencies_installed('/tmp/artifacts', 'nodejs18.x')
+            result = check_dependencies_installed(
+                os.path.join(tempfile.gettempdir(), 'artifacts'), 'nodejs18.x'
+            )
             assert result is True
 
         with patch('os.path.exists', return_value=False):
             # Test with Node.js runtime but no node_modules
-            result = check_dependencies_installed('/tmp/artifacts', 'nodejs18.x')
+            result = check_dependencies_installed(
+                os.path.join(tempfile.gettempdir(), 'artifacts'), 'nodejs18.x'
+            )
             assert result is False
 
     def test_check_dependencies_installed_python(self):
         """Test checking for Python dependencies."""
         # Test with site-packages directory
         with patch('os.path.exists', side_effect=lambda path: 'site-packages' in path):
-            result = check_dependencies_installed('/tmp/artifacts', 'python3.9')
+            result = check_dependencies_installed(
+                os.path.join(tempfile.gettempdir(), 'artifacts'), 'python3.9'
+            )
             assert result is True
 
         # Test with .dist-info files
@@ -52,7 +60,9 @@ class TestDeployWebapp:
             patch('os.path.exists', return_value=False),
             patch('os.listdir', return_value=['requests-2.28.1.dist-info', 'boto3']),
         ):
-            result = check_dependencies_installed('/tmp/artifacts', 'python3.9')
+            result = check_dependencies_installed(
+                os.path.join(tempfile.gettempdir(), 'artifacts'), 'python3.9'
+            )
             assert result is True
 
         # Test with no dependencies
@@ -60,29 +70,39 @@ class TestDeployWebapp:
             patch('os.path.exists', return_value=False),
             patch('os.listdir', return_value=['app.py', 'utils']),
         ):
-            result = check_dependencies_installed('/tmp/artifacts', 'python3.9')
+            result = check_dependencies_installed(
+                os.path.join(tempfile.gettempdir(), 'artifacts'), 'python3.9'
+            )
             assert result is False
 
     def test_check_dependencies_installed_ruby(self):
         """Test checking for Ruby dependencies."""
         with patch('os.path.exists', side_effect=lambda path: 'vendor/bundle' in path):
-            result = check_dependencies_installed('/tmp/artifacts', 'ruby3.2')
+            result = check_dependencies_installed(
+                os.path.join(tempfile.gettempdir(), 'artifacts'), 'ruby3.2'
+            )
             assert result is True
 
         with patch('os.path.exists', return_value=False):
-            result = check_dependencies_installed('/tmp/artifacts', 'ruby3.2')
+            result = check_dependencies_installed(
+                os.path.join(tempfile.gettempdir(), 'artifacts'), 'ruby3.2'
+            )
             assert result is False
 
     def test_check_dependencies_installed_other_runtime(self):
         """Test checking for dependencies with other runtimes."""
         # For other runtimes, we assume dependencies are installed
-        result = check_dependencies_installed('/tmp/artifacts', 'java11')
+        result = check_dependencies_installed(
+            os.path.join(tempfile.gettempdir(), 'artifacts'), 'java11'
+        )
         assert result is True
 
     def test_check_dependencies_installed_exception(self):
         """Test checking for dependencies with an exception."""
         with patch('os.path.exists', side_effect=Exception('Test error')):
-            result = check_dependencies_installed('/tmp/artifacts', 'nodejs18.x')
+            result = check_dependencies_installed(
+                os.path.join(tempfile.gettempdir(), 'artifacts'), 'nodejs18.x'
+            )
             assert result is False
 
     @pytest.mark.asyncio
@@ -144,9 +164,9 @@ class TestDeployWebapp:
         request = DeployWebAppRequest(
             deployment_type='frontend',
             project_name='test-project',
-            project_root='/tmp/test-project',
+            project_root=os.path.join(tempfile.gettempdir(), 'test-project'),
             frontend_configuration=FrontendConfiguration(
-                built_assets_path='/tmp/test-project/build'
+                built_assets_path=os.path.join(tempfile.gettempdir(), 'test-project/build')
             ),
         )
 
@@ -182,9 +202,11 @@ class TestDeployWebapp:
         request = DeployWebAppRequest(
             deployment_type='backend',
             project_name='test-project',
-            project_root='/tmp/test-project',
+            project_root=os.path.join(tempfile.gettempdir(), 'test-project'),
             backend_configuration=BackendConfiguration(
-                built_artifacts_path='/tmp/test-project/dist', runtime='nodejs18.x', port=3000
+                built_artifacts_path=os.path.join(tempfile.gettempdir(), 'test-project/dist'),
+                runtime='nodejs18.x',
+                port=3000,
             ),
         )
 
@@ -223,9 +245,11 @@ class TestDeployWebapp:
         request = DeployWebAppRequest(
             deployment_type='backend',
             project_name='test-project',
-            project_root='/tmp/test-project',
+            project_root=os.path.join(tempfile.gettempdir(), 'test-project'),
             backend_configuration=BackendConfiguration(
-                built_artifacts_path='/tmp/test-project/dist', runtime='nodejs18.x', port=3000
+                built_artifacts_path=os.path.join(tempfile.gettempdir(), 'test-project/dist'),
+                runtime='nodejs18.x',
+                port=3000,
             ),
         )
 
@@ -269,9 +293,11 @@ class TestDeployWebapp:
         request = DeployWebAppRequest(
             deployment_type='backend',
             project_name='test-project',
-            project_root='/tmp/test-project',
+            project_root=os.path.join(tempfile.gettempdir(), 'test-project'),
             backend_configuration=BackendConfiguration(
-                built_artifacts_path='/tmp/test-project/dist', runtime='nodejs18.x', port=3000
+                built_artifacts_path=os.path.join(tempfile.gettempdir(), 'test-project/dist'),
+                runtime='nodejs18.x',
+                port=3000,
             ),
         )
 

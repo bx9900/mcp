@@ -11,7 +11,9 @@
 """Tests for the AWS Lambda MCP Server."""
 
 import awslabs.aws_serverless_mcp_server.server
+import os
 import pytest
+import tempfile
 from awslabs.aws_serverless_mcp_server.models import (
     GetIaCGuidanceRequest,
     SamBuildRequest,
@@ -55,7 +57,10 @@ class TestSamBuildTool:
 
             # Call the function
             result = await sam_build_tool(
-                ctx, SamBuildRequest(project_directory='/tmp/test-project')
+                ctx,
+                SamBuildRequest(
+                    project_directory=os.path.join(tempfile.gettempdir(), 'test-project')
+                ),
             )
 
             # Verify the result
@@ -64,7 +69,7 @@ class TestSamBuildTool:
             # Verify sam_build was called with the correct arguments
             mock_sam_build.assert_called_once()
             args = mock_sam_build.call_args[0][0]
-            assert args.project_directory == '/tmp/test-project'
+            assert args.project_directory == os.path.join(tempfile.gettempdir(), 'test-project')
 
 
 class TestSamInitTool:
@@ -87,7 +92,7 @@ class TestSamInitTool:
                 SamInitRequest(
                     project_name='test-project',
                     runtime='nodejs18.x',
-                    project_directory='/tmp/test-project',
+                    project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
                     dependency_manager='npm',
                 ),
             )
@@ -100,7 +105,7 @@ class TestSamInitTool:
             args = mock_sam_init.call_args[0][0]
             assert args.project_name == 'test-project'
             assert args.runtime == 'nodejs18.x'
-            assert args.project_directory == '/tmp/test-project'
+            assert args.project_directory == os.path.join(tempfile.gettempdir(), 'test-project')
             assert args.dependency_manager == 'npm'
 
 
@@ -123,7 +128,8 @@ class TestSamDeployTool:
             result = await sam_deploy_tool(
                 ctx,
                 SamDeployRequest(
-                    application_name='test-app', project_directory='/tmp/test-project'
+                    application_name='test-app',
+                    project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
                 ),
             )
 
@@ -134,7 +140,7 @@ class TestSamDeployTool:
             mock_sam_deploy.assert_called_once()
             args = mock_sam_deploy.call_args[0][0]
             assert args.application_name == 'test-app'
-            assert args.project_directory == '/tmp/test-project'
+            assert args.project_directory == os.path.join(tempfile.gettempdir(), 'test-project')
 
 
 class TestGetIaCGuidanceTool:

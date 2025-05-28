@@ -218,9 +218,10 @@ async def list_deployments(
 
     Args:
         limit: Maximum number of deployments to return
-        sort_by: Field to sort by
-        sort_order: Sort order ('asc' or 'desc')
-        filter_status: Status to filter deployments by
+        sort_by: Field to sort by (defaults to 'timestamp')
+        sort_order: Sort order ('asc' or 'desc', defaults to 'desc')
+        filter_status: Optional status to filter deployments by
+
     Returns:
         List[Dict]: List of deployment status information
     """
@@ -248,59 +249,6 @@ async def list_deployments(
         deployments.sort(key=lambda x: x.get(sort_by, ''), reverse=reverse)
         if limit:
             deployments = deployments[:limit]
-        return deployments
-    except Exception as e:
-        logger.error(f'Failed to list deployments: {str(e)}')
-        raise
-
-        # Create directory if it doesn't exist
-        os.makedirs(DEPLOYMENT_METADATA_DIR, exist_ok=True)
-
-        # Get all metadata files
-        try:
-            files = os.listdir(DEPLOYMENT_METADATA_DIR)
-        except Exception as e:
-            logger.error(f'Error reading deployment directory: {str(e)}')
-            return []
-
-        # Filter to only include metadata files
-        metadata_files = [f for f in files if f.endswith('.json')]
-
-        logger.info(f'Found {len(metadata_files)} deployment metadata files')
-
-        # Process deployments
-        deployments = []
-
-        # Process files in batches to avoid overwhelming the system
-        batch_size = 5
-        for i in range(0, len(metadata_files), batch_size):
-            batch = metadata_files[i : i + batch_size]
-            batch_results = []
-
-            for file in batch:
-                try:
-                    project_name = os.path.splitext(file)[0]
-                    status = await get_deployment_status(project_name)
-                    if status:
-                        batch_results.append(status)
-                except Exception as e:
-                    logger.error(f'Error processing deployment {file}: {str(e)}')
-
-            deployments.extend(batch_results)
-
-            # Apply limit if specified
-            if limit and len(deployments) >= limit:
-                deployments = deployments[:limit]
-                break
-
-        # Filter by status if specified
-        if filter_status:
-            deployments = [d for d in deployments if d.get('status') == filter_status]
-
-        # Sort deployments
-        reverse = sort_order.lower() == 'desc'
-        deployments.sort(key=lambda x: x.get(sort_by, ''), reverse=reverse)
-
         return deployments
     except Exception as e:
         logger.error(f'Failed to list deployments: {str(e)}')

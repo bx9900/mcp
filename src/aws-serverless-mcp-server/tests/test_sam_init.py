@@ -10,8 +10,10 @@
 # and limitations under the License.
 """Tests for the sam_init module."""
 
+import os
 import pytest
 import subprocess
+import tempfile
 from awslabs.aws_serverless_mcp_server.models import SamInitRequest
 from awslabs.aws_serverless_mcp_server.tools.sam.sam_init import sam_init
 from unittest.mock import MagicMock, patch
@@ -27,7 +29,7 @@ class TestSamInit:
         request = SamInitRequest(
             project_name='test-project',
             runtime='nodejs18.x',
-            project_directory='/tmp/test-project',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             dependency_manager='npm',
         )
 
@@ -63,7 +65,7 @@ class TestSamInit:
             assert '--dependency-manager' in cmd
             assert 'npm' in cmd
             assert '--output-dir' in cmd
-            assert '/tmp/test-project' in cmd
+            assert os.path.join(tempfile.gettempdir(), 'test-project') in cmd
             assert '--no-interactive' in cmd
 
     @pytest.mark.asyncio
@@ -73,7 +75,7 @@ class TestSamInit:
         request = SamInitRequest(
             project_name='test-project',
             runtime='python3.9',
-            project_directory='/tmp/test-project',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             dependency_manager='pip',
             architecture='arm64',
             application_template='hello-world',
@@ -120,7 +122,7 @@ class TestSamInit:
         request = SamInitRequest(
             project_name='test-project',
             runtime='nodejs18.x',
-            project_directory='/tmp/test-project',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             dependency_manager='npm',
         )
 
@@ -145,7 +147,7 @@ class TestSamInit:
         request = SamInitRequest(
             project_name='test-project',
             runtime='nodejs18.x',
-            project_directory='/tmp/test-project',
+            project_directory=os.path.join(tempfile.gettempdir(), 'test-project'),
             dependency_manager='npm',
         )
 
