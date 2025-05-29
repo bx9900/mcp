@@ -41,6 +41,7 @@ A suite of specialized MCP servers that help you get the most out of AWS, wherev
     - [Amazon Neptune MCP Server](#amazon-neptune-mcp-server)
     - [Amazon DocumentDB MCP Server](#amazon-documentdb-mcp-server)
     - [Amazon EKS MCP Server](#amazon-eks-mcp-server)
+    - [AWS Serverless MCP Server](#aws-serverless-mcp-server)
     - [Use Cases for the Servers](#use-cases-for-the-servers)
   - [Installation and Setup](#installation-and-setup)
     - [Running MCP servers in containers](#running-mcp-servers-in-containers)
