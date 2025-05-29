@@ -16,6 +16,7 @@
 Handles uploading frontend assets to S3 buckets.
 """
 
+import mimetypes
 import os
 from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
 from awslabs.aws_serverless_mcp_server.utils.aws_client_helper import get_aws_client
@@ -82,7 +83,11 @@ async def upload_to_s3(source_path: str, bucket_name: str, region: Optional[str]
 
     def upload_file(file_path, s3_key):
         try:
-            s3_client.upload_file(file_path, bucket_name, s3_key)
+            mime_type, _ = mimetypes.guess_type(s3_key)
+            content_type = mime_type or 'application/octet-stream'
+            s3_client.upload_file(
+                file_path, bucket_name, s3_key, ExtraArgs={'ContentType': content_type}
+            )
             logger.info(f'Uploaded {file_path} to s3://{bucket_name}/{s3_key}')
         except (BotoCoreError, ClientError) as e:
             logger.error(f'Failed to upload {file_path} to S3: {str(e)}')

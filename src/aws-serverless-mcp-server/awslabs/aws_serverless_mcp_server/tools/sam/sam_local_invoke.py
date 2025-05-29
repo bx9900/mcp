@@ -109,6 +109,7 @@ async def handle_sam_local_invoke(request: SamLocalInvokeRequest) -> Dict[str, A
             return {
                 'success': True,
                 'message': f"Successfully invoked resource '{resource_name}' locally.",
+                'logs': stderr.decode(),
                 'function_output': function_output,
             }
         finally:
