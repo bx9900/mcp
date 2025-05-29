@@ -1,6 +1,0 @@
-{
-    "python.defaultInterpreterPath": "/Users/brandoxu/Documents/mcp/.venv/bin/python",
-    "python.analysis.extraPaths": [
-        "${workspaceFolder}"
-    ]
-}
