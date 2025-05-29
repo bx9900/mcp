@@ -49,8 +49,8 @@ Add the following code to your MCP client configuration. The Serverless MCP serv
       "command": "uvx",
       "args": [
         "awslabs.aws_serverless_mcp_server@latest",
-        "--allow-write", // Enables write operations
-        "--allow-sensitive-data-access" // Enables tools that return logs for AWS resources
+        "--allow-write",
+        "--allow-sensitive-data-access"
       ],
       "env": {
           "AWS_PROFILE": "your-aws-profile",
@@ -73,7 +73,7 @@ Add the following code to your MCP client configuration. The Serverless MCP serv
         "args": ["awslabs.aws-serverless-mcp-server@latest"],
         "env": {
           "AWS_ACCESS_KEY_ID": "your-temporary-access-key",
-          "AWS_SECRET_ACCESS_KEY": "your-temporary-secret-key", # pragma: allowlist secret
+          "AWS_SECRET_ACCESS_KEY": "your-temporary-secret-key",
           "AWS_SESSION_TOKEN": "your-session-token",
           "AWS_REGION": "us-east-1"
         },
