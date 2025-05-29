@@ -37,7 +37,7 @@ class TestConfigureDomain:
         mock_cloudfront_client = MagicMock()
         mock_route53_client = MagicMock()
 
-        mock_session.client.side_effect = lambda service: {
+        mock_session.client.side_effect = lambda service, *args, **kwargs: {
             'acm': mock_acm_client,
             'cloudfront': mock_cloudfront_client,
             'route53': mock_route53_client,
@@ -226,7 +226,7 @@ class TestConfigureDomain:
         mock_cloudfront_client = MagicMock()
         mock_route53_client = MagicMock()
 
-        mock_session.client.side_effect = lambda service: {
+        mock_session.client.side_effect = lambda service, *args, **kwargs: {
             'acm': mock_acm_client,
             'cloudfront': mock_cloudfront_client,
             'route53': mock_route53_client,
@@ -376,7 +376,7 @@ class TestConfigureDomain:
         mock_acm_client = MagicMock()
         mock_cloudfront_client = MagicMock()
 
-        mock_session.client.side_effect = lambda service: {
+        mock_session.client.side_effect = lambda service, *args, **kwargs: {
             'acm': mock_acm_client,
             'cloudfront': mock_cloudfront_client,
             'route53': MagicMock(),

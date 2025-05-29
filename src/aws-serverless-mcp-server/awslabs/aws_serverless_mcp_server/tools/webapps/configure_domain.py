@@ -48,9 +48,9 @@ async def configure_domain(request: ConfigureDomainRequest) -> Dict[str, Any]:
         # Initialize AWS clients
         boto_config = Config(user_agent='awslabs/mcp/aws-serverless-mcp-server/0.1.0')
         session = boto3.Session(region_name=request.region) if request.region else boto3.Session()
-        acm_client = session.client('acm', boto_config)
-        cloudfront_client = session.client('cloudfront', boto_config)
-        route53_client = session.client('route53', boto_config)
+        acm_client = session.client('acm', config=boto_config)
+        cloudfront_client = session.client('cloudfront', config=boto_config)
+        route53_client = session.client('route53', config=boto_config)
 
         # Step 1: Create or find ACM certificate
         certificate_arn = None
