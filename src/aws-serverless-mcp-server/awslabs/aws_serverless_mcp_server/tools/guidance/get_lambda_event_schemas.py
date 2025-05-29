@@ -14,7 +14,7 @@
 import base64
 from awslabs.aws_serverless_mcp_server.models import GetLambdaEventSchemasRequest
 from awslabs.aws_serverless_mcp_server.utils.github import fetch_github_content
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from loguru import logger
 from typing import Any, Dict
 
 

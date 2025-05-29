@@ -17,9 +17,7 @@ Handles the deployment of web applications to AWS serverless infrastructure.
 """
 
 import asyncio
-import boto3
 import os
-import tempfile
 from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
 from awslabs.aws_serverless_mcp_server.template.renderer import render_template
 from awslabs.aws_serverless_mcp_server.tools.webapps.utils.frontend_uploader import (
@@ -29,6 +27,7 @@ from awslabs.aws_serverless_mcp_server.tools.webapps.utils.startup_script_genera
     EntryPointNotFoundError,
     generate_startup_script,
 )
+from awslabs.aws_serverless_mcp_server.utils.aws_client_helper import get_aws_client
 from awslabs.aws_serverless_mcp_server.utils.deployment_manager import (
     DeploymentStatus,
     get_deployment_status,
@@ -36,18 +35,11 @@ from awslabs.aws_serverless_mcp_server.utils.deployment_manager import (
     store_deployment_error,
     store_deployment_metadata,
 )
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from awslabs.aws_serverless_mcp_server.utils.process import run_command
 from botocore.exceptions import ClientError
 from datetime import datetime
+from loguru import logger
 from typing import Any, Dict, Optional
-
-
-# Define the directory where deployment status files will be stored
-DEPLOYMENT_STATUS_DIR = os.path.join(tempfile.gettempdir(), 'serverless-web-mcp-deployments')
-
-# Ensure the directory exists
-os.makedirs(DEPLOYMENT_STATUS_DIR, exist_ok=True)
 
 
 async def deploy_application(request: DeployWebAppRequest) -> Dict[str, Any]:
@@ -336,8 +328,7 @@ async def get_stack_outputs(stack_name: str, region: Optional[str] = None) -> Di
     try:
 
         def fetch_outputs():
-            session = boto3.Session(region_name=region) if region else boto3.Session()
-            cfn = session.client('cloudformation')
+            cfn = get_aws_client('cloudformation', region)
             try:
                 response = cfn.describe_stacks(StackName=stack_name)
                 stacks = response.get('Stacks', [])

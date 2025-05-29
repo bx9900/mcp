@@ -13,7 +13,7 @@
 
 import json
 import requests
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from loguru import logger
 from typing import Any, Dict, Optional
 
 

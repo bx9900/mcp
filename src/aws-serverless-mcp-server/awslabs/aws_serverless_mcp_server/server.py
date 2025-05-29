@@ -14,7 +14,6 @@
 """Serverless MCP Server implementation."""
 
 import argparse
-import boto3
 import os
 import sys
 
@@ -79,20 +78,16 @@ from awslabs.aws_serverless_mcp_server.tools.webapps.update_webapp_frontend impo
 from awslabs.aws_serverless_mcp_server.tools.webapps.webapp_deployment_help import (
     webapp_deployment_help,
 )
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.aws_client_helper import get_aws_client
+from awslabs.aws_serverless_mcp_server.utils.const import AWS_REGION, DEPLOYMENT_STATUS_DIR
+from loguru import logger
 from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
 from typing import Any, Dict, List, Literal, Optional
 
 
-AWS_PROFILE = os.environ.get('AWS_PROFILE', 'default')
-logger.info(f'AWS_PROFILE: {AWS_PROFILE}')
-
-AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
-logger.info(f'AWS_REGION: {AWS_REGION}')
-
 # Initialize boto3 client
-schemas_client = boto3.client('schemas', region_name=AWS_REGION)
+schemas_client = get_aws_client('schemas', AWS_REGION)
 
 
 allow_sensitive_data_access = False
@@ -102,10 +97,12 @@ mcp = FastMCP(
     'awslabs.aws-serverless-mcp-server',
     instructions="""AWS Serverless MCP
 
-    This is an Model Context Protocl (MCP) server that guides AI coding assistants through building
-    and deploying serverless applications on AWS by providing comprehensive knowledge of serverless patterns,
-    best practices, and AWS services. This server guides coding assistants through the entire application development
-    lifecycle, from initial design to deployment.
+    The AWS Serverless Model Context Protocol (MCP) Server is an open-source tool that combines
+    AI assistance with serverless expertise to streamline how developers build serverless applications.
+    It provides contextual guidance specific to serverless development, helping developers make informed
+    decisions about architecture, implementation, and deployment throughout the entire application development
+    lifecycle. With AWS Serverless MCP, developers can build reliable, efficient, and production-ready serverless
+    applications with confidence.
 
     ## Features
     1. Serverless Application Lifecycle
@@ -122,13 +119,17 @@ mcp = FastMCP(
     - Provides sample SAM templates for different serverless application types from [Serverless Land](https://serverlessland.com/)
     - Provides schema types for different Lambda event sources and runtimes
 
+    ## Usage Notes
+    - By default, the server runs in read-only mode. Use the `--allow-write` flag to enable write operations and public resource creation.
+    - Access to sensitive data (Lambda function and API GW logs) requires the `--allow-sensitive-data-access` flag.
+
     ## Prerequisites
     1. Have an AWS account
     2. Configure AWS CLI with your credentials and profile. Set AWS_PROFILE environment variable if not using default
     3. Set AWS_REGION environment variable if not using default
     4. Install AWS CLI and SAM CLI
     """,
-    dependencies=['pydantic', 'boto3'],
+    dependencies=['pydantic', 'boto3', 'loguru'],
 )
 
 
@@ -1074,7 +1075,7 @@ async def get_serverless_templates_tool(
     ctx: Context,
     template_type: str = Field(description='Template type (e.g., API, ETL, Web)'),
     runtime: Optional[str] = Field(
-        default=None, description='Lambda runtime (e.g., nodejs18.x, python3.9)'
+        default=None, description='Lambda runtime (e.g., nodejs22.x, python3.13)'
     ),
 ) -> Dict[str, Any]:
     """Asynchronously retrieves example SAM templates from the Serverless Land GitHub repository.
@@ -1082,7 +1083,7 @@ async def get_serverless_templates_tool(
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
         template_type (str): Template type (e.g., API, ETL, Web).
-        runtime (Optional[str], optional): Lambda runtime (e.g., nodejs18.x, python3.9). Defaults to None.
+        runtime (Optional[str], optional): Lambda runtime (e.g., nodejs22.x, python3.13). Defaults to None.
 
     Returns:
         Dict[str, Any]: A dictionary containing the serverless templates.
@@ -1271,9 +1272,11 @@ def main() -> int:
     Returns:
         int: Exit code (0 for success, non-zero for failure)
     """
+    os.makedirs(DEPLOYMENT_STATUS_DIR, exist_ok=True)
+    logger.remove()
+    logger.add(sys.stderr, level=os.getenv('FASTMCP_LOG_LEVEL', 'WARNING'))
+
     parser = argparse.ArgumentParser(description='AWS Serverless MCP Server')
-    parser.add_argument('--log-level', help='Log level (info, debug, error)')
-    parser.add_argument('--log-output', help='Absolute file path where logs are written')
     parser.add_argument(
         '--allow-write', action='store_true', help='Enables MCP tools that make write operations'
     )
@@ -1289,15 +1292,6 @@ def main() -> int:
     global allow_write
     allow_sensitive_data_access = True if args.allow_sensitive_data_access else False
     allow_write = True if args.allow_write else False
-
-    if args.log_level:
-        from awslabs.aws_serverless_mcp_server.utils.logger import set_log_level
-
-        set_log_level(level=args.log_level)
-    if args.log_output:
-        from awslabs.aws_serverless_mcp_server.utils.logger import set_log_directory
-
-        set_log_directory(directory=args.log_output)
 
     try:
         mcp.run()

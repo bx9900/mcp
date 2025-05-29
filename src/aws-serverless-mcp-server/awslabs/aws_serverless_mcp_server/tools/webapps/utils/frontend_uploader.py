@@ -16,11 +16,11 @@
 Handles uploading frontend assets to S3 buckets.
 """
 
-import boto3
 import os
 from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.aws_client_helper import get_aws_client
 from botocore.exceptions import BotoCoreError, ClientError
+from loguru import logger
 from typing import Any, Dict, Optional
 
 
@@ -78,8 +78,7 @@ async def upload_to_s3(source_path: str, bucket_name: str, region: Optional[str]
         Exception: If upload fails
     """
     logger.info(f'Starting S3 upload from {source_path} to bucket {bucket_name} using boto3')
-    session = boto3.Session(region_name=region) if region else boto3.Session()
-    s3_client = session.client('s3')
+    s3_client = get_aws_client('s3', region)
 
     def upload_file(file_path, s3_key):
         try:

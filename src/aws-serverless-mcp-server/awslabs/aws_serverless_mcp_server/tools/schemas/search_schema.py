@@ -1,7 +1,7 @@
 """Implementation of the search_schema tool."""
 
-from ...utils.logger import logger
 from botocore.client import BaseClient
+from loguru import logger
 from typing import Dict, Optional
 
 

@@ -19,13 +19,13 @@ Provides detailed information about deployments by fetching CloudFormation stack
 
 import json
 import os
-import tempfile
 from awslabs.aws_serverless_mcp_server.utils.cloudformation import (
     get_stack_info,
     map_cloudformation_status,
 )
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.const import DEPLOYMENT_STATUS_DIR
 from datetime import datetime
+from loguru import logger
 from typing import Any, Dict, List, Optional
 
 
@@ -36,15 +36,6 @@ class DeploymentStatus:
     DEPLOYED = 'DEPLOYED'
     FAILED = 'FAILED'
     NOT_FOUND = 'NOT_FOUND'
-
-
-# Define the directory where deployment metadata files will be stored
-DEPLOYMENT_METADATA_DIR = os.path.join(
-    tempfile.gettempdir(), 'aws-serverless-web-mcp-server-deployments'
-)
-
-# Ensure the directory exists
-os.makedirs(DEPLOYMENT_METADATA_DIR, exist_ok=True)
 
 
 async def initialize_deployment_status(
@@ -58,7 +49,7 @@ async def initialize_deployment_status(
         framework: Framework used for the deployment
         region: AWS region for the deployment (optional)
     """
-    metadata_file = os.path.join(DEPLOYMENT_METADATA_DIR, f'{project_name}.json')
+    metadata_file = os.path.join(DEPLOYMENT_STATUS_DIR, f'{project_name}.json')
 
     try:
         # Create the metadata file with minimal information
@@ -87,7 +78,7 @@ async def store_deployment_metadata(project_name: str, metadata: Dict[str, Any])
         project_name: Name of the project
         metadata: Additional metadata to store
     """
-    metadata_file = os.path.join(DEPLOYMENT_METADATA_DIR, f'{project_name}.json')
+    metadata_file = os.path.join(DEPLOYMENT_STATUS_DIR, f'{project_name}.json')
 
     try:
         # Read existing metadata
@@ -142,7 +133,7 @@ async def get_deployment_status(project_name: str) -> Dict[str, Any]:
     Returns:
         Dict: Deployment status information
     """
-    metadata_file = os.path.join(DEPLOYMENT_METADATA_DIR, f'{project_name}.json')
+    metadata_file = os.path.join(DEPLOYMENT_STATUS_DIR, f'{project_name}.json')
 
     try:
         # Check if metadata file exists
@@ -227,10 +218,9 @@ async def list_deployments(
         List[Dict]: List of deployment status information
     """
     try:
-        logger.info(f'Listing deployments from directory: {DEPLOYMENT_METADATA_DIR}')
-        os.makedirs(DEPLOYMENT_METADATA_DIR, exist_ok=True)
+        logger.info(f'Listing deployments from directory: {DEPLOYMENT_STATUS_DIR}')
         try:
-            files = os.listdir(DEPLOYMENT_METADATA_DIR)
+            files = os.listdir(DEPLOYMENT_STATUS_DIR)
         except Exception as e:
             logger.error(f'Error reading deployment directory: {str(e)}')
             return []

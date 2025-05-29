@@ -13,10 +13,10 @@
 
 """Get metrics tool for AWS Serverless MCP Server."""
 
-import boto3
 import datetime
 from awslabs.aws_serverless_mcp_server.models import GetMetricsRequest
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.aws_client_helper import get_aws_client
+from loguru import logger
 from typing import Any, Dict
 
 
@@ -60,8 +60,7 @@ async def get_metrics(request: GetMetricsRequest) -> Dict[str, Any]:
         logger.info(f'Getting metrics for project {project_name} in region {region}')
 
         # Initialize AWS clients
-        session = boto3.Session(region_name=region) if region else boto3.Session()
-        cloudwatch_client = session.client('cloudwatch')
+        cloudwatch_client = get_aws_client('cloudwatch', region)
 
         # Calculate time range for metrics
         end_dt = None

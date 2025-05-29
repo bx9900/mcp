@@ -12,7 +12,7 @@
 #
 
 import asyncio
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from loguru import logger
 
 
 async def run_command(cmd_list, cwd=None):

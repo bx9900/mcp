@@ -1,6 +1,6 @@
 import json
 from awslabs.aws_serverless_mcp_server.utils.deployment_manager import list_deployments
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from loguru import logger
 from typing import Any, Dict
 
 

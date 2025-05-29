@@ -34,8 +34,8 @@ def handle_template_details(template_name: str) -> Dict[str, Any]:
                 'runtime': {
                     'type': 'string',
                     'description': 'Lambda runtime',
-                    'default': 'nodejs18.x',
-                    'options': ['nodejs18.x', 'nodejs16.x', 'python3.9', 'python3.8'],
+                    'default': 'nodejs22.x',
+                    'options': ['nodejs22.x', 'nodejs20.x', 'python3.13', 'python3.12'],
                 },
                 'memorySize': {
                     'type': 'number',
@@ -60,7 +60,7 @@ def handle_template_details(template_name: str) -> Dict[str, Any]:
                     'projectName': 'my-api',
                     'region': 'us-east-1',
                     'backendConfiguration': {
-                        'runtime': 'nodejs18.x',
+                        'runtime': 'nodejs22.x',
                         'entryPoint': 'app.js',
                         'memorySize': 512,
                         'timeout': 30,
@@ -116,8 +116,8 @@ def handle_template_details(template_name: str) -> Dict[str, Any]:
                     'runtime': {
                         'type': 'string',
                         'description': 'Lambda runtime',
-                        'default': 'nodejs18.x',
-                        'options': ['nodejs18.x', 'nodejs16.x', 'python3.9', 'python3.8'],
+                        'default': 'nodejs22.x',
+                        'options': ['nodejs22.x', 'nodejs20.x', 'python3.13', 'python3.12'],
                     },
                     'memorySize': {
                         'type': 'number',
@@ -144,7 +144,7 @@ def handle_template_details(template_name: str) -> Dict[str, Any]:
                     'projectName': 'my-fullstack-app',
                     'region': 'us-east-1',
                     'backendConfiguration': {
-                        'runtime': 'nodejs18.x',
+                        'runtime': 'nodejs22.x',
                         'entryPoint': 'api/app.js',
                         'memorySize': 512,
                         'timeout': 30,

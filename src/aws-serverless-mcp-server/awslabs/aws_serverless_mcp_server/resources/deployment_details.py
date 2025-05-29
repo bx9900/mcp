@@ -7,7 +7,7 @@ from awslabs.aws_serverless_mcp_server.utils.deployment_manager import (
     DeploymentStatus,
     get_deployment_status,
 )
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from loguru import logger
 from typing import Any, Dict
 
 

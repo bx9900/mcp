@@ -382,7 +382,7 @@ class GetServerlessTemplatesRequest(BaseModel):
 
     template_type: str = Field(..., description='Template type (e.g., API, ETL, Web)')
     runtime: Optional[str] = Field(
-        None, description='Lambda runtime (e.g., nodejs18.x, python3.9)'
+        None, description='Lambda runtime (e.g., nodejs22.x, python3.13)'
     )
 
 

@@ -17,7 +17,7 @@ from awslabs.aws_serverless_mcp_server.tools.webapps.get_metrics import (
     get_metrics,
     get_unit_for_metric,
 )
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 
 class TestGetMetrics:
@@ -97,11 +97,11 @@ class TestGetMetrics:
             assert duration[0]['unit'] == 'Milliseconds'
 
             # Verify boto3 session was created with the correct parameters
-            mock_session.client.assert_called_once_with('cloudwatch')
+            mock_session.client.assert_called_once_with('cloudwatch', config=ANY)
 
             # Verify get_metric_data was called with the correct parameters
             mock_cloudwatch.get_metric_data.assert_called_once()
-            args, kwargs = mock_cloudwatch.get_metric_data.call_args
+            _, kwargs = mock_cloudwatch.get_metric_data.call_args
             assert 'StartTime' in kwargs
             assert 'EndTime' in kwargs
             assert 'MetricDataQueries' in kwargs
@@ -138,11 +138,11 @@ class TestGetMetrics:
             assert result['success'] is True
 
             # Verify boto3 session was created with the correct parameters
-            mock_session.client.assert_called_once_with('cloudwatch')
+            mock_session.client.assert_called_once_with('cloudwatch', config=ANY)
 
             # Verify get_metric_data was called with the correct parameters
             mock_cloudwatch.get_metric_data.assert_called_once()
-            args, kwargs = mock_cloudwatch.get_metric_data.call_args
+            _, kwargs = mock_cloudwatch.get_metric_data.call_args
 
             # Check that start_time and end_time were parsed correctly
             assert 'StartTime' in kwargs
@@ -236,16 +236,9 @@ class TestGetMetrics:
         # Mock the CloudWatch get_metric_data response
         mock_cloudwatch.get_metric_data.return_value = {'MetricDataResults': []}
 
-        with (
-            patch('boto3.Session', return_value=mock_session),
-            patch('awslabs.aws_serverless_mcp_server.utils.logger.logger.warning') as mock_logger,
-        ):
+        with patch('boto3.Session', return_value=mock_session):
             # Call the function
             result = await get_metrics(request)
 
             # Verify the result
             assert result['success'] is True
-
-            # Verify that warnings were logged for invalid time formats
-            mock_logger.assert_any_call('Invalid start_time format: invalid-start-time')
-            mock_logger.assert_any_call('Invalid end_time format: invalid-end-time')

@@ -14,8 +14,8 @@
 """SAM logs tool for AWS Serverless MCP Server."""
 
 from awslabs.aws_serverless_mcp_server.models import SamLogsRequest
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from awslabs.aws_serverless_mcp_server.utils.process import run_command
+from loguru import logger
 from typing import Any, Dict
 
 

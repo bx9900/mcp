@@ -13,10 +13,9 @@
 
 """Configure domain tool for AWS Serverless MCP Server."""
 
-import boto3
 from awslabs.aws_serverless_mcp_server.models import ConfigureDomainRequest
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
-from botocore.config import Config
+from awslabs.aws_serverless_mcp_server.utils.aws_client_helper import get_aws_client
+from loguru import logger
 from typing import Any, Dict, List
 
 
@@ -46,11 +45,9 @@ async def configure_domain(request: ConfigureDomainRequest) -> Dict[str, Any]:
             raise ValueError('domain_name is required')
 
         # Initialize AWS clients
-        boto_config = Config(user_agent='awslabs/mcp/aws-serverless-mcp-server/0.1.0')
-        session = boto3.Session(region_name=request.region) if request.region else boto3.Session()
-        acm_client = session.client('acm', config=boto_config)
-        cloudfront_client = session.client('cloudfront', config=boto_config)
-        route53_client = session.client('route53', config=boto_config)
+        acm_client = get_aws_client('acm', request.region)
+        cloudfront_client = get_aws_client('cloudfront', region=request.region)
+        route53_client = get_aws_client('route53', request.region)
 
         # Step 1: Create or find ACM certificate
         certificate_arn = None

@@ -14,7 +14,7 @@
 """Deployment help tool for AWS Serverless MCP Server."""
 
 from awslabs.aws_serverless_mcp_server.models import WebappDeploymentHelpRequest
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from loguru import logger
 from typing import Any, Dict
 
 
@@ -74,7 +74,7 @@ async def webapp_deployment_help(request: WebappDeploymentHelpRequest) -> Dict[s
                     'project_root': '/path/to/project',
                     'backend_configuration': {
                         'built_artifacts_path': '/path/to/project/dist',
-                        'runtime': 'nodejs18.x',
+                        'runtime': 'nodejs22.x',
                         'port': 3000,
                         'startup_script': 'bootstrap',
                         'environment': {'NODE_ENV': 'production', 'DB_HOST': 'localhost'},
@@ -119,7 +119,7 @@ async def webapp_deployment_help(request: WebappDeploymentHelpRequest) -> Dict[s
                     'project_root': '/path/to/project',
                     'backend_configuration': {
                         'built_artifacts_path': '/path/to/project/backend/dist',
-                        'runtime': 'nodejs18.x',
+                        'runtime': 'nodejs22.x',
                         'port': 3000,
                         'startup_script': 'bootstrap',
                     },

@@ -12,8 +12,8 @@
 #
 
 from awslabs.aws_serverless_mcp_server.models import SamInitRequest
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from awslabs.aws_serverless_mcp_server.utils.process import run_command
+from loguru import logger
 from typing import Any, Dict
 
 

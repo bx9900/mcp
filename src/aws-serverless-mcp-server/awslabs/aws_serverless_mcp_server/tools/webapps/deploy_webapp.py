@@ -18,22 +18,15 @@ Handles deployment of web applications to AWS serverless infrastructure.
 
 import json
 import os
-import tempfile
 import threading
 from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
 from awslabs.aws_serverless_mcp_server.tools.webapps.utils.deploy_service import (
     DeploymentStatus,
     deploy_application,
 )
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.const import DEPLOYMENT_STATUS_DIR
+from loguru import logger
 from typing import Any, Dict
-
-
-# Define the directory where deployment status files will be stored
-DEPLOYMENT_STATUS_DIR = os.path.join(tempfile.gettempdir(), 'serverless-web-mcp-deployments')
-
-# Ensure the directory exists
-os.makedirs(DEPLOYMENT_STATUS_DIR, exist_ok=True)
 
 
 def check_dependencies_installed(built_artifacts_path: str, runtime: str) -> bool:
@@ -156,6 +149,8 @@ async def deploy_webapp(params: DeployWebAppRequest) -> Dict[str, Any]:
         Dict: Response to return to the user
     """
     try:
+        os.makedirs(DEPLOYMENT_STATUS_DIR, exist_ok=True)
+
         # Check if this is a destructive deployment type change
         destructive_check = await check_destructive_deployment_change(
             params.project_name, params.deployment_type

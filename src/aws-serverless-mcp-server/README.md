@@ -45,7 +45,7 @@ Add the following code to your MCP client configuration. The Serverless MCP serv
 ```json
 {
   "mcpServers": {
-    "awslabs.aws-serverless-mcp": {
+    "awslabs.aws-serverless-mcp-server": {
       "command": "uvx",
       "args": [
         "awslabs.aws_serverless_mcp_server@latest",
@@ -395,7 +395,7 @@ examples for building serverless applications with AWS Lambda and best practices
 
 **Parameters:**
 - `template_type` (required): Template type (e.g., API, ETL, Web)
-- `runtime`: Lambda runtime (e.g., nodejs18.x, python3.9)
+- `runtime`: Lambda runtime (e.g., nodejs22.x, python3.13)
 
 ### Schema Tools
 

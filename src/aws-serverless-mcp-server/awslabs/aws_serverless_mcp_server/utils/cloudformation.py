@@ -11,8 +11,8 @@
 # and limitations under the License.
 #
 
-import boto3
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.aws_client_helper import get_aws_client
+from loguru import logger
 from typing import Any, Dict, Optional
 
 
@@ -27,8 +27,7 @@ async def get_stack_info(stack_name: str, region: Optional[str] = None) -> Dict[
         Dict: Stack information including status, outputs, etc.
     """
     # Initialize CloudFormation client
-    session = boto3.Session(region_name=region) if region else boto3.Session()
-    cf_client = session.client('cloudformation')
+    cf_client = get_aws_client('cloudformation', region)
 
     try:
         # Get stack information

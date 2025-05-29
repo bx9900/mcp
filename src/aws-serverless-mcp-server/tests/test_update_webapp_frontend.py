@@ -279,7 +279,7 @@ class TestUpdateWebappFrontend:
         )
 
         mock_session = MagicMock()
-        mock_session.client.side_effect = lambda service: {
+        mock_session.client.side_effect = lambda service, config: {
             'cloudformation': mock_cfn_client,
         }.get(service, MagicMock())
 
@@ -311,7 +311,7 @@ class TestUpdateWebappFrontend:
         }
 
         mock_session = MagicMock()
-        mock_session.client.side_effect = lambda service: {
+        mock_session.client.side_effect = lambda service, config: {
             'cloudformation': mock_cfn_client,
         }.get(service, MagicMock())
 
@@ -344,7 +344,7 @@ class TestUpdateWebappFrontend:
         mock_cloudfront_client = MagicMock()
 
         mock_session = MagicMock()
-        mock_session.client.side_effect = lambda service: {
+        mock_session.client.side_effect = lambda service, config: {
             'cloudformation': mock_cfn_client,
             's3': mock_s3_client,
             'cloudfront': mock_cloudfront_client,
@@ -400,7 +400,7 @@ class TestUpdateWebappFrontend:
         mock_cloudfront_client = MagicMock()
 
         mock_session = MagicMock()
-        mock_session.client.side_effect = lambda service: {
+        mock_session.client.side_effect = lambda service, config: {
             'cloudformation': mock_cfn_client,
             's3': mock_s3_client,
             'cloudfront': mock_cloudfront_client,
@@ -466,7 +466,7 @@ class TestUpdateWebappFrontend:
         mock_cloudfront_client = MagicMock()
 
         mock_session = MagicMock()
-        mock_session.client.side_effect = lambda service: {
+        mock_session.client.side_effect = lambda service, config: {
             'cloudformation': mock_cfn_client,
             's3': mock_s3_client,
             'cloudfront': mock_cloudfront_client,
@@ -512,7 +512,7 @@ class TestUpdateWebappFrontend:
         mock_cloudfront_client = MagicMock()
 
         mock_session = MagicMock()
-        mock_session.client.side_effect = lambda service: {
+        mock_session.client.side_effect = lambda service, config: {
             'cloudformation': mock_cfn_client,
             's3': mock_s3_client,
             'cloudfront': mock_cloudfront_client,
@@ -553,7 +553,7 @@ class TestUpdateWebappFrontend:
         mock_cloudfront_client = MagicMock()
 
         mock_session = MagicMock()
-        mock_session.client.side_effect = lambda service: {
+        mock_session.client.side_effect = lambda service, config: {
             'cloudformation': mock_cfn_client,
             's3': mock_s3_client,
             'cloudfront': mock_cloudfront_client,
@@ -599,11 +599,11 @@ class TestUpdateWebappFrontend:
         mock_cloudfront_client = MagicMock()
 
         mock_session = MagicMock()
-        mock_session.client.side_effect = lambda service: {
+        mock_session.client.side_effect = lambda service, config: {
             'cloudformation': mock_cfn_client,
             's3': mock_s3_client,
             'cloudfront': mock_cloudfront_client,
-        }.get(service, MagicMock())
+        }[service]
 
         with (
             patch('os.path.exists', return_value=True),
@@ -615,7 +615,7 @@ class TestUpdateWebappFrontend:
             result = await update_webapp_frontend(request)
 
             # Verify boto3.Session was called without region
-            mock_session_constructor.assert_called_once_with()
+            assert mock_session_constructor.call_count == 3
 
             # Verify sync was called
             mock_sync.assert_called_once_with(mock_s3_client, '/dir/build', 'test-bucket')

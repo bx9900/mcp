@@ -4,8 +4,8 @@ Handles discovery and management of deployment templates.
 """
 
 import os
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from enum import Enum
+from loguru import logger
 from pathlib import Path
 from typing import List, Optional
 

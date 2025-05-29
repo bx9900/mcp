@@ -32,7 +32,7 @@ Templates are processed by the template system in `src/template/` and are not us
 To add support for new frameworks or deployment types:
 
 1. Create a new template or modify an existing one
-2. Update the template registry in `src/template/registry.ts`
-3. Add any necessary processing logic in `src/template/processor.ts`
+2. Update the template registry in `src/template/registry.py`
+3. Add any necessary processing logic in `src/template/renderer.py`
 
 For more detailed instructions on extending the template system, refer to the [Template System Documentation](../docs/template-system.md).

@@ -17,12 +17,12 @@ Handles updating frontend assets without redeploying the entire infrastructure.
 Uses boto3 instead of AWS CLI.
 """
 
-import boto3
 import datetime
 import mimetypes
 import os
 from awslabs.aws_serverless_mcp_server.models import UpdateFrontendRequest
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from awslabs.aws_serverless_mcp_server.utils.aws_client_helper import get_aws_client
+from loguru import logger
 from typing import Any, Dict, List, Optional
 
 
@@ -169,10 +169,9 @@ async def update_webapp_frontend(params: UpdateFrontendRequest) -> Dict[str, Any
             }
 
         # Initialize AWS clients
-        session = boto3.Session(region_name=region) if region else boto3.Session()
-        cfn_client = session.client('cloudformation')
-        s3_client = session.client('s3')
-        cloudfront_client = session.client('cloudfront')
+        cfn_client = get_aws_client('cloudformation', region)
+        s3_client = get_aws_client('s3', region)
+        cloudfront_client = get_aws_client('cloudfront', region)
 
         # Get the CloudFormation stack outputs to find the S3 bucket
         stack_name = project_name

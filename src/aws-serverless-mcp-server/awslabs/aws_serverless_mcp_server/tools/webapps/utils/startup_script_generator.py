@@ -19,7 +19,7 @@ to work with Lambda Web Adapter.
 
 import os
 import stat
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
+from loguru import logger
 from typing import Dict, Optional
 
 
@@ -53,7 +53,7 @@ async def generate_startup_script(
     """Generate a startup script based on runtime and entry point. This script starts up your web server so that beings listening for requests.
 
     Args:
-        runtime: Lambda runtime (e.g., nodejs22.x, python3.11)
+        runtime: Lambda runtime (e.g., nodejs22.x, python3.13)
         entry_point: Application entry point
         built_artifacts_path: Path to the built artifacts
         startup_script_name: Name of the startup script (default: 'bootstrap')

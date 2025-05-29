@@ -6,8 +6,8 @@ Handles rendering of templates for CloudFormation/SAM deployments.
 import os
 from .registry import DeploymentTypes, get_template_for_deployment
 from awslabs.aws_serverless_mcp_server.models import DeployWebAppRequest
-from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from loguru import logger
 
 
 def get_jinja_filters():

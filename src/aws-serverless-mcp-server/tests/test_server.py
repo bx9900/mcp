@@ -819,12 +819,6 @@ class TestMain:
         with (
             patch('argparse.ArgumentParser', return_value=mock_parser),
             patch('awslabs.aws_serverless_mcp_server.server.mcp.run') as mock_run,
-            patch(
-                'awslabs.aws_serverless_mcp_server.utils.logger.set_log_level'
-            ) as mock_set_log_level,
-            patch(
-                'awslabs.aws_serverless_mcp_server.utils.logger.set_log_directory'
-            ) as mock_set_log_directory,
         ):
             # Call the function
             result = main()
@@ -835,8 +829,6 @@ class TestMain:
             # Verify the mocks were called
             mock_parser.parse_args.assert_called_once()
             mock_run.assert_called_once()
-            mock_set_log_level.assert_called_once_with(level='debug')
-            mock_set_log_directory.assert_called_once_with(directory='/dir/logs')
 
             # Verify the global variables were set correctly
             assert awslabs.aws_serverless_mcp_server.server.allow_sensitive_data_access is True
@@ -860,9 +852,6 @@ class TestMain:
                 'awslabs.aws_serverless_mcp_server.server.mcp.run',
                 side_effect=Exception('Test error'),
             ),
-            patch(
-                'awslabs.aws_serverless_mcp_server.utils.logger.logger.error'
-            ) as mock_logger_error,
         ):
             # Call the function
             result = main()
@@ -872,8 +861,6 @@ class TestMain:
 
             # Verify the mocks were called
             mock_parser.parse_args.assert_called_once()
-            mock_logger_error.assert_called_once()
-            assert 'Test error' in mock_logger_error.call_args[0][0]
 
             # Verify the global variables were set correctly
             assert awslabs.aws_serverless_mcp_server.server.allow_sensitive_data_access is False

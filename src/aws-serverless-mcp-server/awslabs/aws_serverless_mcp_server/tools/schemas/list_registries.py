@@ -1,7 +1,7 @@
 """Implementation of the list_registries tool."""
 
-from ...utils.logger import logger
 from botocore.client import BaseClient
+from loguru import logger
 from typing import Dict, Optional
 
 
