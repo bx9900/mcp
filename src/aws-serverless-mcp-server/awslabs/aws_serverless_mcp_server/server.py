@@ -20,9 +20,11 @@ import sys
 
 # Import all model classes
 from awslabs.aws_serverless_mcp_server.models import (
+    BackendConfiguration,
     ConfigureDomainRequest,
     DeployServerlessAppHelpRequest,
     DeployWebAppRequest,
+    FrontendConfiguration,
     GetIaCGuidanceRequest,
     GetLambdaEventSchemasRequest,
     GetLambdaGuidanceRequest,
@@ -80,7 +82,7 @@ from awslabs.aws_serverless_mcp_server.tools.webapps.webapp_deployment_help impo
 from awslabs.aws_serverless_mcp_server.utils.logger import logger
 from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 
 AWS_PROFILE = os.environ.get('AWS_PROFILE', 'default')
@@ -201,16 +203,100 @@ async def deployment_details(project_name: str) -> Dict[str, Any]:
     You should have AWS SAM CLI installed and configured in your environment.
     """
 )
-async def sam_build_tool(ctx: Context, request: SamBuildRequest) -> dict[str, Any]:
+async def sam_build_tool(
+    ctx: Context,
+    project_directory: str = Field(
+        description='Absolute path to directory containing the SAM project (defaults to current directory)'
+    ),
+    template_file: Optional[str] = Field(
+        default=None, description='Absolute path to the template file (defaults to template.yaml)'
+    ),
+    base_dir: Optional[str] = Field(
+        default=None,
+        description="Resolve relative paths to function's source code with respect to this folder.\n            Use this option if you want to change how relative paths to source code folders are resolved.\n            By default, relative paths are resolved with respect to the AWS SAM template's location.",
+    ),
+    build_dir: Optional[str] = Field(
+        default=None,
+        description='The absolute path to a directory where the built artifacts are stored.\n            This directory and all of its content are removed with this option.',
+    ),
+    use_container: bool = Field(
+        default=False,
+        description='Use a container to build the function. Use this option if your function requires a specific runtime environmentor dependencies that are not available on the local machine. Docker must be installed.',
+    ),
+    no_use_container: bool = Field(
+        default=False,
+        description="Run build in local machine instead of Docker container.\n         You can specify this option multiple times. Each instance of this option takes a key-value pair,\n         where the key is the resource and environment variable, and the value is the environment variable's value.\n         For example: --container-env-var Function1.GITHUB_TOKEN=TOKEN1 --container-env-var Function2.GITHUB_TOKEN=TOKEN2.",
+    ),
+    container_env_vars: Optional[Dict[str, str]] = Field(
+        default=None, description='Environment variables to pass to the build container.'
+    ),
+    container_env_var_file: Optional[str] = Field(
+        default=None,
+        description='Absolute path to a JSON file containing container environment variables.\n            For more information about container environment variable files, see Container environment variable file.',
+    ),
+    build_image: Optional[str] = Field(
+        default=None,
+        description='The URI of the container image that you want to pull for the build. By default, AWS SAM pulls the\n            container image from Amazon ECR Public. Use this option to pull the image from another location.',
+    ),
+    debug: bool = Field(default=False, description='Turn on debug logging'),
+    manifest: Optional[str] = Field(
+        default=None,
+        description="Absolute path to a custom dependency manifest file (e.g., package.json) instead of the default.\n         For example: 'ParameterKey=KeyPairName, ParameterValue=MyKey ParameterKey=InstanceType, ParameterValue=t1.micro.",
+    ),
+    parameter_overrides: Optional[str] = Field(
+        default=None,
+        description="CloudFormation parameter overrides encoded as key-value pairs.\n        For example: 'ParameterKey=KeyPairName, ParameterValue=MyKey ParameterKey=InstanceType, ParameterValue=t1.micro'.",
+    ),
+    region: Optional[str] = Field(
+        default=None, description='AWS Region to deploy to (e.g., us-east-1)'
+    ),
+    save_params: bool = Field(
+        default=False, description='Save parameters to the SAM configuration file'
+    ),
+    profile: Optional[str] = Field(default=None, description='AWS profile to use'),
+) -> dict[str, Any]:
     """Asynchronously builds an AWS SAM project using the provided context and build request.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (SamBuildRequest): The build request containing parameters such as the project directory.
+        project_directory (str): Absolute path to directory containing the SAM project.
+        template_file (Optional[str], optional): Absolute path to the template file. Defaults to None.
+        base_dir (Optional[str], optional): Resolve relative paths to function's source code with respect to this folder. Defaults to None.
+        build_dir (Optional[str], optional): The absolute path to a directory where the built artifacts are stored. Defaults to None.
+        use_container (bool, optional): Use a container to build the function. Defaults to False.
+        no_use_container (bool, optional): Run build in local machine instead of Docker container. Defaults to False.
+        container_env_vars (Optional[Dict[str, str]], optional): Environment variables to pass to the build container. Defaults to None.
+        container_env_var_file (Optional[str], optional): Absolute path to a JSON file containing container environment variables. Defaults to None.
+        build_image (Optional[str], optional): The URI of the container image that you want to pull for the build. Defaults to None.
+        debug (bool, optional): Turn on debug logging. Defaults to False.
+        manifest (Optional[str], optional): Absolute path to a custom dependency manifest file. Defaults to None.
+        parameter_overrides (Optional[str], optional): CloudFormation parameter overrides encoded as key-value pairs. Defaults to None.
+        region (Optional[str], optional): AWS Region to deploy to. Defaults to None.
+        save_params (bool, optional): Save parameters to the SAM configuration file. Defaults to False.
+        profile (Optional[str], optional): AWS profile to use. Defaults to None.
 
     Returns:
         str: The output or result of the SAM build process.
     """
+    # Create the SamBuildRequest object from the individual parameters
+    request = SamBuildRequest(
+        project_directory=project_directory,
+        template_file=template_file,
+        base_dir=base_dir,
+        build_dir=build_dir,
+        use_container=use_container,
+        no_use_container=no_use_container,
+        container_env_vars=container_env_vars,
+        container_env_var_file=container_env_var_file,
+        build_image=build_image,
+        debug=debug,
+        manifest=manifest,
+        parameter_overrides=parameter_overrides,
+        region=region,
+        save_params=save_params,
+        profile=profile,
+    )
+
     await ctx.info(f'Building SAM project in {request.project_directory}')
     return await handle_sam_build(request)
 
@@ -225,16 +311,105 @@ async def sam_build_tool(ctx: Context, request: SamBuildRequest) -> dict[str, An
     You should have AWS SAM CLI installed and configured in your environment.
     """
 )
-async def sam_init_tool(ctx: Context, request: SamInitRequest) -> dict[str, Any]:
+async def sam_init_tool(
+    ctx: Context,
+    project_name: str = Field(description='Name of the SAM project to create'),
+    runtime: str = Field(description='Runtime environment for the Lambda function'),
+    project_directory: str = Field(
+        description='Absolute path to directory where the SAM application will be initialized'
+    ),
+    dependency_manager: str = Field(description='Dependency manager for the Lambda function'),
+    architecture: str = Field(
+        default='x86_64', description='Architecture for the Lambda function'
+    ),
+    package_type: str = Field(default='Zip', description='Package type for the Lambda function'),
+    application_template: str = Field(
+        default='hello-world',
+        description='Template for the SAM application, e.g., hello-world, quick-start, etc.\n            This parameter is required if location is not specified.',
+    ),
+    application_insights: Optional[bool] = Field(
+        default=False, description='Activate Amazon CloudWatch Application Insights monitoring'
+    ),
+    no_application_insights: Optional[bool] = Field(
+        default=False, description='Deactivate Amazon CloudWatch Application Insights monitoring'
+    ),
+    base_image: Optional[str] = Field(
+        default=None, description='Base image for the application when package type is Image'
+    ),
+    config_env: Optional[str] = Field(
+        default=None,
+        description='Environment name specifying default parameter values in the configuration file',
+    ),
+    config_file: Optional[str] = Field(
+        default=None,
+        description='Absolute path to configuration file containing default parameter values',
+    ),
+    debug: Optional[bool] = Field(default=False, description='Turn on debug logging'),
+    extra_content: Optional[str] = Field(
+        default=None, description="Override custom parameters in the template's cookiecutter.json"
+    ),
+    location: Optional[str] = Field(
+        default=None,
+        description='Template or application location (Git, HTTP/HTTPS, zip file path).\n            This parameter is required if app_template is not specified.',
+    ),
+    save_params: Optional[bool] = Field(
+        default=False, description='Save parameters to the SAM configuration file'
+    ),
+    tracing: Optional[bool] = Field(
+        default=False, description='Activate AWS X-Ray tracing for Lambda functions'
+    ),
+    no_tracing: Optional[bool] = Field(
+        default=False, description='Deactivate AWS X-Ray tracing for Lambda functions'
+    ),
+) -> dict[str, Any]:
     """Asynchronously initializes a new AWS SAM project with the provided configuration.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (SamInitRequest): The initialization request containing parameters such as project name and directory.
+        project_name (str): Name of the SAM project to create.
+        runtime (str): Runtime environment for the Lambda function.
+        project_directory (str): Absolute path to directory where the SAM application will be initialized.
+        dependency_manager (str): Dependency manager for the Lambda function.
+        architecture (str, optional): Architecture for the Lambda function. Defaults to "x86_64".
+        package_type (str, optional): Package type for the Lambda function. Defaults to "Zip".
+        application_template (str, optional): Template for the SAM application. Defaults to "hello-world".
+        application_insights (Optional[bool], optional): Activate Amazon CloudWatch Application Insights monitoring. Defaults to False.
+        no_application_insights (Optional[bool], optional): Deactivate Amazon CloudWatch Application Insights monitoring. Defaults to False.
+        base_image (Optional[str], optional): Base image for the application when package type is Image. Defaults to None.
+        config_env (Optional[str], optional): Environment name specifying default parameter values. Defaults to None.
+        config_file (Optional[str], optional): Absolute path to configuration file. Defaults to None.
+        debug (Optional[bool], optional): Turn on debug logging. Defaults to False.
+        extra_content (Optional[str], optional): Override custom parameters in the template's cookiecutter.json. Defaults to None.
+        location (Optional[str], optional): Template or application location. Defaults to None.
+        save_params (Optional[bool], optional): Save parameters to the SAM configuration file. Defaults to False.
+        tracing (Optional[bool], optional): Activate AWS X-Ray tracing for Lambda functions. Defaults to False.
+        no_tracing (Optional[bool], optional): Deactivate AWS X-Ray tracing for Lambda functions. Defaults to False.
 
     Returns:
         str: The output or result of the SAM initialization process.
     """
+    # Create the SamInitRequest object from the individual parameters
+    request = SamInitRequest(
+        project_name=project_name,
+        runtime=runtime,
+        project_directory=project_directory,
+        dependency_manager=dependency_manager,
+        architecture=architecture,
+        package_type=package_type,
+        application_template=application_template,
+        application_insights=application_insights,
+        no_application_insights=no_application_insights,
+        base_image=base_image,
+        config_env=config_env,
+        config_file=config_file,
+        debug=debug,
+        extra_content=extra_content,
+        location=location,
+        save_params=save_params,
+        tracing=tracing,
+        no_tracing=no_tracing,
+    )
+
     await ctx.info(
         f"Initializing SAM project '{request.project_name}' in {request.project_directory}"
     )
@@ -249,12 +424,62 @@ async def sam_init_tool(ctx: Context, request: SamInitRequest) -> dict[str, Any]
     You should have AWS SAM CLI installed and configured in your environment.
     """
 )
-async def sam_deploy_tool(ctx: Context, request: SamDeployRequest) -> Dict[str, Any]:
+async def sam_deploy_tool(
+    ctx: Context,
+    application_name: str = Field(description='Name of the application to be deployed'),
+    project_directory: str = Field(
+        description='Absolute path to directory containing the SAM project (defaults to current directory)'
+    ),
+    template_file: Optional[str] = Field(
+        default=None, description='Absolute path to the template file (defaults to template.yaml)'
+    ),
+    s3_bucket: Optional[str] = Field(default=None, description='S3 bucket to deploy artifacts to'),
+    s3_prefix: Optional[str] = Field(default=None, description='S3 prefix for the artifacts'),
+    region: Optional[str] = Field(default=None, description='AWS region to deploy to'),
+    profile: Optional[str] = Field(default=None, description='AWS profile to use'),
+    parameter_overrides: Optional[str] = Field(
+        default=None, description='CloudFormation parameter overrides encoded as key-value pairs'
+    ),
+    capabilities: Optional[
+        List[Literal['CAPABILITY_IAM', 'CAPABILITY_NAMED_IAM', 'CAPABILITY_AUTO_EXPAND']]
+    ] = Field(
+        default=['CAPABILITY_IAM'], description='IAM capabilities required for the deployment'
+    ),
+    config_file: Optional[str] = Field(
+        default=None, description='Absolute path to the SAM configuration file'
+    ),
+    config_env: Optional[str] = Field(
+        default=None,
+        description='Environment name specifying default parameter values in the configuration file',
+    ),
+    metadata: Optional[Dict[str, str]] = Field(
+        default=None, description='Metadata to include with the stack'
+    ),
+    tags: Optional[Dict[str, str]] = Field(default=None, description='Tags to apply to the stack'),
+    resolve_s3: bool = Field(
+        default=False, description='Automatically create an S3 bucket for deployment artifacts'
+    ),
+    debug: bool = Field(default=False, description='Turn on debug logging'),
+) -> Dict[str, Any]:
     """Asynchronously deploys an AWS SAM project to AWS CloudFormation.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (SamDeployRequest): The deployment request containing parameters such as application name and project directory.
+        application_name (str): Name of the application to be deployed.
+        project_directory (str): Absolute path to directory containing the SAM project.
+        template_file (Optional[str], optional): Absolute path to the template file. Defaults to None.
+        s3_bucket (Optional[str], optional): S3 bucket to deploy artifacts to. Defaults to None.
+        s3_prefix (Optional[str], optional): S3 prefix for the artifacts. Defaults to None.
+        region (Optional[str], optional): AWS region to deploy to. Defaults to None.
+        profile (Optional[str], optional): AWS profile to use. Defaults to None.
+        parameter_overrides (Optional[str], optional): CloudFormation parameter overrides. Defaults to None.
+        capabilities (Optional[List[str]], optional): IAM capabilities required for the deployment. Defaults to ["CAPABILITY_IAM"].
+        config_file (Optional[str], optional): Absolute path to the SAM configuration file. Defaults to None.
+        config_env (Optional[str], optional): Environment name specifying default parameter values. Defaults to None.
+        metadata (Optional[Dict[str, str]], optional): Metadata to include with the stack. Defaults to None.
+        tags (Optional[Dict[str, str]], optional): Tags to apply to the stack. Defaults to None.
+        resolve_s3 (bool, optional): Automatically create an S3 bucket for deployment artifacts. Defaults to False.
+        debug (bool, optional): Turn on debug logging. Defaults to False.
 
     Returns:
         str: The output or result of the SAM deployment process.
@@ -264,6 +489,26 @@ async def sam_deploy_tool(ctx: Context, request: SamDeployRequest) -> Dict[str, 
             'success': False,
             'error': 'Write operations are not allowed. Set --allow-write flag to true to enable write operations.',
         }
+
+    # Create the SamDeployRequest object from the individual parameters
+    request = SamDeployRequest(
+        application_name=application_name,
+        project_directory=project_directory,
+        template_file=template_file,
+        s3_bucket=s3_bucket,
+        s3_prefix=s3_prefix,
+        region=region,
+        profile=profile,
+        parameter_overrides=parameter_overrides,
+        capabilities=capabilities,
+        config_file=config_file,
+        config_env=config_env,
+        metadata=metadata,
+        tags=tags,
+        resolve_s3=resolve_s3,
+        debug=debug,
+    )
+
     await ctx.info(
         f"Deploying SAM application '{request.application_name}' from {request.project_directory}"
     )
@@ -275,12 +520,57 @@ async def sam_deploy_tool(ctx: Context, request: SamDeployRequest) -> Dict[str, 
         Fetches CloudWatch logs that are generated by resources in a SAM application. Use this tool
         to help debug invocation failures and find root causes."""
 )
-async def sam_logs_tool(ctx: Context, request: SamLogsRequest) -> Dict[str, Any]:
+async def sam_logs_tool(
+    ctx: Context,
+    resource_name: Optional[str] = Field(
+        default=None,
+        description="Name of the resource to fetch logs for.\n            This is be the logical ID of the function resource in the AWS CloudFormation/AWS SAM template.\n            Multiple names can be provided by repeating the parameter again. If you don't specify this option,\n            AWS SAM fetches logs for all resources in the stack that you specify. You must specify stack_name when\n            specifying resource_name.",
+    ),
+    stack_name: Optional[str] = Field(
+        default=None, description='Name of the CloudFormation stack'
+    ),
+    start_time: Optional[str] = Field(
+        default=None,
+        description='Fetch logs starting from this time (format: 5mins ago, tomorrow, or YYYY-MM-DD HH:MM:SS)',
+    ),
+    end_time: Optional[str] = Field(
+        default=None,
+        description='Fetch logs up until this time (format: 5mins ago, tomorrow, or YYYY-MM-DD HH:MM:SS)',
+    ),
+    output: Optional[Literal['text', 'json']] = Field(default='text', description='Output format'),
+    region: Optional[str] = Field(default=None, description='AWS region to use (e.g., us-east-1)'),
+    profile: Optional[str] = Field(default=None, description='AWS profile to use'),
+    cw_log_group: Optional[List[str]] = Field(
+        default=None,
+        description='Use AWS CloudWatch to fetch logs. Includes logs from the CloudWatch Logs log groups that you specify\n            If you specify this option along with name, AWS SAM includes logs from the specified log groups in addition to logs\n            from the named resources.',
+    ),
+    config_env: Optional[str] = Field(
+        default=None,
+        description='Environment name specifying default parameter values in the configuration file',
+    ),
+    config_file: Optional[str] = Field(
+        default=None,
+        description='Absolute path to configuration file containing default parameter values',
+    ),
+    save_params: bool = Field(
+        default=False, description='Save parameters to the SAM configuration file'
+    ),
+) -> Dict[str, Any]:
     """Asynchronously fetches CloudWatch logs for resources in a SAM application.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (SamLogsRequest): The logs request containing parameters such as resource name and stack name.
+        resource_name (Optional[str], optional): Name of the resource to fetch logs for. Defaults to None.
+        stack_name (Optional[str], optional): Name of the CloudFormation stack. Defaults to None.
+        start_time (Optional[str], optional): Fetch logs starting from this time. Defaults to None.
+        end_time (Optional[str], optional): Fetch logs up until this time. Defaults to None.
+        output (Optional[str], optional): Output format. Defaults to "text".
+        region (Optional[str], optional): AWS region to use. Defaults to None.
+        profile (Optional[str], optional): AWS profile to use. Defaults to None.
+        cw_log_group (Optional[List[str]], optional): Use AWS CloudWatch to fetch logs. Defaults to None.
+        config_env (Optional[str], optional): Environment name specifying default parameter values. Defaults to None.
+        config_file (Optional[str], optional): Absolute path to configuration file. Defaults to None.
+        save_params (bool, optional): Save parameters to the SAM configuration file. Defaults to False.
 
     Returns:
         Dict[str, Any]: A dictionary containing the logs and related information.
@@ -290,6 +580,22 @@ async def sam_logs_tool(ctx: Context, request: SamLogsRequest) -> Dict[str, Any]
             'success': False,
             'error': 'Sensitive data access is not allowed. Set --allow-sensitive-data flag to true to access logs.',
         }
+
+    # Create the SamLogsRequest object from the individual parameters
+    request = SamLogsRequest(
+        resource_name=resource_name,
+        stack_name=stack_name,
+        start_time=start_time,
+        end_time=end_time,
+        output=output,
+        region=region,
+        profile=profile,
+        cw_log_group=cw_log_group,
+        config_env=config_env,
+        config_file=config_file,
+        save_params=save_params,
+    )
+
     await ctx.info(f"Fetching logs for resource '{request.resource_name}'")
     response = await handle_sam_logs(request)
     return response
@@ -302,16 +608,82 @@ async def sam_logs_tool(ctx: Context, request: SamLogsRequest) -> Dict[str, Any]
     You can use this tool to test your Lambda functions before deploying them to AWS. Docker must be installed and running in your environment.
     """
 )
-async def sam_local_invoke_tool(ctx: Context, request: SamLocalInvokeRequest) -> Dict[str, Any]:
+async def sam_local_invoke_tool(
+    ctx: Context,
+    project_directory: str = Field(
+        description='Absolute path to directory containing the SAM project'
+    ),
+    resource_name: str = Field(description='Name of the Lambda function to invoke locally'),
+    template_file: Optional[str] = Field(
+        default=None,
+        description='Absolute path to the SAM template file (defaults to template.yaml)',
+    ),
+    event_file: Optional[str] = Field(
+        default=None, description='Absolute path to a JSON file containing event data'
+    ),
+    event_data: Optional[str] = Field(
+        default=None, description='JSON string containing event data (alternative to event_file)'
+    ),
+    environment_variables_file: Optional[str] = Field(
+        default=None,
+        description='Absolute path to a JSON file containing environment variables to pass to the function',
+    ),
+    docker_network: Optional[str] = Field(
+        default=None, description='Docker network to run the Lambda function in'
+    ),
+    container_env_vars: Optional[Dict[str, str]] = Field(
+        default=None, description='Environment variables to pass to the container'
+    ),
+    parameter: Optional[Dict[str, str]] = Field(
+        default=None, description='Override parameters from the template file'
+    ),
+    log_file: Optional[str] = Field(
+        default=None, description='Absolute path to a file where the function logs will be written'
+    ),
+    layer_cache_basedir: Optional[str] = Field(
+        default=None, description='Directory where the layers will be cached'
+    ),
+    region: Optional[str] = Field(default=None, description='AWS region to use (e.g., us-east-1)'),
+    profile: Optional[str] = Field(default=None, description='AWS profile to use'),
+) -> Dict[str, Any]:
     """Asynchronously invokes an AWS SAM local resource for testing purposes.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (SamLocalInvokeRequest): The request object containing details about the resource to invoke and the project directory.
+        project_directory (str): Absolute path to directory containing the SAM project.
+        resource_name (str): Name of the Lambda function to invoke locally.
+        template_file (Optional[str], optional): Absolute path to the SAM template file. Defaults to None.
+        event_file (Optional[str], optional): Absolute path to a JSON file containing event data. Defaults to None.
+        event_data (Optional[str], optional): JSON string containing event data. Defaults to None.
+        environment_variables_file (Optional[str], optional): Absolute path to a JSON file containing environment variables. Defaults to None.
+        docker_network (Optional[str], optional): Docker network to run the Lambda function in. Defaults to None.
+        container_env_vars (Optional[Dict[str, str]], optional): Environment variables to pass to the container. Defaults to None.
+        parameter (Optional[Dict[str, str]], optional): Override parameters from the template file. Defaults to None.
+        log_file (Optional[str], optional): Absolute path to a file where the function logs will be written. Defaults to None.
+        layer_cache_basedir (Optional[str], optional): Directory where the layers will be cached. Defaults to None.
+        region (Optional[str], optional): AWS region to use. Defaults to None.
+        profile (Optional[str], optional): AWS profile to use. Defaults to None.
 
     Returns:
         Dict[str, Any]: The response from the local invocation of the specified SAM resource.
     """
+    # Create the SamLocalInvokeRequest object from the individual parameters
+    request = SamLocalInvokeRequest(
+        project_directory=project_directory,
+        resource_name=resource_name,
+        template_file=template_file,
+        event_file=event_file,
+        event_data=event_data,
+        environment_variables_file=environment_variables_file,
+        docker_network=docker_network,
+        container_env_vars=container_env_vars,
+        parameter=parameter,
+        log_file=log_file,
+        layer_cache_basedir=layer_cache_basedir,
+        region=region,
+        profile=profile,
+    )
+
     await ctx.info(
         f"Locally invoking resource '{request.resource_name}' in {request.project_directory}"
     )
@@ -329,17 +701,25 @@ async def sam_local_invoke_tool(ctx: Context, request: SamLocalInvokeRequest) ->
     """
 )
 async def get_lambda_guidance_tool(
-    ctx: Context, request: GetLambdaGuidanceRequest
+    ctx: Context,
+    use_case: str = Field(description='Description of the use case'),
+    include_examples: Optional[bool] = Field(
+        default=True, description='Whether to include examples'
+    ),
 ) -> Dict[str, Any]:
     """Asynchronously retrieves Lambda guidance based on the provided use case request.
 
     Args:
         ctx (Context): The context object, used for logging and request context.
-        request (GetLambdaGuidanceRequest): The request object containing the use case for which guidance is needed.
+        use_case (str): Description of the use case.
+        include_examples (Optional[bool], optional): Whether to include examples. Defaults to True.
 
     Returns:
         Dict[str, Any]: A dictionary containing the Lambda guidance response.
     """
+    # Create the GetLambdaGuidanceRequest object from the individual parameters
+    request = GetLambdaGuidanceRequest(use_case=use_case, include_examples=include_examples)
+
     await ctx.info(f'Getting Lambda guidance for {request.use_case}')
     response = await get_lambda_guidance(request)
     return response
@@ -352,16 +732,28 @@ async def get_lambda_guidance_tool(
     based on your specific use case and requirements.
     """
 )
-async def get_iac_guidance_tool(ctx: Context, request: GetIaCGuidanceRequest) -> Dict[str, Any]:
+async def get_iac_guidance_tool(
+    ctx: Context,
+    iac_tool: Optional[Literal['CloudFormation', 'SAM', 'CDK', 'Terraform']] = Field(
+        default='CloudFormation', description='IaC tool to use'
+    ),
+    include_examples: Optional[bool] = Field(
+        default=True, description='Whether to include examples'
+    ),
+) -> Dict[str, Any]:
     """Asynchronously retrieves guidance on selecting an Infrastructure as Code (IaC) platform.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (GetIaCGuidanceRequest): The request object containing parameters such as the IaC tool.
+        iac_tool (Optional[str], optional): IaC tool to use. Defaults to "CloudFormation".
+        include_examples (Optional[bool], optional): Whether to include examples. Defaults to True.
 
     Returns:
         Dict[str, Any]: A dictionary containing the IaC guidance information.
     """
+    # Create the GetIaCGuidanceRequest object from the individual parameters
+    request = GetIaCGuidanceRequest(iac_tool=iac_tool, include_examples=include_examples)
+
     await ctx.info(
         f'Getting IaC guidance for {request.iac_tool if request.iac_tool else "all tools"}'
     )
@@ -379,17 +771,27 @@ async def get_iac_guidance_tool(ctx: Context, request: GetIaCGuidanceRequest) ->
     """
 )
 async def get_lambda_event_schemas_tool(
-    ctx: Context, request: GetLambdaEventSchemasRequest
+    ctx: Context,
+    event_source: str = Field(
+        description='Event source (e.g., api-gw, s3, sqs, sns, kinesis, eventbridge, dynamodb)'
+    ),
+    runtime: str = Field(
+        description='Programming language for the schema references (e.g., go, nodejs, python, java)'
+    ),
 ) -> Dict[str, Any]:
     """Asynchronously retrieves AWS Lambda event schemas for different event sources and programming languages.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (GetLambdaEventSchemasRequest): The request object containing the event source and runtime.
+        event_source (str): Event source (e.g., api-gw, s3, sqs, sns, kinesis, eventbridge, dynamodb).
+        runtime (str): Programming language for the schema references (e.g., go, nodejs, python, java).
 
     Returns:
         Dict[str, Any]: A dictionary containing the Lambda event schemas.
     """
+    # Create the GetLambdaEventSchemasRequest object from the individual parameters
+    request = GetLambdaEventSchemasRequest(event_source=event_source, runtime=runtime)
+
     await ctx.info(f'Getting Lambda event schemas for {request.event_source} in {request.runtime}')
     response = await get_lambda_event_schemas(request)
     return response
@@ -402,12 +804,33 @@ async def get_lambda_event_schemas_tool(
     deployed to Lambda. You do not need to use integrate the code with any adapter framework when using this tool.
     """
 )
-async def deploy_webapp_tool(ctx: Context, request: DeployWebAppRequest) -> Dict[str, Any]:
+async def deploy_webapp_tool(
+    ctx: Context,
+    deployment_type: Literal['backend', 'frontend', 'fullstack'] = Field(
+        description='Type of deployment'
+    ),
+    project_name: str = Field(description='Project name'),
+    project_root: str = Field(description='Absolute path to the project root directory'),
+    region: Optional[str] = Field(
+        default=None, description='AWS Region to deploy to (e.g., us-east-1)'
+    ),
+    backend_configuration: Optional[BackendConfiguration] = Field(
+        default=None, description='Backend configuration'
+    ),
+    frontend_configuration: Optional[FrontendConfiguration] = Field(
+        default=None, description='Frontend configuration'
+    ),
+) -> Dict[str, Any]:
     """Asynchronously deploys a web application to AWS Serverless infrastructure.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (DeployWebAppRequest): The deployment request containing parameters such as project name and root directory.
+        deployment_type (str): Type of deployment (backend, frontend, or fullstack).
+        project_name (str): Project name.
+        project_root (str): Absolute path to the project root directory.
+        region (Optional[str], optional): AWS Region to deploy to. Defaults to None.
+        backend_configuration (Optional[Dict[str, Any]], optional): Backend configuration. Defaults to None.
+        frontend_configuration (Optional[Dict[str, Any]], optional): Frontend configuration. Defaults to None.
 
     Returns:
         Dict[str, Any]: A dictionary containing the deployment results and information.
@@ -417,6 +840,17 @@ async def deploy_webapp_tool(ctx: Context, request: DeployWebAppRequest) -> Dict
             'success': False,
             'error': 'Write operations are not allowed. Set --allow-write flag to true to enable write operations.',
         }
+
+    # Create the DeployWebAppRequest object from the individual parameters
+    request = DeployWebAppRequest(
+        deployment_type=deployment_type,
+        project_name=project_name,
+        project_root=project_root,
+        region=region,
+        backend_configuration=backend_configuration,
+        frontend_configuration=frontend_configuration,
+    )
+
     await ctx.info(
         f"Deploying web application '{request.project_name}' from {request.project_root}"
     )
@@ -432,17 +866,23 @@ async def deploy_webapp_tool(ctx: Context, request: DeployWebAppRequest) -> Dict
     """
 )
 async def webapp_deployment_help_tool(
-    ctx: Context, request: WebappDeploymentHelpRequest
+    ctx: Context,
+    deployment_type: Literal['backend', 'frontend', 'fullstack'] = Field(
+        description='Type of deployment to get help information for'
+    ),
 ) -> Dict[str, Any]:
     """Asynchronously retrieves help information about web application deployments.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (WebappDeploymentHelpRequest): The request object containing the deployment type.
+        deployment_type (str): Type of deployment to get help information for.
 
     Returns:
         Dict[str, Any]: A dictionary containing the deployment help information.
     """
+    # Create the WebappDeploymentHelpRequest object from the individual parameters
+    request = WebappDeploymentHelpRequest(deployment_type=deployment_type)
+
     await ctx.info(f'Getting deployment help for {request.deployment_type}')
     response = await webapp_deployment_help(request)
     return response
@@ -454,16 +894,46 @@ async def webapp_deployment_help_tool(
     on error rates, latency, concurrency, etc.
     """
 )
-async def get_metrics_tool(ctx: Context, request: GetMetricsRequest) -> Dict[str, Any]:
+async def get_metrics_tool(
+    ctx: Context,
+    project_name: str = Field(description='Project name'),
+    start_time: Optional[str] = Field(
+        default=None, description='Start time for metrics (ISO format)'
+    ),
+    end_time: Optional[str] = Field(default=None, description='End time for metrics (ISO format)'),
+    period: Optional[int] = Field(default=60, description='Period for metrics in seconds'),
+    resources: Optional[List[Literal['lambda', 'apiGateway', 'cloudfront']]] = Field(
+        default=['lambda', 'apiGateway'], description='Resources to get metrics for'
+    ),
+    region: Optional[str] = Field(default=None, description='AWS region to use (e.g., us-east-1)'),
+    stage: Optional[str] = Field(default='prod', description='API Gateway stage'),
+) -> Dict[str, Any]:
     """Asynchronously retrieves CloudWatch metrics for a deployed web application.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (GetMetricsRequest): The request object containing parameters such as project name and time range.
+        project_name (str): Project name.
+        start_time (Optional[str], optional): Start time for metrics (ISO format). Defaults to None.
+        end_time (Optional[str], optional): End time for metrics (ISO format). Defaults to None.
+        period (Optional[int], optional): Period for metrics in seconds. Defaults to 60.
+        resources (Optional[List[str]], optional): Resources to get metrics for. Defaults to ["lambda", "apiGateway"].
+        region (Optional[str], optional): AWS region to use. Defaults to None.
+        stage (Optional[str], optional): API Gateway stage. Defaults to "prod".
 
     Returns:
         Dict[str, Any]: A dictionary containing the metrics data.
     """
+    # Create the GetMetricsRequest object from the individual parameters
+    request = GetMetricsRequest(
+        project_name=project_name,
+        start_time=start_time,
+        end_time=end_time,
+        period=period,
+        resources=resources,
+        region=region,
+        stage=stage,
+    )
+
     await ctx.info(f'Getting metrics for project {request.project_name}')
     response = await get_metrics(request)
     return response
@@ -476,17 +946,37 @@ async def get_metrics_tool(ctx: Context, request: GetMetricsRequest) -> Dict[str
     """
 )
 async def update_webapp_frontend_tool(
-    ctx: Context, request: UpdateFrontendRequest
+    ctx: Context,
+    project_name: str = Field(description='Project name'),
+    project_root: str = Field(description='Project root'),
+    built_assets_path: str = Field(description='Absolute path to pre-built frontend assets'),
+    invalidate_cache: Optional[bool] = Field(
+        default=True, description='Whether to invalidate the CloudFront cache'
+    ),
+    region: Optional[str] = Field(default=None, description='AWS region to use (e.g., us-east-1)'),
 ) -> Dict[str, Any]:
     """Asynchronously updates the frontend assets of a deployed web application.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (UpdateFrontendRequest): The request object containing parameters such as project name and assets path.
+        project_name (str): Project name.
+        project_root (str): Project root.
+        built_assets_path (str): Absolute path to pre-built frontend assets.
+        invalidate_cache (Optional[bool], optional): Whether to invalidate the CloudFront cache. Defaults to True.
+        region (Optional[str], optional): AWS region to use. Defaults to None.
 
     Returns:
         Dict[str, Any]: A dictionary containing the update results.
     """
+    # Create the UpdateFrontendRequest object from the individual parameters
+    request = UpdateFrontendRequest(
+        project_name=project_name,
+        project_root=project_root,
+        built_assets_path=built_assets_path,
+        invalidate_cache=invalidate_cache,
+        region=region,
+    )
+
     await ctx.info(f'Updating frontend for project {request.project_name}')
     response = await update_webapp_frontend(request)
     return response
@@ -499,16 +989,40 @@ async def update_webapp_frontend_tool(
     Use this tool after deploying your web application to associate it with your own domain name.
     """
 )
-async def configure_domain_tool(ctx: Context, request: ConfigureDomainRequest) -> Dict[str, Any]:
+async def configure_domain_tool(
+    ctx: Context,
+    project_name: str = Field(description='Project name'),
+    domain_name: str = Field(description='Custom domain name'),
+    create_certificate: Optional[bool] = Field(
+        default=True, description='Whether to create a ACM certificate'
+    ),
+    create_route53_record: Optional[bool] = Field(
+        default=True, description='Whether to create a Route 53 record'
+    ),
+    region: Optional[str] = Field(default=None, description='AWS region to use (e.g., us-east-1)'),
+) -> Dict[str, Any]:
     """Asynchronously configures a custom domain for a deployed web application.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (ConfigureDomainRequest): The request object containing parameters such as project name and domain name.
+        project_name (str): Project name.
+        domain_name (str): Custom domain name.
+        create_certificate (Optional[bool], optional): Whether to create a ACM certificate. Defaults to True.
+        create_route53_record (Optional[bool], optional): Whether to create a Route 53 record. Defaults to True.
+        region (Optional[str], optional): AWS region to use. Defaults to None.
 
     Returns:
         Dict[str, Any]: A dictionary containing the domain configuration results.
     """
+    # Create the ConfigureDomainRequest object from the individual parameters
+    request = ConfigureDomainRequest(
+        project_name=project_name,
+        domain_name=domain_name,
+        create_certificate=create_certificate,
+        create_route53_record=create_route53_record,
+        region=region,
+    )
+
     return await configure_domain(request)
 
 
@@ -521,17 +1035,23 @@ async def configure_domain_tool(ctx: Context, request: ConfigureDomainRequest) -
     """
 )
 async def deploy_serverless_app_help_tool(
-    ctx: Context, request: DeployServerlessAppHelpRequest
+    ctx: Context,
+    application_type: Literal['event_driven', 'backend', 'fullstack'] = Field(
+        description='Type of application to deploy'
+    ),
 ) -> Dict[str, Any]:
     """Asynchronously provides instructions on how to deploy a serverless application to AWS Lambda.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (DeployServerlessAppHelpRequest): The request object containing the application type.
+        application_type (str): Type of application to deploy.
 
     Returns:
         Dict[str, Any]: A dictionary containing the deployment help information.
     """
+    # Create the DeployServerlessAppHelpRequest object from the individual parameters
+    request = DeployServerlessAppHelpRequest(application_type=application_type)
+
     # Map the string literal to the enum value
     app_type_map = {
         'event_driven': ApplicationType.EVENT_DRIVEN,
@@ -551,17 +1071,25 @@ async def deploy_serverless_app_help_tool(
     """
 )
 async def get_serverless_templates_tool(
-    ctx: Context, request: GetServerlessTemplatesRequest
+    ctx: Context,
+    template_type: str = Field(description='Template type (e.g., API, ETL, Web)'),
+    runtime: Optional[str] = Field(
+        default=None, description='Lambda runtime (e.g., nodejs18.x, python3.9)'
+    ),
 ) -> Dict[str, Any]:
     """Asynchronously retrieves example SAM templates from the Serverless Land GitHub repository.
 
     Args:
         ctx (Context): The execution context, used for logging and other contextual operations.
-        request (GetServerlessTemplatesRequest): The request object containing parameters such as template type and runtime.
+        template_type (str): Template type (e.g., API, ETL, Web).
+        runtime (Optional[str], optional): Lambda runtime (e.g., nodejs18.x, python3.9). Defaults to None.
 
     Returns:
         Dict[str, Any]: A dictionary containing the serverless templates.
     """
+    # Create the GetServerlessTemplatesRequest object from the individual parameters
+    request = GetServerlessTemplatesRequest(template_type=template_type, runtime=runtime)
+
     await ctx.info(
         f'Getting serverless templates for {request.template_type if request.template_type else "all types"} and {request.runtime if request.runtime else "all runtimes"}'
     )
