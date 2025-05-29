@@ -48,7 +48,7 @@ Add the following code to your MCP client configuration. The Serverless MCP serv
     "awslabs.aws-serverless-mcp-server": {
       "command": "uvx",
       "args": [
-        "awslabs.aws_serverless_mcp_server@latest",
+        "awslabs.aws-serverless-mcp-server@latest",
         "--allow-write",
         "--allow-sensitive-data-access"
       ],
